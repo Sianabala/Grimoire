@@ -1,0 +1,57 @@
+{
+  "set": { "code": "NL", "name": "Nouvelle Lumière", "total": 47, "version": 1 },
+  "cards": [
+    { "id": "NL-001", "name": "Titan", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-002", "name": "Chasseur", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-003", "name": "Arcaniste", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-004", "name": "Escouade", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-005", "name": "Tess Everis", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-006", "name": "Cryptarque", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-007", "name": "Raspoutine", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-008", "name": "Shaw Han", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-009", "name": "Devrim Kay", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-010", "name": "Failsafe", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-011", "name": "Suraya Hawthorne", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-012", "name": "Frère Vance", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-013", "name": "Darbi 55-30", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-014", "name": "Tyra karn", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-015", "name": "La Tour", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "" },
+    { "id": "NL-016", "name": "Le Domaine", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "" },
+    { "id": "NL-017", "name": "Ramen", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "object", "image": "" },
+
+    { "id": "NL-018", "name": "Cayde-6", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "" },
+    { "id": "NL-019", "name": "Le Colonel", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "" },
+    { "id": "NL-020", "name": "Coffre de région", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "bonus", "image": "" },
+
+    { "id": "NL-021", "name": "Commandant Zavala", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-022", "name": "Ikora Rey", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-023", "name": "Saint-14", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-024", "name": "Osiris", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-025", "name": "Seigneur Shaxx", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-026", "name": "Le Corbeau", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-027", "name": "Mara Sov", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-028", "name": "Elisabeth Bray", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "" },
+    { "id": "NL-029", "name": "Eclat de lumière", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "object", "image": "" },
+    { "id": "NL-030", "name": "Spectre", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "bonus", "image": "" },
+
+    { "id": "NL-031", "name": "Le Vagabond", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-032", "name": "Eris Morn", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-033", "name": "Clovis Bray", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-034", "name": "Nimbus", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-035", "name": "Saladin", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-036", "name": "Sloane", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "" },
+    { "id": "NL-037", "name": "Bannière de ralliement", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "object", "image": "" },
+    { "id": "NL-038", "name": "Avant-Garde", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "bonus", "image": "" },
+
+    { "id": "NL-039", "name": "Anastasia Bray", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-040", "name": "Banshee-44", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-041", "name": "Petra Venj", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-042", "name": "Ada-1", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-043", "name": "L'araignée", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-044", "name": "Amanda Holliday", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+    { "id": "NL-045", "name": "Asher Mir", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "" },
+
+    { "id": "NL-046", "name": "Coffre", "set": "Nouvelle Lumière", "rarity": "", "cardType": "bonus", "needsReview": true, "image": "" },
+    { "id": "NL-047", "name": "Sacrifice", "set": "Nouvelle Lumière", "rarity": "", "cardType": "bonus", "needsReview": true, "image": "" }
+  ]
+}
