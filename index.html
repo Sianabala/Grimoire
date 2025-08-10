@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype v2.5</title>
+  <title>Grimoire · Prototype v2.5 (Auth fix)</title>
   <style>
     :root{
       --bg:#0b0f1a; /* nuit spatiale */
@@ -187,6 +187,7 @@
           <div class="diag">Projet: <span id="cfg-project" class="diag">(—)</span> — Auth Domain: <span id="cfg-authdomain" class="diag">(—)</span> — API Key: <span id="cfg-apikey" class="diag">(—)</span></div>
           <div class="footerbar">
             <button id="btn-test-config" class="btn ghost">Tester config Firebase</button>
+            <button id="btn-test-auth" class="btn ghost">Tester Auth (qui suis‑je ?)</button>
             <button id="btn-test-draws" class="btn ghost">Test tirages (10 000)</button>
             <button id="btn-test-premium" class="btn ghost">Test Premium garanti (1 000)</button>
             <button id="btn-test-firestore" class="btn ghost">Test Firestore round‑trip</button>
@@ -201,7 +202,7 @@
   <script type="module">
     // Firebase + Auth (Twitch OIDC) + Firestore — config directe
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -217,6 +218,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // IMPORTANT : forcer la persistance de session avant tout sign‑in
+    try { await setPersistence(auth, browserLocalPersistence); } catch(e) { console.warn('Set persistence failed', e); }
+
     // UI diag config
     document.getElementById('cfg-project').textContent = firebaseConfig.projectId;
     document.getElementById('cfg-authdomain').textContent = firebaseConfig.authDomain;
@@ -224,7 +228,12 @@
 
     // Auth Twitch OIDC
     const twitchProvider = new OAuthProvider('oidc.twitch');
-    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
+    try {
+      twitchProvider.addScope('openid');
+      twitchProvider.addScope('user:read:email');
+      // Évite les retours silencieux si une session Twitch existe déjà
+      twitchProvider.setCustomParameters({ prompt: 'consent' });
+    } catch {}
 
     const loginBtn = document.getElementById('btn-login');
     const logoutBtn = document.getElementById('btn-logout');
@@ -235,7 +244,19 @@
     });
     logoutBtn.addEventListener('click', async ()=>{ try{ await signOut(auth);}catch(e){ console.error(e);} });
 
-    await getRedirectResult(auth).catch(e=>{ if(e && e.code!=='auth/no-auth-event'){ console.warn('Redirect error', e); }});
+    // Récupérer le résultat de redirection (si présent)
+    try {
+      const res = await getRedirectResult(auth);
+      if(res?.user){
+        console.log('[OIDC] redirect -> connecté', res.user.uid);
+        const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += ('[OIDC] Redirect OK — uid: '+res.user.uid+'\n'); }
+      }
+    } catch(e){
+      const msg = 'OIDC redirect error: '+ (e?.code||'') + ' — ' + (e?.message||e);
+      console.warn(msg, e);
+      const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += (msg+'\n'); }
+      alert(msg);
+    }
 
     // Données jeu — Set: Nouvelle Lumière
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
@@ -274,7 +295,6 @@
 
     function xpForLevel(level){ return LEVEL_XP_BASE; }
     function nextRewardForLevel(level){
-      // Exemple: niveaux 2,5,10 -> Premium ; sinon Standard
       if(level===1) return {type:'pack_standard', label:'Pack Standard'};
       if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
       return {type:'pack_standard', label:'Pack Standard'};
@@ -423,9 +443,10 @@
       });
     }
 
-    // Auth listener
+    // Auth listener — toujours actif
     onAuthStateChanged(auth, async (user)=>{
       currentUser = user || null;
+      console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null');
       loginBtn.style.display = currentUser? 'none' : '';
       logoutBtn.style.display = currentUser? '' : 'none';
       if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }
@@ -445,6 +466,22 @@
       checks.push(['appId ok', !!firebaseConfig.appId]);
       for(const [name, ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`); }
       printDiag('\nConfig OK pour initialiser Firebase si toutes les coches sont vertes.');
+      printDiag('Domaines autorisés Firebase -> ajoute ton domaine Vercel + firebaseapp.com');
+    });
+
+    document.getElementById('btn-test-auth').addEventListener('click', ()=>{
+      clearDiag();
+      if(currentUser){
+        printDiag('Connecté ✅');
+        printDiag('uid: '+ currentUser.uid);
+        printDiag('displayName: '+ (currentUser.displayName||'(—)'));
+        printDiag('email: '+ (currentUser.email||'(—)'));
+        printDiag('providerId: '+ (currentUser.providerData?.[0]?.providerId||'(—)'));
+      } else {
+        printDiag('Non connecté ❌');
+        printDiag('Astuce: Redirect URL exacte sur Twitch => https://'+ location.host +'/__/auth/handler');
+        printDiag('Vérifie aussi Firebase → Authentication → Domaines autorisés : ajoute ton domaine Vercel.');
+      }
     });
 
     document.getElementById('btn-test-draws').addEventListener('click', ()=>{
@@ -494,54 +531,6 @@
       }catch(e){ printDiag('❌ Erreur priorité cloud: ' + (e?.message||e)); }
     });
 
-    // Actions UI
-    function renderPacks(){
-      const wrap = document.getElementById('packs');
-      wrap.innerHTML='';
-      const packs = [
-        {
-          id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires',
-          loot:["Set inclus : La Tour, Nouvelle Lumière"],
-          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
-          action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) }
-        },
-        {
-          id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)',
-          loot:["Set inclus : Nouvelle Lumière"],
-          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
-          locked:true,
-          action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') }
-        }
-      ];
-      for(const p of packs){
-        const card = document.createElement('div');
-        card.className='pack';
-        card.innerHTML = `
-          <div style=\"display:flex;justify-content:space-between;align-items:start;gap:10px\">
-            <div>
-              <div style=\"font-size:18px;font-weight:800\">${p.name}</div>
-              <div class=\"subtitle\">${p.desc}</div>
-            </div>
-            ${p.locked? '<span class=\"tag\"><span class=\"dot\" style=\"background:#ef4444\"></span>Verrouillé</span>':''}
-          </div>
-          <div class=\"loot\">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
-          <div class=\"odds\">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
-          <div style=\"margin-top:10px\"><button class=\"btn ${p.locked?'secondary':''}\" aria-label=\"${p.action.label}\">${p.action.label}</button></div>
-        `;
-        const btn = card.querySelector('button');
-        btn.addEventListener('click', p.action.click);
-        wrap.appendChild(card);
-      }
-    }
-
-    document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
-    document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
-    document.getElementById('btn-reset').addEventListener('click', ()=>{
-      if(confirm('Réinitialiser la collection locale ?')){
-        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); profile={level:1,xp:0}; saveProfile();
-        renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
-      }
-    });
     document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
       if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
       try{
