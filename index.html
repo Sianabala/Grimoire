@@ -3,129 +3,168 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype V3.2 (popup auth + sets dynamiques)</title>
+  <title>Grimoire · Prototype V3.4</title>
   <link rel="prefetch" href="/collection.html" as="document">
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <style>
-    :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
-    *{box-sizing:border-box; scrollbar-width: thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04); }
-    *::-webkit-scrollbar{ height:10px; width:10px; }
-    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); }
-    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6); }
+    :root{
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444;
+      --ring:0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
+      --card-w: 220px;
+    }
 
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);color:var(--text)}
-    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:linear-gradient(180deg,rgba(11,15,26,.9),rgba(11,15,26,.6));border-bottom:1px solid rgba(255,255,255,.06)}
-    .container{max-width:1100px;margin:0 auto;padding:24px}
-    .row{display:flex;gap:20px;flex-wrap:wrap}
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+        radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+        linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
+    }
+
+    /* Aura décorative */
+    .aura{position:fixed; inset:0; pointer-events:none; mix-blend:screen; opacity:.55}
+    .aura::before, .aura::after{
+      content:""; position:absolute; border-radius:999px; filter: blur(60px);
+      background: radial-gradient(closest-side, rgba(124,92,255,.35), transparent 60%);
+      width:520px; height:520px; left:-160px; top:-160px;
+    }
+    .aura::after{background: radial-gradient(closest-side, rgba(184,107,255,.28), transparent 60%); width:560px; height:560px; right:-180px; left:auto; top:20vh}
+
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
+    .container{max-width:1200px;margin:0 auto;padding:22px}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+
+    /* Brand bar */
     .brand{display:flex;align-items:center;gap:14px}
-    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
-    .title{font-size:20px;font-weight:700}
+    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm); position:relative}
+    .logo::after{content:""; position:absolute; inset:2px; border-radius:12px; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.2), transparent 40%) }
+    .title{font-size:22px;font-weight:800;letter-spacing:.2px}
     .subtitle{font-size:12px;color:var(--muted)}
-    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:700}
+    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
+
+    .hero{display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .hero-text{display:flex; flex-direction:column}
+
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow); position:relative; overflow:clip}
-    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
-    .panel .bd{padding:18px}
-    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
-    .stat{background: linear-gradient(180deg,#0f172a,#0b1120); border:1px solid rgba(255,255,255,.06); border-radius:14px;padding:12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.04)}
-    .stat .v{font-size:24px;font-weight:800; letter-spacing:.2px }
+    @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
+
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);box-shadow:var(--shadow); position:relative; overflow:clip; will-change:transform}
+    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
+    .panel .bd{padding:18px 20px}
+
+    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+    .panel:hover{ box-shadow: 0 18px 50px rgba(124,92,255,.12); transform: translateY(-2px); transition: transform .25s ease, box-shadow .25s ease }
+
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+    .stat{background: linear-gradient(180deg,#0f172a,#0b1120); border-radius:16px;padding:12px; box-shadow: var(--ring)}
+    .stat .v{font-size:28px;font-weight:900; letter-spacing:.2px }
     .stat .k{font-size:12px;color:var(--muted); opacity:.9 }
-    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm); transition: transform .06s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease, color .2s ease}
-    .btn:hover{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124,92,255,.25);}
-    .btn:active{ transform: translateY(0); box-shadow: var(--shadow-sm); }
+
+    .btn{appearance:none;border:1px solid transparent;outline:0;padding:10px 14px;border-radius:14px;font-weight:800;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);
+      transition: transform .08s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease, color .2s ease}
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(124,92,255,.28)}
+    .btn:active{ transform: translateY(0) }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
-    .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06); }
-    .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .pack{display:flex;flex-direction:column;gap:12px;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
+    .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
+
+    .btn.pill{ border-radius:999px }
+
+    .footerbar{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+    /* Packs */
+    .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .pack{display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px; perspective:1000px; box-shadow: var(--ring); position:relative}
+    .pack:hover{ transform: translateY(-2px) }
+    .pack .cover{ height:120px; border-radius:14px; background:
+      radial-gradient(120px 60px at 10% 10%, rgba(124,92,255,.35), transparent 60%),
+      radial-gradient(120px 60px at 90% 20%, rgba(184,107,255,.28), transparent 60%),
+      linear-gradient(180deg,#0e1423,#0b0f1a);
+      border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.04)
+    }
+
+    /* Résultats */
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
-    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:18px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow-sm);position:relative;overflow:hidden; transition: transform .18s ease, box-shadow .18s ease, outline-color .2s ease; outline: 1px solid rgba(255,255,255,.06) }
-    .card:hover{ transform: translateY(-2px); }
-    .card .img{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.6;mix-blend:screen}
-    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.7))}
-    .card .footer .name{ font-weight:700; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
+    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:20px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow-sm);position:relative;overflow:hidden; outline: 1px solid rgba(255,255,255,.06);
+      transition: transform .18s ease, box-shadow .18s ease, outline-color .2s ease }
+    .card:hover{ transform: translateY(-2px) }
+    .card .shine{ position:absolute; inset:0; background: radial-gradient(1000px 1000px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.12), transparent 40%); mix-blend: overlay; pointer-events:none }
+    .card .img{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.7;mix-blend:screen}
+    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
+    .card .footer .name{ font-weight:800; text-shadow: 0 1px 0 rgba(0,0,0,.35) }
 
-    /* Tag de base (les couleurs par rareté viennent de /rarities.css) */
-    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05); position:relative}
-    .tag .dot{ display:inline-block;width:8px;height:8px;border-radius:999px;background:currentColor;opacity:.9; }
-    .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset; }
+    /* Tags (couleurs par rareté via /rarities.css) */
+    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+    .tag .dot{ width:8px;height:8px;border-radius:999px;background:currentColor;opacity:.9 }
+    .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset }
 
-    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px) }
-    .banner .close{ margin-left:auto; appearance:none; border:0; background:transparent; color:var(--text); opacity:.7; cursor:pointer; font-weight:700; font-size:14px; line-height:1 }
+    .banner{margin:12px 0;padding:12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px)}
+    .banner .close{ margin-left:auto; appearance:none; border:0; background:transparent; color:var(--text); opacity:.8; cursor:pointer; font-weight:900; font-size:16px; line-height:1 }
     .banner .close:hover{ opacity:1 }
 
-    .footerbar{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}
-    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
-
-    /* Border gradient + hover depth on panels */
-    .panel::before{
-      content:"";
-      position:absolute; inset:0;
-      border-radius:inherit;
-      padding:1px;
-      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.25));
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude;
-      pointer-events:none;
-    }
-    .panel:hover{
-      box-shadow: 0 12px 30px rgba(124,92,255,.10);
-      transform: translateY(-1px);
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-
-     /* Skeletons */
-    .skel{ position:relative; overflow:hidden; background:#0e1423; border-radius:12px; min-height:58px; border:1px solid rgba(255,255,255,.06); }
-    .skel::after{
-      content:""; position:absolute; inset:0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
-      transform: translateX(-100%); animation: shimmer 1.2s infinite;
-    }
-    @keyframes shimmer{ 100%{ transform: translateX(100%); } }
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
 
     /* Toast */
-    .toast{
-      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
-      background: rgba(18,24,41,.9); color: var(--text); border:1px solid rgba(255,255,255,.12);
+    .toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      background: rgba(18,24,41,.92); color: var(--text); border:1px solid rgba(255,255,255,.12);
       padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50;
-      opacity:0; transition: opacity .2s ease, transform .2s ease;
-    }
-    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
+      opacity:0; transition: opacity .2s ease, transform .2s ease }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
 
-    /* Accessibilité focus */
-    .btn:focus-visible, a:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius:8px; }
+    /* Progress */
+    .xpbar{height:12px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+    .xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow: 0 0 18px rgba(124,92,255,.35) inset; transition:width .25s ease}
 
-    /* Respect mode réduit (animations) */
-    @media (prefers-reduced-motion: no-preference){
-      .tag .dot{ animation: pulse 1.6s ease-in-out infinite; }
+    /* Accessibility */
+    .btn:focus-visible, a:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius:10px }
+    @media (prefers-reduced-motion: no-preference){ .tag .dot{ animation: pulse 1.6s ease-in-out infinite }
       @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
     }
   </style>
 </head>
 <body>
+  <div class="aura" aria-hidden="true"></div>
   <header>
-    <div class="container row" style="justify-content:space-between;align-items:center">
+    <div class="container hero">
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
-        <div>
+        <div class="hero-text">
           <div class="title">Grimoire</div>
-          <div class="subtitle">TCG digital — prototype V3.2 (popup + sets JSON)</div>
+          <div class="subtitle">TCG digital — prototype V3.4</div>
         </div>
       </div>
       <div class="row" style="gap:10px">
-        <a href="/collection.html" class="btn ghost" aria-label="Voir ma collection">Collection</a>
-        <button id="btn-login" class="btn">Se connecter avec Twitch</button>
-        <button id="btn-logout" class="btn ghost" style="display:none">Se déconnecter</button>
+        <a href="/collection.html" class="btn ghost pill" aria-label="Voir ma collection">Collection</a>
+        <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
+        <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <div class="grid" style="grid-template-columns:repeat(12,1fr)">
+    <div class="grid">
+
+      <!-- Statistiques -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span class="badge">Alpha — Firebase V3.2</span>
+          <span class="badge">Alpha — Firebase V3.4</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -135,23 +174,22 @@
             <div class="stat"><div class="v" id="stat-rank">Bronze I</div><div class="k">Rang</div></div>
           </div>
 
-          <div id="xp-wrap" style="margin-top:12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div id="xp-wrap" style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; gap:10px; flex-wrap:wrap">
               <div class="subtitle">Niveau <span id="stat-level">1</span> · XP <span id="stat-xp">0</span>/<span id="stat-xp-next">100</span></div>
               <div class="subtitle">Prochaine récompense : <span id="stat-next-reward">Pack Standard</span></div>
             </div>
-            <div class="xpbar" style="height:10px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden">
-              <div id="xp-fill" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s ease"></div>
-            </div>
+            <div class="xpbar"><div id="xp-fill" class="fill"></div></div>
           </div>
 
           <div class="footerbar">
-            <button id="btn-claim-rewards" class="btn">🎁 Réclamer mes récompenses de niveau</button>
-            <button id="btn-reset" class="btn ghost">Réinitialiser la collection (local)</button>
+            <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
+            <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (local)</button>
           </div>
         </div>
       </section>
 
+      <!-- Packs disponibles -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Packs disponibles</h3>
@@ -162,10 +200,14 @@
         </div>
       </section>
 
+      <!-- Résultats d'ouverture -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Résultats d'ouverture</h3>
-          <div class="row"><button id="btn-open-standard" class="btn">Ouvrir un pack Standard</button><button id="btn-open-premium" class="btn ghost">Ouvrir un pack Premium</button></div>
+          <div class="row">
+            <button id="btn-open-standard" class="btn pill">Ouvrir un pack Standard</button>
+            <button id="btn-open-premium" class="btn ghost pill">Ouvrir un pack Premium</button>
+          </div>
         </div>
         <div class="bd">
           <div id="special-banner" class="banner" style="display:none"></div>
@@ -173,22 +215,22 @@
         </div>
       </section>
 
-      <!-- Section "Ma collection (local)" retirée : la collection vit dans collection.html -->
-
+      <!-- Debug & Diagnostics -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
         <div class="bd">
           <div class="footerbar">
-            <button id="btn-test-config" class="btn ghost">Tester config Firebase</button>
-            <button id="btn-test-auth" class="btn ghost">Tester Auth (qui suis-je ?)</button>
-            <button id="btn-test-draws" class="btn ghost">Test tirages (10 000)</button>
-            <button id="btn-test-premium" class="btn ghost">Test Premium garanti (1 000)</button>
-            <button id="btn-test-firestore" class="btn ghost">Test Firestore round-trip</button>
-            <button id="btn-test-cloud-priority" class="btn ghost">Test priorité cloud (lecture)</button>
+            <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
+            <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
+            <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
+            <button id="btn-test-premium" class="btn ghost pill">Test Premium garanti (1 000)</button>
+            <button id="btn-test-firestore" class="btn ghost pill">Test Firestore round-trip</button>
+            <button id="btn-test-cloud-priority" class="btn ghost pill">Test priorité cloud (lecture)</button>
           </div>
           <pre id="diag-log" class="diag"></pre>
         </div>
       </section>
+
     </div>
   </main>
 
@@ -335,9 +377,19 @@
       let hasLegendary=false, hasExotic=false;
       for(const card of cards){
         const div=document.createElement('div'); div.className='card';
-        div.innerHTML = '<div class="img"></div>'
-          + '<div class="footer"><div class="name">'+card.name+'</div>'
-          + '<div class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.set+' — '+card.rarity+'</div></div>';
+        const img=document.createElement('div'); img.className='img';
+        // Utiliser l'image fournie si disponible
+        if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; }
+        const shine=document.createElement('div'); shine.className='shine';
+        div.appendChild(img); div.appendChild(shine);
+        div.addEventListener('pointermove', (e)=>{
+          const r=e.currentTarget.getBoundingClientRect();
+          const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100;
+          shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%');
+        });
+        const footer=document.createElement('div'); footer.className='footer';
+        footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
+        div.appendChild(footer);
         wrap.appendChild(div);
         if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
         if(card.rarity===RARITY.EXOTIC) hasExotic=true;
@@ -573,13 +625,14 @@
       for(const p of packs){
         const card=document.createElement('div'); card.className='pack';
         card.innerHTML =
+          '<div class="cover" aria-hidden="true"></div>'+
           '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
-          + '<div><div style="font-size:18px;font-weight:800">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
+          + '<div><div style="font-size:18px;font-weight:900">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
           + (p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':'' )
           + '</div>'
           + '<div class="loot">'+p.loot.map(x=>'• '+x).join('<br/>')+'</div>'
           + '<div class="odds">'+p.odds.map(([k,v])=>k+': '+v).join(' · ')+'</div>'
-          + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+'" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
+          + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+' pill" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
         const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click);
         wrap.appendChild(card);
       }
@@ -618,7 +671,9 @@
     // --- Init
     async function init(){
       // Skeletons rapides avant chargement
-      document.getElementById('results').innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+      const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px">\
+<div class="card"></div><div class="card"></div><div class="card"></div></div>';
+      document.getElementById('results').innerHTML = skel;
       await loadCardSet();            // charge /data/sets/nouvelle-lumiere.json (ou fallback)
       renderStats();
       renderCollection();             // no-op ici (pas d’élément sur index.html)
