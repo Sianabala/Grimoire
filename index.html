@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grimoire · Prototype v1</title>
+  <style>
+    :root{
+      --bg:#0b0f1a; /* nuit spatiale */
+      --panel:#121829;
+      --panel-2:#0e1423;
+      --text:#e8ecf3;
+      --muted:#9aa6be;
+      --accent:#7c5cff; /* indigo céleste */
+      --accent-2:#b86bff; /* améthyste */
+      --copper:#d6a17a; /* cuivre rosé */
+      --success:#34d399;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --rare:#3b82f6;
+      --legendary:#f59e0b;
+      --exotic:#eab308;
+      --radius:16px;
+      --radius-lg:20px;
+      --shadow:0 8px 24px rgba(0,0,0,.35);
+      --shadow-sm:0 4px 12px rgba(0,0,0,.25);
+      --card-w: 220px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),
+                  radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),
+                  linear-gradient(180deg, #0b0f1a 0%, #0b0f1a 100%);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(11,15,26,.9) 0%, rgba(11,15,26,.6) 100%);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .row{display:flex;gap:20px;flex-wrap:wrap}
+
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--copper), var(--accent)); box-shadow:var(--shadow-sm)}
+    .title{font-size:20px;font-weight:700;letter-spacing:.3px}
+    .subtitle{font-size:12px;color:var(--muted)}
+
+    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:700}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);box-shadow:var(--shadow);}
+    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0;font-size:16px;letter-spacing:.3px}
+    .panel .bd{padding:18px}
+
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+    .stat{background:#0e1423;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}
+    .stat .v{font-size:24px;font-weight:800}
+    .stat .k{font-size:12px;color:var(--muted)}
+
+    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .08s ease,opacity .2s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn.secondary{background:#1f2937;color:var(--text)}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+    .btn.success{background:var(--success)}
+    .btn.warning{background:var(--warning)}
+    .btn.disabled{opacity:.5;cursor:not-allowed}
+
+    .packs{display:grid;grid-template-columns:repeat(auto-fit, minmax(260px,1fr));gap:16px}
+    .pack{display:flex;flex-direction:column;gap:12px;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+    .pack .loot{font-size:12px;color:var(--muted)}
+    .pack .odds{font-size:12px;color:var(--muted)}
+
+    .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
+    .card{
+      width:var(--card-w);
+      aspect-ratio:2/3;
+      border-radius:18px;
+      background:linear-gradient(180deg,#141b33,#0b0f1a);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--shadow-sm);
+      overflow:hidden;position:relative
+    }
+    .card .img{position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%), url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.6;mix-blend:screen}
+    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.7));}
+    .card .name{font-weight:800;letter-spacing:.3px}
+    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+    .tag .dot{width:8px;height:8px;border-radius:999px}
+    .rarity-common .dot{background:#94a3b8}
+    .rarity-uncommon .dot{background:#34d399}
+    .rarity-rare .dot{background:var(--rare)}
+    .rarity-legendary .dot{background:var(--legendary)}
+    .rarity-exotic .dot{background:var(--exotic)}
+
+    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg, rgba(234,179,8,.15), rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.3)}
+
+    .collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+    .mini-card{background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
+    .mini-card .qty{font-size:12px;color:var(--muted)}
+
+    .footerbar{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}
+
+    @media (max-width:780px){
+      .grid{grid-template-columns:1fr}
+    }
+    /* Diag */
+    .diag{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:var(--muted)}
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row" style="justify-content:space-between;align-items:center">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Grimoire</div>
+          <div class="subtitle">TCG digital — prototype</div>
+        </div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button id="btn-login" class="btn">Se connecter avec Twitch</button>
+        <button id="btn-logout" class="btn ghost" style="display:none">Se déconnecter</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid" style="grid-template-columns:repeat(12,1fr)">
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd">
+          <h3>Statistiques</h3>
+          <span id="build-badge" class="badge">Alpha — Firebase</span>
+        </div>
+        <div class="bd">
+          <div class="stats">
+            <div class="stat"><div class="v" id="stat-packs">0</div><div class="k">Packs ouverts</div></div>
+            <div class="stat"><div class="v" id="stat-uniques">0</div><div class="k">Cartes uniques</div></div>
+            <div class="stat"><div class="v" id="stat-completion">0%</div><div class="k">% de complétion</div></div>
+            <div class="stat"><div class="v" id="stat-rank">Bronze I</div><div class="k">Rang</div></div>
+          </div>
+          <div class="footerbar">
+            <button id="btn-claim-rewards" class="btn secondary">🎁 Réclamer mes récompenses de niveau</button>
+            <button id="btn-reset" class="btn ghost">Réinitialiser la collection (local)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd">
+          <h3>Packs disponibles</h3>
+          <small class="subtitle">Les probabilités s'appliquent par carte</small>
+        </div>
+        <div class="bd">
+          <div class="packs" id="packs"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd">
+          <h3>Résultats d'ouverture</h3>
+          <div class="row"><button id="btn-open-standard" class="btn">Ouvrir un pack Standard</button><button id="btn-open-premium" class="btn disabled" disabled>Ouvrir un pack Premium</button></div>
+        </div>
+        <div class="bd">
+          <div id="special-banner" class="banner" style="display:none"></div>
+          <div class="results" id="results"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd"><h3>Ma collection (local)</h3></div>
+        <div class="bd">
+          <div class="collection" id="collection"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
+        <div class="bd">
+          <div class="diag">Projet: <span id="cfg-project" class="diag">(—)</span> — Auth Domain: <span id="cfg-authdomain" class="diag">(—)</span> — API Key: <span id="cfg-apikey" class="diag">(—)</span></div>
+          <div class="footerbar">
+            <button id="btn-test-config" class="btn ghost">Tester config Firebase</button>
+            <button id="btn-test-draws" class="btn ghost">Test tirages (10 000)</button>
+            <button id="btn-test-premium" class="btn ghost">Test Premium garanti (1 000)</button>
+            <button id="btn-test-firestore" class="btn ghost">Test Firestore round‑trip</button>
+            <button id="btn-test-cloud-priority" class="btn ghost">Test priorité cloud (lecture)</button>
+          </div>
+          <pre id="diag-log" class="diag"></pre>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    // Firebase + Auth (Twitch OIDC) + Firestore — config directe
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI",
+      authDomain: "legends-collection.firebaseapp.com",
+      projectId: "legends-collection",
+      storageBucket: "legends-collection.firebasestorage.app",
+      messagingSenderId: "133783086150",
+      appId: "1:133783086150:web:762f209f7f778ef83a1647"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI diag config
+    document.getElementById('cfg-project').textContent = firebaseConfig.projectId;
+    document.getElementById('cfg-authdomain').textContent = firebaseConfig.authDomain;
+    document.getElementById('cfg-apikey').textContent = firebaseConfig.apiKey.slice(0,4)+'…'+firebaseConfig.apiKey.slice(-4);
+
+    // Auth Twitch OIDC
+    const twitchProvider = new OAuthProvider('oidc.twitch');
+    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
+
+    const loginBtn = document.getElementById('btn-login');
+    const logoutBtn = document.getElementById('btn-logout');
+
+    loginBtn.addEventListener('click', async ()=>{
+      try { await signInWithRedirect(auth, twitchProvider); }
+      catch(e){ alert('Erreur de connexion Twitch: '+(e?.message||e)); console.error(e); }
+    });
+    logoutBtn.addEventListener('click', async ()=>{ try{ await signOut(auth);}catch(e){ console.error(e);} });
+
+    await getRedirectResult(auth).catch(e=>{ if(e && e.code!=='auth/no-auth-event'){ console.warn('Redirect error', e); }});
+
+    // Données jeu — Set: Nouvelle Lumière
+    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+    const CARD_POOLS = [
+      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+      { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
+      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
+      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
+      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumiière', rarity: RARITY.EXOTIC, image:'' },
+    ];
+    const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
+    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
+
+    // État local
+    const LS_KEY = 'grimoire.alpha.collection.v1';
+    const LS_STATS = 'grimoire.alpha.stats.v1';
+    let collection = loadCollection();
+    let stats = loadStats();
+    let currentUser = null; // Firebase user
+    let playerDocRef = null; // /players/{uid}
+
+    function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
+    function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
+    function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
+    function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
+
+    function renderStats(){
+      const uniqueOwned = Object.keys(collection).length;
+      const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
+      const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0;
+      document.getElementById('stat-packs').textContent = stats.packsOpened||0;
+      document.getElementById('stat-uniques').textContent = uniqueOwned;
+      document.getElementById('stat-completion').textContent = completion+"%";
+      document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
+    }
+    function rankFromCompletion(p){ if(p>=80) return 'Astreal'; if(p>=60) return 'Mythique'; if(p>=40) return 'Or'; if(p>=20) return 'Argent'; return 'Bronze I'; }
+
+    function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
+
+    function renderResults(cards){
+      const wrap = document.getElementById('results'); wrap.innerHTML='';
+      let hasLegendary=false, hasExotic=false;
+      for(const card of cards){
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `
+          <div class="img" aria-hidden="true"></div>
+          <div class="footer">
+            <div class="name">${card.name}</div>
+            <div class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>
+          </div>`;
+        wrap.appendChild(div);
+        if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
+        if(card.rarity===RARITY.EXOTIC) hasExotic=true;
+      }
+      const banner = document.getElementById('special-banner');
+      if(hasExotic){ banner.style.display='block'; banner.innerHTML='✨ <strong>EXOTIQUE !</strong> Vous venez de tirer une carte <em>exotique</em> !'; }
+      else if(hasLegendary){ banner.style.display='block'; banner.innerHTML='⭐ <strong>LEGENDAIRE !</strong> Une carte <em>légendaire</em> rejoint votre collection !'; }
+      else { banner.style.display='none'; }
+    }
+
+    function renderCollection(){
+      const wrap = document.getElementById('collection'); wrap.innerHTML='';
+      const byRarityIdx = c => rarityOrder.indexOf(c.rarity);
+      const all = CARD_POOLS.slice().sort((a,b)=> byRarityIdx(a)-byRarityIdx(b) || a.id.localeCompare(b.id));
+      for(const card of all){
+        const qty = collection[card.id]||0;
+        const div = document.createElement('div'); div.className='mini-card';
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div style="font-weight:700">${card.name}</div>
+            <span class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.rarity}</span>
+          </div>
+          <div class="qty">${card.set} — ${card.id}</div>
+          <div class="qty">Quantité : <strong>${qty}</strong></div>`;
+        wrap.appendChild(div);
+      }
+    }
+
+    // Tirage
+    function weightedRandomRarity(){
+      const entries = Object.entries(RARITY_WEIGHTS); const total = entries.reduce((s,[,w])=>s+w,0);
+      let r = Math.random()*total; for(const [rarity, weight] of entries){ if(r<weight) return rarity; r -= weight; }
+      return RARITY.COMMON;
+    }
+    function pickCardByRarity(rarity){
+      const pool = CARD_POOLS.filter(c=>c.rarity===rarity);
+      if(pool.length===0){ const idx = rarityOrder.indexOf(rarity); for(let j=idx-1; j>=0; j--){ const p = CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]); if(p.length) return p[Math.floor(Math.random()*p.length)]; } return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)]; }
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
+    function ensureAtLeastRare(){
+      const r = Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
+      const thresholds = [[RARITY.RARE, RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY, RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC, RARITY_WEIGHTS[RARITY.EXOTIC]]];
+      let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
+    }
+
+    function addToCollection(cards){ for(const card of cards){ collection[card.id] = (collection[card.id]||0)+1; } saveCollection(); }
+
+    async function openPack({type='standard'}={}){
+      const cards = [];
+      if(type==='premium'){
+        let guaranteedRareIndex = Math.floor(Math.random()*5);
+        for(let i=0;i<5;i++){ const rarity = (i===guaranteedRareIndex)? ensureAtLeastRare() : weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      } else {
+        for(let i=0;i<5;i++){ const rarity = weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      }
+      stats.packsOpened = (stats.packsOpened||0)+1; saveStats(); addToCollection(cards);
+      renderStats(); renderResults(cards); renderCollection();
+      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards).catch(console.error); }
+    }
+
+    // Firestore — priorité cloud
+    async function loadOrCreatePlayerDoc(user){
+      playerDocRef = doc(db, 'players', user.uid);
+      const snap = await getDoc(playerDocRef);
+      if(!snap.exists()){
+        // Pas de doc : on initialise avec l'état local existant (si présent)
+        const base = {
+          displayName: user.displayName||'', photoURL: user.photoURL||'',
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+          stats: { packsOpened: stats.packsOpened||0 },
+          collection: collection,
+          xp: 0, level: 1, rewardsInbox: []
+        };
+        await setDoc(playerDocRef, base);
+        return base;
+      }
+      // Doc existe : PRIORITÉ CLOUD -> on remplace le local par le cloud
+      const data = snap.data();
+      collection = { ...(data.collection||{}) }; saveCollection();
+      stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
+      renderStats(); renderCollection();
+      try{ await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); }catch{}
+      return data;
+    }
+
+    async function syncPackResultToFirestore(cards){
+      await runTransaction(db, async (trx)=>{
+        const docSnap = await trx.get(playerDocRef);
+        const cur = docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{} };
+        const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
+        const newCollection = { ...(cur.collection||{}) };
+        for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0)+1; }
+        trx.update(playerDocRef, { stats: newStats, collection: newCollection, updatedAt: serverTimestamp() });
+      });
+    }
+
+    // Auth listener
+    onAuthStateChanged(auth, async (user)=>{
+      currentUser = user || null;
+      loginBtn.style.display = currentUser? 'none' : '';
+      logoutBtn.style.display = currentUser? '' : 'none';
+      if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }
+    });
+
+    // Diagnostics & tests
+    const diag = document.getElementById('diag-log');
+    function printDiag(line){ diag.textContent += (line+'\n'); }
+    function clearDiag(){ diag.textContent=''; }
+
+    document.getElementById('btn-test-config').addEventListener('click', ()=>{
+      clearDiag();
+      const checks = [];
+      checks.push(['apiKey ok', !!firebaseConfig.apiKey]);
+      checks.push(['authDomain ok', !!firebaseConfig.authDomain]);
+      checks.push(['projectId ok', !!firebaseConfig.projectId]);
+      checks.push(['appId ok', !!firebaseConfig.appId]);
+      for(const [name, ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`); }
+      printDiag('\nConfig OK pour initialiser Firebase si toutes les coches sont vertes.');
+    });
+
+    document.getElementById('btn-test-draws').addEventListener('click', ()=>{
+      clearDiag(); const N=10000; const counts={ [RARITY.COMMON]:0,[RARITY.UNCOMMON]:0,[RARITY.RARE]:0,[RARITY.LEGENDARY]:0,[RARITY.EXOTIC]:0 };
+      for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
+      const pct=x=> (100*x/N).toFixed(2)+'%';
+      printDiag('Distribution (attendu ~ 60/25/10/4/1) sur '+N+' tirages:');
+      for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){ printDiag(r.padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')'); }
+    });
+
+    document.getElementById('btn-test-premium').addEventListener('click', ()=>{
+      clearDiag(); const P=1000; let ok=0, fail=0;
+      for(let p=0;p<P;p++){
+        const cards=[]; let idx=Math.floor(Math.random()*5);
+        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
+        if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
+      }
+      printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`);
+      printDiag(fail===0? '✅ Tous les packs Premium contiennent au moins une carte rare ou +.' : '❌ Certains packs Premium n\'ont pas respecté la garantie.');
+    });
+
+    document.getElementById('btn-test-firestore').addEventListener('click', async ()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
+      try{
+        const now = Date.now();
+        await updateDoc(doc(db,'players',currentUser.uid), { _rtTest: now, updatedAt: serverTimestamp() });
+        const back = await getDoc(doc(db,'players',currentUser.uid));
+        printDiag('Firestore round‑trip OK, _rtTest=' + back.data()._rtTest);
+      }catch(e){ printDiag('❌ Firestore round‑trip échoué: ' + (e?.message||e)); console.error(e); }
+    });
+
+    document.getElementById('btn-test-cloud-priority').addEventListener('click', async ()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
+      try{
+        const snap = await getDoc(doc(db,'players', currentUser.uid));
+        if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud -> rien à prioriser.'); return; }
+        const data = snap.data();
+        printDiag('Avant remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
+        collection = { ...(data.collection||{}) }; saveCollection();
+        stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
+        renderStats(); renderCollection();
+        printDiag('Après remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
+        printDiag('✅ Priorité cloud appliquée (lecture seule).');
+      }catch(e){ printDiag('❌ Erreur priorité cloud: ' + (e?.message||e)); }
+    });
+
+    // Actions UI
+    function renderPacks(){
+      const wrap = document.getElementById('packs');
+      wrap.innerHTML='';
+      const packs = [
+        {
+          id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires',
+          loot:["Set inclus : La Tour, Nouvelle Lumière"],
+          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
+          action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) }
+        },
+        {
+          id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)',
+          loot:["Set inclus : Nouvelle Lumière"],
+          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
+          locked:true,
+          action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') }
+        }
+      ];
+      for(const p of packs){
+        const card = document.createElement('div');
+        card.className='pack';
+        card.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+            <div>
+              <div style="font-size:18px;font-weight:800">${p.name}</div>
+              <div class="subtitle">${p.desc}</div>
+            </div>
+            ${p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':''}
+          </div>
+          <div class="loot">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
+          <div class="odds">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
+          <div style="margin-top:10px"><button class="btn ${p.locked?'secondary':''}" aria-label="${p.action.label}">${p.action.label}</button></div>
+        `;
+        const btn = card.querySelector('button');
+        btn.addEventListener('click', p.action.click);
+        wrap.appendChild(card);
+      }
+    }
+
+    document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
+    document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
+    document.getElementById('btn-reset').addEventListener('click', ()=>{
+      if(confirm('Réinitialiser la collection locale ?')){
+        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
+      }
+    });
+    document.getElementById('btn-claim-rewards').addEventListener('click', ()=>{ alert('Boîte de réception des récompenses : à connecter à Firebase (rewardsInbox)'); });
+
+    // Rendu initial
+    function init(){ renderStats(); renderCollection(); renderPacks(); }
+    init();
+  </script>
+</body>
+</html>
