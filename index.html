@@ -3,134 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin · Grimoire V3.4</title>
-  <link rel="prefetch" href="/index.html" as="document">
+  <title>Grimoire · Prototype V3.4</title>
+  <link rel="prefetch" href="/collection.html" as="document">
+  <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <style>
-    :root{ --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25); }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
-      radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
-      radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
-      linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%); color:var(--text); min-height:100svh }
-    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));border-bottom:1px solid rgba(255,255,255,.06)}
+    :root{
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444;
+      --ring:0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
+      --card-w: 220px;
+    }
+
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+        radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+        linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
+    }
+
+    /* Aura décorative */
+    .aura{position:fixed; inset:0; pointer-events:none; mix-blend:screen; opacity:.55}
+    .aura::before, .aura::after{
+      content:""; position:absolute; border-radius:999px; filter: blur(60px);
+      background: radial-gradient(closest-side, rgba(124,92,255,.35), transparent 60%);
+      width:520px; height:520px; left:-160px; top:-160px;
+    }
+    .aura::after{background: radial-gradient(closest-side, rgba(184,107,255,.28), transparent 60%); width:560px; height:560px; right:-180px; left:auto; top:20vh}
+
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
     .container{max-width:1200px;margin:0 auto;padding:22px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
-    .title{font-size:22px;font-weight:800}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+
+    /* Brand bar */
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm); position:relative}
+    .logo::after{content:""; position:absolute; inset:2px; border-radius:12px; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.2), transparent 40%) }
+    .title{font-size:22px;font-weight:800;letter-spacing:.2px}
     .subtitle{font-size:12px;color:var(--muted)}
-    .btn{appearance:none;border:1px solid transparent;outline:0;padding:10px 14px;border-radius:14px;font-weight:800;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);transition: transform .08s ease, box-shadow .15s ease}
-    .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(124,92,255,.28)}
-    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
-    .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
-    .btn.danger{ background: transparent; color: #fecaca; border:1px solid rgba(239,68,68,.45) }
+    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
+
+    .hero{display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .hero-text{display:flex; flex-direction:column}
 
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
     @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
     @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
 
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);box-shadow:var(--shadow); position:relative; overflow:clip}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);box-shadow:var(--shadow); position:relative; overflow:clip; will-change:transform}
     .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
     .panel .bd{padding:18px 20px}
-    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none}
 
-    .input{ width:100%; padding:10px 12px; border-radius:12px; background:#0f1324; color:var(--text); border:1px solid rgba(255,255,255,.08) }
-    label{ font-size:12px; color: var(--muted) }
-    table{ width:100%; border-collapse: collapse; font-size:14px }
-    th, td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.06) }
-    tr:hover{ background: rgba(255,255,255,.03) }
+    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+    .panel:hover{ box-shadow: 0 18px 50px rgba(124,92,255,.12); transform: translateY(-2px); transition: transform .25s ease, box-shadow .25s ease }
 
-    .empty{ padding:14px; font-size:14px; color: var(--muted); border:1px dashed rgba(255,255,255,.12); border-radius:12px }
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+    .stat{background: linear-gradient(180deg,#0f172a,#0b1120); border-radius:16px;padding:12px; box-shadow: var(--ring)}
+    .stat .v{font-size:28px;font-weight:900; letter-spacing:.2px }
+    .stat .k{font-size:12px;color:var(--muted); opacity:.9 }
+
+    .btn{appearance:none;border:1px solid transparent;outline:0;padding:10px 14px;border-radius:14px;font-weight:800;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);
+      transition: transform .08s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease, color .2s ease}
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(124,92,255,.28)}
+    .btn:active{ transform: translateY(0) }
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+    .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
+
+    .btn.pill{ border-radius:999px }
+
+    .footerbar{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+    /* Packs */
+    .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .pack{display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px; perspective:1000px; box-shadow: var(--ring); position:relative}
+    .pack:hover{ transform: translateY(-2px) }
+    .pack .cover{ height:120px; border-radius:14px; background:
+      radial-gradient(120px 60px at 10% 10%, rgba(124,92,255,.35), transparent 60%),
+      radial-gradient(120px 60px at 90% 20%, rgba(184,107,255,.28), transparent 60%),
+      linear-gradient(180deg,#0e1423,#0b0f1a);
+      border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.04)
+    }
+
+    /* Résultats */
+    .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
+    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:20px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow-sm);position:relative;overflow:hidden; outline: 1px solid rgba(255,255,255,.06);
+      transition: transform .18s ease, box-shadow .18s ease, outline-color .2s ease }
+    .card:hover{ transform: translateY(-2px) }
+    .card .shine{ position:absolute; inset:0; background: radial-gradient(1000px 1000px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.12), transparent 40%); mix-blend: overlay; pointer-events:none }
+    .card .img{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.7;mix-blend:screen}
+    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
+    .card .footer .name{ font-weight:800; text-shadow: 0 1px 0 rgba(0,0,0,.35) }
+
+    /* Tags (couleurs par rareté via /rarities.css) */
     .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+    .tag .dot{ width:8px;height:8px;border-radius:999px;background:currentColor;opacity:.9 }
+    .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset }
 
-    .guard{ display:none; padding:16px; margin:18px 0; border-radius:12px; border:1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.08) }
+    .banner{margin:12px 0;padding:12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px)}
+    .banner .close{ margin-left:auto; appearance:none; border:0; background:transparent; color:var(--text); opacity:.8; cursor:pointer; font-weight:900; font-size:16px; line-height:1 }
+    .banner .close:hover{ opacity:1 }
+
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
+
+    /* Toast */
+    .toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      background: rgba(18,24,41,.92); color: var(--text); border:1px solid rgba(255,255,255,.12);
+      padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50;
+      opacity:0; transition: opacity .2s ease, transform .2s ease }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
+
+    /* Progress */
+    .xpbar{height:12px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+    .xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow: 0 0 18px rgba(124,92,255,.35) inset; transition:width .25s ease}
+
+    /* Accessibility */
+    .btn:focus-visible, a:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius:10px }
+    @media (prefers-reduced-motion: no-preference){ .tag .dot{ animation: pulse 1.6s ease-in-out infinite }
+      @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
+    }
   </style>
 </head>
 <body>
+  <div class="aura" aria-hidden="true"></div>
   <header>
-    <div class="container row" style="justify-content:space-between">
+    <div class="container hero">
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
-        <div>
-          <div class="title">Admin · Grimoire</div>
-          <div class="subtitle">Gestion des joueurs & attribution de packs</div>
+        <div class="hero-text">
+          <div class="title">Grimoire</div>
+          <div class="subtitle">TCG digital — prototype V3.4</div>
         </div>
       </div>
-      <div class="row">
-        <a href="/index.html" class="btn ghost">← Retour au jeu</a>
-        <button id="btn-logout" class="btn ghost" style="display:none">Se déconnecter</button>
+      <div class="row" style="gap:10px">
+        <a href="/collection.html" class="btn ghost pill" aria-label="Voir ma collection">Collection</a>
+        <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
+        <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <section class="panel" style="grid-column: span 12">
-      <div class="hd">
-        <h3>Contrôle d'accès</h3>
-        <span class="tag" id="whoami">Utilisateur: inconnu</span>
-      </div>
-      <div class="bd">
-        <p class="subtitle">Accès réservé à l'admin <strong>siana_tv</strong>. Connecte-toi avec Twitch pour continuer.</p>
-        <div class="row" style="margin-top:8px">
-          <button id="btn-login" class="btn">Se connecter avec Twitch</button>
-        </div>
-        <div id="not-admin" class="guard">Accès refusé : ce compte n'est pas autorisé. (Requis: <strong>siana_tv</strong>)</div>
-      </div>
-    </section>
+    <div class="grid">
 
-    <div class="grid" id="admin-grid" style="display:none">
-      <!-- Liste des joueurs -->
-      <section class="panel" style="grid-column: span 7">
+      <!-- Statistiques -->
+      <section class="panel" style="grid-column:span 12">
         <div class="hd">
-          <h3>Joueurs</h3>
-          <div class="row">
-            <input id="search" class="input" type="search" placeholder="Rechercher par pseudo, UID ou email…" style="min-width:260px" />
-            <button id="btn-refresh" class="btn ghost">Rafraîchir</button>
-          </div>
+          <h3>Statistiques</h3>
+          <span class="badge">Alpha — Firebase V3.4</span>
         </div>
         <div class="bd">
-          <div class="subtitle" style="margin-bottom:8px">Clique une ligne pour sélectionner un joueur</div>
-          <div id="players-wrap">
-            <table id="players-table" aria-label="Liste des joueurs">
-              <thead><tr><th>Pseudo</th><th>UID</th><th>Packs ouverts</th><th>Uniques</th></tr></thead>
-              <tbody id="players-tbody"></tbody>
-            </table>
-            <div id="players-empty" class="empty" style="display:none">Aucun joueur trouvé.</div>
+          <div class="stats">
+            <div class="stat"><div class="v" id="stat-packs">0</div><div class="k">Packs ouverts</div></div>
+            <div class="stat"><div class="v" id="stat-uniques">0</div><div class="k">Cartes uniques</div></div>
+            <div class="stat"><div class="v" id="stat-completion">0%</div><div class="k">% de complétion</div></div>
+            <div class="stat"><div class="v" id="stat-rank">Bronze I</div><div class="k">Rang</div></div>
           </div>
-        </div>
-      </section>
 
-      <!-- Détails + Attribution -->
-      <section class="panel" style="grid-column: span 5">
-        <div class="hd">
-          <h3>Détails du joueur</h3>
-          <span class="tag" id="selected-tag">Aucun</span>
-        </div>
-        <div class="bd">
-          <div id="player-details" class="empty">Sélectionne un joueur dans la liste.</div>
-
-          <div style="margin-top:16px">
-            <h4 style="margin:0 0 10px 0">Attribuer des packs</h4>
-            <div class="row">
-              <label>
-                Type
-                <select id="grant-type" class="input" style="width:180px">
-                  <option value="pack_standard">Pack Standard</option>
-                  <option value="pack_premium">Pack Premium</option>
-                </select>
-              </label>
-              <label>
-                Quantité
-                <input id="grant-qty" class="input" type="number" value="1" min="1" max="50" style="width:120px" />
-              </label>
-              <button id="btn-grant" class="btn">Attribuer</button>
+          <div id="xp-wrap" style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; gap:10px; flex-wrap:wrap">
+              <div class="subtitle">Niveau <span id="stat-level">1</span> · XP <span id="stat-xp">0</span>/<span id="stat-xp-next">100</span></div>
+              <div class="subtitle">Prochaine récompense : <span id="stat-next-reward">Pack Standard</span></div>
             </div>
-            <div class="subtitle" style="margin-top:8px">Les packs sont ajoutés à la <em>boîte de récompenses</em> (rewardsInbox) du joueur. Le joueur cliquera ensuite « Réclamer mes récompenses » pour les ouvrir.</div>
+            <div class="xpbar"><div id="xp-fill" class="fill"></div></div>
+          </div>
+
+          <div class="footerbar">
+            <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
+            <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (local)</button>
           </div>
         </div>
       </section>
+
+      <!-- Packs disponibles -->
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd">
+          <h3>Packs disponibles</h3>
+          <small class="subtitle">Les probabilités s'appliquent par carte</small>
+        </div>
+        <div class="bd">
+          <div class="packs" id="packs"></div>
+        </div>
+      </section>
+
+      <!-- Résultats d'ouverture -->
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd">
+          <h3>Résultats d'ouverture</h3>
+          <div class="row">
+            <button id="btn-open-standard" class="btn pill">Ouvrir un pack Standard</button>
+            <button id="btn-open-premium" class="btn ghost pill">Ouvrir un pack Premium</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div id="special-banner" class="banner" style="display:none"></div>
+          <div class="results" id="results"></div>
+        </div>
+      </section>
+
+      <!-- Debug & Diagnostics -->
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
+        <div class="bd">
+          <div class="footerbar">
+            <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
+            <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
+            <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
+            <button id="btn-test-premium" class="btn ghost pill">Test Premium garanti (1 000)</button>
+            <button id="btn-test-firestore" class="btn ghost pill">Test Firestore round-trip</button>
+            <button id="btn-test-cloud-priority" class="btn ghost pill">Test priorité cloud (lecture)</button>
+          </div>
+          <pre id="diag-log" class="diag"></pre>
+        </div>
+      </section>
+
     </div>
   </main>
 
@@ -138,9 +238,9 @@
     // --- Firebase imports
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // --- Firebase config (identique au projet)
+    // --- Firebase config
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
       authDomain: 'legends-collection.firebaseapp.com',
@@ -150,176 +250,450 @@
       appId: '1:133783086150:web:762f209f7f778ef83a1647'
     };
 
-    // --- Init
+    console.log('[DEBUG] Initialisation Firebase');
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    try { await setPersistence(auth, browserLocalPersistence); } catch {}
+    try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e){ console.warn('[DEBUG] Persistence failed', e); }
 
-    // --- OIDC Twitch
+    // --- Auth provider (Twitch via OIDC)
     const twitchProvider = new OAuthProvider('oidc.twitch');
     try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
 
-    // --- UI refs
-    const btnLogin = document.getElementById('btn-login');
-    const btnLogout = document.getElementById('btn-logout');
-    const whoami = document.getElementById('whoami');
-    const notAdmin = document.getElementById('not-admin');
-    const grid = document.getElementById('admin-grid');
-    const searchInput = document.getElementById('search');
-    const btnRefresh = document.getElementById('btn-refresh');
-    const tbody = document.getElementById('players-tbody');
-    const empty = document.getElementById('players-empty');
-    const selectedTag = document.getElementById('selected-tag');
-    const playerDetails = document.getElementById('player-details');
-    const grantType = document.getElementById('grant-type');
-    const grantQty = document.getElementById('grant-qty');
-    const btnGrant = document.getElementById('btn-grant');
+    // --- UI buttons
+    const loginBtn = document.getElementById('btn-login');
+    const logoutBtn = document.getElementById('btn-logout');
 
-    let currentUser = null;
-    let playersCache = [];
-    let selectedPlayer = null;
-
-    // --- Guards
-    const ADMIN_NAME = 'siana_tv'; // Twitch displayName attendu (insensible à la casse)
-
-    function isAdmin(user){
-      if(!user) return false;
-      const name = (user.displayName||'').trim().toLowerCase();
-      // On accepte aussi le cas où le pseudo Twitch est dans providerData
-      const providerName = (user.providerData?.[0]?.displayName||'').trim().toLowerCase();
-      return name === ADMIN_NAME || providerName === ADMIN_NAME;
-    }
-
-    function updateGuard(user){
-      whoami.textContent = user ? `Utilisateur: ${user.displayName||user.email||user.uid}` : 'Utilisateur: inconnu';
-      if(isAdmin(user)){
-        notAdmin.style.display = 'none';
-        grid.style.display = '';
-        btnLogin.style.display = 'none';
-        btnLogout.style.display = '';
-        loadPlayers();
-      } else {
-        grid.style.display = 'none';
-        btnLogin.style.display = '';
-        btnLogout.style.display = user ? '' : 'none';
-        notAdmin.style.display = user ? '' : 'none';
+    loginBtn.addEventListener('click', async ()=>{
+      try {
+        console.log('[DEBUG] Click login -> POPUP');
+        await signInWithPopup(auth, twitchProvider);
+      } catch(e){
+        console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
+        if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
+          try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
+          catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
+        } else {
+          alert('Erreur de connexion Twitch: '+(e?.message||e));
+        }
       }
-    }
-
-    // --- Auth listeners
-    btnLogin.addEventListener('click', async ()=>{
-      try{ await signInWithPopup(auth, twitchProvider); }catch(e){ try{ await signInWithRedirect(auth, twitchProvider); }catch(err){ alert(err?.message||String(err)); }}
     });
-    btnLogout.addEventListener('click', async ()=>{ try{ await signOut(auth); }catch(e){ console.error(e); }});
+    logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 
-    onAuthStateChanged(auth, (user)=>{ currentUser=user||null; updateGuard(currentUser); });
+    console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
 
-    // --- Load players list
-    async function loadPlayers(){
-      tbody.innerHTML = '';
-      playersCache = [];
+    // --- Rarity constants
+    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+    const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
+    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
+
+    // --- Dynamic card set (loaded from JSON)
+    let CARD_POOLS = []; // will be filled by loadCardSet()
+    const FALLBACK_CARDS = [
+      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+      { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
+      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
+      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
+      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' }
+    ];
+
+    async function loadCardSet(){
+      const url = '/data/sets/nouvelle-lumiere.json';
       try{
-        const q = query(collection(db,'players'), orderBy('updatedAt','desc'), limit(200));
-        const snap = await getDocs(q);
-        snap.forEach(d => {
-          const data = d.data();
-          const row = {
-            uid: d.id,
-            displayName: data.displayName || '(—)',
-            email: data.email || '',
-            packsOpened: data.stats?.packsOpened || 0,
-            uniques: data.collection ? Object.keys(data.collection).length : 0
-          };
-          playersCache.push(row);
-        });
-        renderPlayers(playersCache);
+        console.log('[DEBUG] Chargement du set JSON:', url);
+        const res = await fetch(url, {cache:'no-store'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
+        // Normalise les raretés si besoin (common -> commune, etc.)
+        const mapRarity = (r) => {
+          const x = (r||'').toLowerCase();
+          if(x === 'common' || x === 'commune') return RARITY.COMMON;
+          if(x === 'uncommon' || x === 'peu commune') return RARITY.UNCOMMON;
+          if(x === 'rare') return RARITY.RARE;
+          if(x === 'legendary' || x === 'légendaire' || x === 'legendaire') return RARITY.LEGENDARY;
+          if(x === 'exotic' || x === 'exotique') return RARITY.EXOTIC;
+          return RARITY.COMMON;
+        };
+        CARD_POOLS = data.cards
+          .filter(c => !!c.id && !!c.name)
+          .map(c => ({ id:c.id, name:c.name, set:(c.set||'Nouvelle Lumière'), rarity: mapRarity(c.rarity), image:(c.image||'') }));
+        console.log('[DEBUG] Set chargé:', CARD_POOLS.length, 'cartes.');
       }catch(e){
-        console.error(e);
-        tbody.innerHTML = '';
-        empty.style.display = '';
-        empty.textContent = 'Erreur de chargement des joueurs : '+(e?.message||e);
+        console.warn('[DEBUG] Échec du chargement JSON, fallback local.', e);
+        CARD_POOLS = FALLBACK_CARDS.slice();
       }
     }
 
-    function renderPlayers(list){
-      tbody.innerHTML = '';
-      empty.style.display = list.length ? 'none' : '';
-      for(const p of list){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(p.displayName)}</td><td style="font-family:ui-monospace,Menlo,Consolas">${p.uid}</td><td>${p.packsOpened}</td><td>${p.uniques}</td>`;
-        tr.addEventListener('click', ()=> selectPlayer(p.uid));
-        tbody.appendChild(tr);
+    // --- Local/state
+    const LS_KEY = 'grimoire.alpha.collection.v2_5';
+    const LS_STATS = 'grimoire.alpha.stats.v2_5';
+    const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
+
+    let collection = loadCollection();
+    let stats = loadStats();
+    let profile = loadProfile();
+    let currentUser = null;
+    let playerDocRef = null;
+
+    function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
+    function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
+    function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
+    function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
+    function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
+    function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
+
+    // --- XP / Levels
+    const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
+    function xpForLevel(level){ return LEVEL_XP_BASE; }
+    function nextRewardForLevel(level){
+      if(level===1) return {type:'pack_standard', label:'Pack Standard'};
+      if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
+      return {type:'pack_standard', label:'Pack Standard'};
+    }
+
+    // --- Rendering
+    function renderStats(){
+      const uniqueOwned = Object.keys(collection).length;
+      const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
+      const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0;
+      document.getElementById('stat-packs').textContent = stats.packsOpened||0;
+      document.getElementById('stat-uniques').textContent = uniqueOwned;
+      document.getElementById('stat-completion').textContent = completion+"%";
+      document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
+      const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
+      document.getElementById('stat-level').textContent = level;
+      document.getElementById('stat-xp').textContent = xp;
+      document.getElementById('stat-xp-next').textContent = need;
+      document.getElementById('xp-fill').style.width = pct + '%';
+      document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
+    }
+   function rankFromCompletion(p){
+  if(p >= 100) return 'Parangon';
+  if(p >= 90) return 'Exemplaire';
+  if(p >= 80) return 'Vainqueur';
+  if(p >= 70) return 'Justicier';
+  if(p >= 60) return 'Elite';
+  if(p >= 50) return 'Vétéran';
+  if(p >= 40) return 'Aventurier';
+  if(p >= 30) return 'Éclaireur';
+  if(p >= 20) return 'Initié';
+  if(p >= 10) return 'Explorateur';
+  return 'Nouvelle lumière';
+}
+    function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
+
+    function renderResults(cards){
+      const wrap = document.getElementById('results'); wrap.innerHTML='';
+      let hasLegendary=false, hasExotic=false;
+      for(const card of cards){
+        const div=document.createElement('div'); div.className='card';
+        const img=document.createElement('div'); img.className='img';
+        // Utiliser l'image fournie si disponible
+        if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; }
+        const shine=document.createElement('div'); shine.className='shine';
+        div.appendChild(img); div.appendChild(shine);
+        div.addEventListener('pointermove', (e)=>{
+          const r=e.currentTarget.getBoundingClientRect();
+          const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100;
+          shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%');
+        });
+        const footer=document.createElement('div'); footer.className='footer';
+        footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
+        div.appendChild(footer);
+        wrap.appendChild(div);
+        if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
+        if(card.rarity===RARITY.EXOTIC) hasExotic=true;
+      }
+      const banner=document.getElementById('special-banner');
+      if(hasExotic || hasLegendary){
+        banner.style.display='flex';
+        banner.innerHTML=(hasExotic
+          ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
+          : '⭐ <strong>LÉGENDAIRE !</strong>')
+          + '<button class="close" aria-label="Fermer">×</button>';
+        banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
+      } else {
+        banner.style.display='none';
       }
     }
 
-    // --- Search
-    searchInput.addEventListener('input', ()=>{
-      const q = searchInput.value.trim().toLowerCase();
-      if(!q){ renderPlayers(playersCache); return; }
-      const filtered = playersCache.filter(p =>
-        p.uid.toLowerCase().includes(q) ||
-        (p.displayName||'').toLowerCase().includes(q) ||
-        (p.email||'').toLowerCase().includes(q)
-      );
-      renderPlayers(filtered);
+    // Safe-no-op si l’élément #collection n’existe pas (collection sur collection.html)
+    function renderCollection(){
+      const wrap=document.getElementById('collection');
+      if(!wrap) return;
+      wrap.innerHTML='';
+      const byRarityIdx=c=>rarityOrder.indexOf(c.rarity);
+      const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
+      for(const card of all){
+        const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card';
+        div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+          + '<div style="font-weight:700">'+card.name+'</div>'
+          + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>'
+          + '</div><div class="qty">'+card.set+' — '+card.id+'</div>'
+          + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>';
+        wrap.appendChild(div);
+      }
+    }
+
+    // --- Draw logic
+    function weightedRandomRarity(){
+      const entries=Object.entries(RARITY_WEIGHTS);
+      const total=entries.reduce((s,[,w])=>s+w,0);
+      let r=Math.random()*total;
+      for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight; }
+      return RARITY.COMMON;
+    }
+    function pickCardByRarity(rarity){
+      const pool=CARD_POOLS.filter(c=>c.rarity===rarity);
+      if(pool.length===0){
+        const idx=rarityOrder.indexOf(rarity);
+        for(let j=idx-1;j>=0;j--){
+          const p=CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]);
+          if(p.length) return p[Math.floor(Math.random()*p.length)];
+        }
+        return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)];
+      }
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
+    function ensureAtLeastRare(){
+      const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
+      const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]];
+      let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
+    }
+
+    function addToCollection(cards){ for(const card of cards){ collection[card.id]=(collection[card.id]||0)+1; } saveCollection(); }
+
+    async function openPack({type='standard'}={}){
+      if(!CARD_POOLS.length){ alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
+      const cards=[];
+      if(type==='premium'){
+        let idx=Math.floor(Math.random()*5);
+        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      } else {
+        for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      }
+      stats.packsOpened=(stats.packsOpened||0)+1; saveStats();
+      addToCollection(cards);
+      await gainXpAndMaybeLevelUp(XP_PER_PACK);
+      renderStats(); renderResults(cards); renderCollection();
+      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards,{xpGain:XP_PER_PACK}).catch(console.error); }
+      toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
+    }
+
+    // --- Cloud sync
+    async function loadOrCreatePlayerDoc(user){
+      playerDocRef=doc(db,'players',user.uid);
+      const snap=await getDoc(playerDocRef);
+      if(!snap.exists()){
+        const base={ displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt:serverTimestamp(), updatedAt:serverTimestamp(), stats:{packsOpened:stats.packsOpened||0}, collection:collection, level:profile.level||1, xp:profile.xp||0, rewardsInbox:[] };
+        await setDoc(playerDocRef, base);
+        return base;
+      }
+      const data=snap.data();
+      collection={...(data.collection||{})}; saveCollection();
+      stats.packsOpened=(data.stats?.packsOpened||0); saveStats();
+      profile.level=data.level||1; profile.xp=data.xp||0; saveProfile();
+      renderStats(); renderCollection();
+      try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
+      return data;
+    }
+
+    async function syncPackResultToFirestore(cards,{xpGain=0}={}){
+      await runTransaction(db, async (trx)=>{
+        const docSnap=await trx.get(playerDocRef);
+        const cur=docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
+        const newStats={...cur.stats, packsOpened:(cur.stats?.packsOpened||0)+1};
+        const newCollection={...(cur.collection||{})};
+        for(const c of cards){ newCollection[c.id]=(newCollection[c.id]||0)+1; }
+        let level=cur.level||1;
+        let xp=(cur.xp||0)+xpGain;
+        let rewards=cur.rewardsInbox||[];
+        let need=xpForLevel(level);
+        while(xp>=need){
+          xp-=need; level+=1; need=xpForLevel(level);
+          const rw=nextRewardForLevel(level-1);
+          rewards=[...rewards,{id:'rw_'+Date.now()+Math.random().toString(36).slice(2),type:rw.type,label:rw.label,t:Date.now()}];
+        }
+        trx.set(playerDocRef,{ stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt:serverTimestamp() },{merge:true});
+      });
+    }
+
+    // --- Auth state
+    onAuthStateChanged(auth, async (user)=>{
+      currentUser=user||null;
+      console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null');
+      loginBtn.style.display=currentUser? 'none' : '';
+      logoutBtn.style.display=currentUser? '' : 'none';
+      if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }
     });
-    btnRefresh.addEventListener('click', loadPlayers);
 
-    // --- Select player
-    async function selectPlayer(uid){
-      selectedPlayer = null;
-      selectedTag.textContent = 'Chargement…';
-      playerDetails.textContent = 'Chargement…';
+    // --- Diagnostic helpers
+    const diag=document.getElementById('diag-log');
+    function printDiag(line){ diag.textContent += (line + '\n'); }
+    function clearDiag(){ diag.textContent=''; }
+
+    document.getElementById('btn-test-config').addEventListener('click',()=>{
+      clearDiag();
+      const checks=[];
+      checks.push(['apiKey ok',!!firebaseConfig.apiKey]);
+      checks.push(['authDomain ok',!!firebaseConfig.authDomain]);
+      checks.push(['projectId ok',!!firebaseConfig.projectId]);
+      checks.push(['appId ok',!!firebaseConfig.appId]);
+      for(const [name,ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
+      printDiag('\nConfig OK si toutes les coches sont vertes.');
+      printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.');
+    });
+
+    document.getElementById('btn-test-auth').addEventListener('click',()=>{
+      clearDiag();
+      if(currentUser){
+        printDiag('Connecté ✅');
+        printDiag('uid: '+currentUser.uid);
+        printDiag('displayName: '+(currentUser.displayName||'(—)'));
+        printDiag('email: '+(currentUser.email||'(—)'));
+        printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
+      } else {
+        printDiag('Non connecté ❌');
+        printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.');
+      }
+    });
+
+    document.getElementById('btn-test-draws').addEventListener('click',()=>{
+      clearDiag();
+      const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0};
+      for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
+      const pct=x=>(100*x/N).toFixed(2)+'%';
+      printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:');
+      for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
+        printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
+      }
+    });
+
+    document.getElementById('btn-test-premium').addEventListener('click',()=>{
+      clearDiag();
+      const P=1000; let ok=0,fail=0;
+      for(let p=0;p<P;p++){
+        const cards=[]; let idx=Math.floor(Math.random()*5);
+        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
+        if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
+      }
+      printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail);
+      printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.');
+    });
+
+    document.getElementById('btn-test-firestore').addEventListener('click',async()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
       try{
-        const ref = doc(db,'players',uid);
-        const snap = await getDoc(ref);
-        if(!snap.exists()){ selectedTag.textContent = 'Introuvable'; playerDetails.textContent = 'Aucun document.'; return; }
-        const data = snap.data();
-        selectedPlayer = { uid, ...data };
-        selectedTag.textContent = data.displayName || uid;
-        const uniques = data.collection ? Object.keys(data.collection).length : 0;
-        const packsOpened = data.stats?.packsOpened || 0;
-        const inbox = Array.isArray(data.rewardsInbox) ? data.rewardsInbox.length : 0;
-        playerDetails.innerHTML = `
-          <div class="row" style="align-items:flex-start; gap:14px">
-            ${data.photoURL ? `<img src="${data.photoURL}" alt="avatar" style="width:56px;height:56px;border-radius:12px;border:1px solid rgba(255,255,255,.12)"/>` : ''}
-            <div>
-              <div style="font-weight:800; font-size:16px">${escapeHtml(data.displayName||'(—)')}</div>
-              <div class="subtitle">UID: <span style="font-family:ui-monospace,Menlo,Consolas">${uid}</span></div>
-              <div class="subtitle">Packs ouverts: <strong>${packsOpened}</strong> · Cartes uniques: <strong>${uniques}</strong> · Rewards en attente: <strong>${inbox}</strong></div>
-            </div>
-          </div>`;
-      }catch(e){ selectedTag.textContent = 'Erreur'; playerDetails.textContent = e?.message||String(e); }
-    }
+        const now=Date.now();
+        await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()});
+        const back=await getDoc(doc(db,'players',currentUser.uid));
+        printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest);
+      } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); }
+    });
 
-    // --- Grant packs (push dans rewardsInbox)
-    btnGrant.addEventListener('click', async ()=>{
-      if(!selectedPlayer){ alert('Sélectionne d\'abord un joueur.'); return; }
-      const type = grantType.value;
-      const qty = Math.max(1, Math.min(50, Number(grantQty.value||1)));
-      const label = type === 'pack_premium' ? 'Pack Premium' : 'Pack Standard';
+    document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
+      try{
+        const snap=await getDoc(doc(db,'players',currentUser.uid));
+        if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
+        const data=snap.data();
+        printDiag('Avant — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
+        collection={...(data.collection||{})}; saveCollection();
+        stats.packsOpened=(data.stats?.packsOpened||0); saveStats();
+        profile.level=data.level||1; profile.xp=data.xp||0; saveProfile();
+        renderStats(); renderCollection();
+        printDiag('Après — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
+        printDiag('✅ Priorité cloud appliquée.');
+      } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); }
+    });
+
+    document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
+      if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
       try{
         await runTransaction(db, async (trx)=>{
-          const ref = doc(db,'players',selectedPlayer.uid);
-          const snap = await trx.get(ref);
-          if(!snap.exists()) throw new Error('Joueur introuvable');
-          const data = snap.data();
-          const inbox = Array.isArray(data.rewardsInbox) ? data.rewardsInbox.slice() : [];
-          const now = Date.now();
-          for(let i=0;i<qty;i++){
-            inbox.push({ id:'rw_'+now+'_'+i+'_'+Math.random().toString(36).slice(2), type, label, t: now });
-          }
-          trx.update(ref, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
+          const snap=await trx.get(playerDocRef);
+          if(!snap.exists()) throw new Error('Profil introuvable');
+          const data=snap.data();
+          const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[];
+          if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
+          const reward=inbox.shift();
+          trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()});
+          setTimeout(()=>{ if(reward.type==='pack_standard') openPack({type:'standard'}); else if(reward.type==='pack_premium') openPack({type:'premium'}); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100);
         });
-        alert(`Attribué: ${qty} × ${label}`);
-        // Recharge les détails
-        selectPlayer(selectedPlayer.uid);
-      }catch(e){ alert(e?.message||String(e)); }
+      } catch(e){ alert(e.message||String(e)); }
     });
 
-    // --- Utils
-    function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s])); }
+    // --- Packs UI
+    function renderPacks(){
+      const wrap=document.getElementById('packs'); wrap.innerHTML='';
+      const packs=[
+        { id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) } },
+        { id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], locked:true, action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') } }
+      ];
+      for(const p of packs){
+        const card=document.createElement('div'); card.className='pack';
+        card.innerHTML =
+          '<div class="cover" aria-hidden="true"></div>'+
+          '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
+          + '<div><div style="font-size:18px;font-weight:900">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
+          + (p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':'' )
+          + '</div>'
+          + '<div class="loot">'+p.loot.map(x=>'• '+x).join('<br/>')+'</div>'
+          + '<div class="odds">'+p.odds.map(([k,v])=>k+': '+v).join(' · ')+'</div>'
+          + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+' pill" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
+        const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click);
+        wrap.appendChild(card);
+      }
+    }
+
+    // --- Toast helper
+    function toast(msg,ms=1800){
+      let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+      requestAnimationFrame(()=> t.classList.add('show'));
+      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
+    }
+
+    // --- Reset & XP
+    document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
+    document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
+    document.getElementById('btn-reset').addEventListener('click', ()=>{
+      if(confirm('Réinitialiser la collection locale ?')){
+        collection={}; saveCollection();
+        stats={packsOpened:0}; saveStats();
+        profile={level:1,xp:0}; saveProfile();
+        renderStats(); renderCollection();
+        document.getElementById('results').innerHTML='';
+        document.getElementById('special-banner').style.display='none';
+      }
+    });
+
+    async function gainXpAndMaybeLevelUp(amount){
+      profile.xp=(profile.xp||0)+amount; let need=xpForLevel(profile.level||1); let leveled=false;
+      while(profile.xp>=need){ profile.xp-=need; profile.level=(profile.level||1)+1; need=xpForLevel(profile.level); leveled=true; }
+      saveProfile(); renderStats();
+      if(leveled && currentUser && playerDocRef){
+        await updateDoc(playerDocRef,{ level:profile.level, xp:profile.xp, updatedAt:serverTimestamp() }).catch(()=>{});
+      }
+    }
+
+    // --- Init
+    async function init(){
+      // Skeletons rapides avant chargement
+      const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px">\
+<div class="card"></div><div class="card"></div><div class="card"></div></div>';
+      document.getElementById('results').innerHTML = skel;
+      await loadCardSet();            // charge /data/sets/nouvelle-lumiere.json (ou fallback)
+      renderStats();
+      renderCollection();             // no-op ici (pas d’élément sur index.html)
+      renderPacks();
+      document.getElementById('results').innerHTML = ''; // clear skeleton si vide
+      console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
+    }
+    init();
   </script>
 </body>
 </html>
