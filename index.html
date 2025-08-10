@@ -241,7 +241,7 @@
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-onst auth = getAuth(); // Pas besoin de initializeApp si c’est déjà fait dans un autre fichier importé
+const auth = getAuth(); // Pas besoin de initializeApp si c’est déjà fait dans un autre fichier importé
 const ADMIN_NAME = 'siana_tv';
 const btnAdmin = document.getElementById('btn-admin');
 
