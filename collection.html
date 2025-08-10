@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire · Ma collection</title>
   <style>
-    :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
+    :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);color:var(--text)}
     header{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:linear-gradient(180deg,rgba(11,15,26,.9),rgba(11,15,26,.6));border-bottom:1px solid rgba(255,255,255,.06)}
@@ -117,11 +117,12 @@
 
   <script type="module">
     console.log('[DEBUG][collection] script chargé');
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // ⚙️ Firebase config — même projet que l'index
+    // Firebase
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
       authDomain: 'legends-collection.firebaseapp.com',
@@ -137,17 +138,15 @@
     try { await setPersistence(auth, browserLocalPersistence); } catch {}
 
     const twitchProvider = new OAuthProvider('oidc.twitch');
-    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
+    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
 
-    // 🗃️ Données (mêmes clés local que V3.1)
-    const LS_KEY = 'grimoire.alpha.collection.v2_5';
-    const LS_STATS = 'grimoire.alpha.stats.v2_5';
-    const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
-
+    // Raretés normalisées pour cohérence avec index
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-    const CARD_POOLS = [
+    // Chargement dynamique du set
+    let CARD_POOLS = [];
+    const FALLBACK_CARDS = [
       { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON },
       { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON },
       { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON },
@@ -155,104 +154,124 @@
       { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY },
       { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC }
     ];
+    function mapRarity(r){
+      const x=(r||'').toLowerCase();
+      if(x==='common'||x==='commune') return RARITY.COMMON;
+      if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
+      if(x==='rare') return RARITY.RARE;
+      if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
+      if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
+      return RARITY.COMMON;
+    }
+    async function loadCardSet(){
+      const url='/data/sets/nouvelle-lumiere.json';
+      try{
+        console.log('[DEBUG][collection] fetch', url);
+        const res=await fetch(url,{cache:'no-store'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json();
+        if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
+        CARD_POOLS = data.cards.map(c=>({id:c.id,name:c.name,set:c.set||'Nouvelle Lumière',rarity:mapRarity(c.rarity)}));
+        console.log('[DEBUG][collection] loaded', CARD_POOLS.length, 'cards');
+      }catch(e){
+        console.warn('[DEBUG][collection] fallback local', e);
+        CARD_POOLS = FALLBACK_CARDS.slice();
+      }
+    }
 
-    let collection = loadCollection();
-    let stats = loadStats();
-    let profile = loadProfile();
-    let currentUser = null;
-    let playerDocRef = null;
+    // Local storage (mêmes clés que l’index)
+    const LS_KEY='grimoire.alpha.collection.v2_5';
+    const LS_STATS='grimoire.alpha.stats.v2_5';
+    const LS_PROFILE='grimoire.alpha.profile.v2_5';
+    let collection = load(LS_KEY, {});
+    let stats = load(LS_STATS, {packsOpened:0});
+    let profile = load(LS_PROFILE, {level:1,xp:0});
+    function load(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
+    function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 
-    function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
-    function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
-    function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
-    function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
-    function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
-    function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
+    // UI refs
+    const elCards=document.getElementById('cards');
+    const elCount=document.getElementById('count');
+    const elUniques=document.getElementById('stat-uniques');
+    const elTotal=document.getElementById('stat-total');
+    const elCompletion=document.getElementById('stat-completion');
+    const elByRarity=document.getElementById('stat-by-rarity');
+    const elSync=document.getElementById('sync-badge');
 
-    // 🧭 UI refs
-    const elCards = document.getElementById('cards');
-    const elCount = document.getElementById('count');
-    const elUniques = document.getElementById('stat-uniques');
-    const elTotal = document.getElementById('stat-total');
-    const elCompletion = document.getElementById('stat-completion');
-    const elByRarity = document.getElementById('stat-by-rarity');
-    const elSync = document.getElementById('sync-badge');
-
-    const q = document.getElementById('q');
-    const setFilter = document.getElementById('setFilter');
-    const cbCommon = document.getElementById('r-common');
-    const cbUncommon = document.getElementById('r-uncommon');
-    const cbRare = document.getElementById('r-rare');
-    const cbLegendary = document.getElementById('r-legendary');
-    const cbExotic = document.getElementById('r-exotic');
-    const sortBy = document.getElementById('sortBy');
+    const q=document.getElementById('q');
+    const setFilter=document.getElementById('setFilter');
+    const cbCommon=document.getElementById('r-common');
+    const cbUncommon=document.getElementById('r-uncommon');
+    const cbRare=document.getElementById('r-rare');
+    const cbLegendary=document.getElementById('r-legendary');
+    const cbExotic=document.getElementById('r-exotic');
+    const sortBy=document.getElementById('sortBy');
 
     const diag=document.getElementById('diag-log');
     function log(line){ diag.textContent += (line + '\n'); }
     function clearLog(){ diag.textContent=''; }
 
-    // 📌 Remplit la liste des sets (d'après le pool)
-    (function fillSets(){
-      const sets = [...new Set(CARD_POOLS.map(c=>c.set))].sort();
+    // Fill sets from CARD_POOLS (après chargement)
+    function fillSets(){
+      setFilter.innerHTML='<option value="">Tous les sets</option>';
+      const sets=[...new Set(CARD_POOLS.map(c=>c.set))].sort();
       for(const s of sets){ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; setFilter.appendChild(opt); }
-    })();
+    }
 
-    // 🔐 Auth & Cloud sync (cloud -> remplace local)
+    // Auth + synchro Cloud → Local
     onAuthStateChanged(auth, async (user)=>{
-      currentUser = user||null;
-      elSync.textContent = currentUser? 'Cloud ✓' : 'Local';
-      elSync.style.background = currentUser? 'rgba(52,211,153,.18)' : '';
-      if(currentUser){
-        playerDocRef = doc(db,'players', currentUser.uid);
-        const snap = await getDoc(playerDocRef);
-        if(snap.exists()){
-          const data = snap.data();
-          collection = { ...(data.collection||{}) };
-          stats.packsOpened = data.stats?.packsOpened||stats.packsOpened||0;
-          profile.level = data.level||profile.level||1;
-          profile.xp = data.xp||profile.xp||0;
-          saveCollection(); saveStats(); saveProfile();
-          log('[DEBUG] Cloud → local appliqué');
-        } else {
-          log('[DEBUG] Aucun doc cloud — affichage local');
-        }
+      elSync.textContent = user? 'Cloud ✓' : 'Local';
+      elSync.style.background = user? 'rgba(52,211,153,.18)' : '';
+      if(user){
+        try {
+          const snap=await getDoc(doc(db,'players',user.uid));
+          if(snap.exists()){
+            const data=snap.data();
+            collection={...(data.collection||{})};
+            stats.packsOpened=data.stats?.packsOpened||stats.packsOpened||0;
+            profile.level=data.level||profile.level||1;
+            profile.xp=data.xp||profile.xp||0;
+            save(LS_KEY,collection); save(LS_STATS,stats); save(LS_PROFILE,profile);
+            log('[DEBUG] Cloud → local appliqué');
+          } else {
+            log('[DEBUG] Aucun doc cloud — affichage local');
+          }
+          render();
+        } catch(e){ console.error(e); }
       } else {
         log('[DEBUG] Non connecté — affichage local');
+        render();
       }
-      render();
     });
 
-    // 🧮 Rendus & filtres
+    // Rendu
     function render(){
-      const all = CARD_POOLS.map(c=> ({...c, qty: (collection[c.id]||0) }));
-      const rarityEnabled = new Set([
-        cbCommon.checked? RARITY.COMMON : null,
-        cbUncommon.checked? RARITY.UNCOMMON : null,
-        cbRare.checked? RARITY.RARE : null,
-        cbLegendary.checked? RARITY.LEGENDARY : null,
-        cbExotic.checked? RARITY.EXOTIC : null,
+      const all = CARD_POOLS.map(c=>({...c, qty:(collection[c.id]||0)}));
+      const enabled=new Set([
+        cbCommon.checked? RARITY.COMMON:null,
+        cbUncommon.checked? RARITY.UNCOMMON:null,
+        cbRare.checked? RARITY.RARE:null,
+        cbLegendary.checked? RARITY.LEGENDARY:null,
+        cbExotic.checked? RARITY.EXOTIC:null
       ].filter(Boolean));
-
-      let list = all.filter(c=> rarityEnabled.has(c.rarity));
+      let list = all.filter(c=> enabled.has(c.rarity));
       if(setFilter.value) list = list.filter(c=> c.set===setFilter.value);
       if(q.value?.trim()){
-        const s = q.value.trim().toLowerCase();
+        const s=q.value.trim().toLowerCase();
         list = list.filter(c=> c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s));
       }
-
       switch(sortBy.value){
         case 'rarity,id': list.sort((a,b)=> rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || a.id.localeCompare(b.id)); break;
         case 'name': list.sort((a,b)=> a.name.localeCompare(b.name)); break;
         case 'qty-desc': list.sort((a,b)=> (b.qty||0)-(a.qty||0) || a.id.localeCompare(b.id)); break;
-        default: // set,id
-          list.sort((a,b)=> a.set.localeCompare(b.set) || a.id.localeCompare(b.id));
+        default: list.sort((a,b)=> a.set.localeCompare(b.set) || a.id.localeCompare(b.id));
       }
 
       // Stats
       const uniques = Object.keys(collection).length;
       const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
       const completion = totalUnique? Math.round(100*uniques/totalUnique):0;
-      const totalCards = Object.values(collection).reduce((s,n)=> s+(n||0), 0);
+      const totalCards = Object.values(collection).reduce((s,n)=>s+(n||0),0);
       const byR = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
       for(const id in collection){ const card = CARD_POOLS.find(c=>c.id===id); if(card) byR[card.rarity]+=collection[id]; }
 
@@ -262,10 +281,9 @@
       elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
 
       // Cards
-      elCards.innerHTML = '';
+      elCards.innerHTML='';
       for(const c of list){
-        const div = document.createElement('div');
-        div.className = 'mini-card';
+        const div=document.createElement('div'); div.className='mini-card';
         div.innerHTML = `
           <span class="qty">x${c.qty||0}</span>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
@@ -279,10 +297,10 @@
       elCount.textContent = `${list.length} éléments`;
     }
 
-    // 🔘 UI events
+    // Events
     for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy]){
-      el.addEventListener('input', ()=> render());
-      el.addEventListener('change', ()=> render());
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
     }
     document.getElementById('btn-clear').addEventListener('click', ()=>{
       q.value=''; setFilter.value='';
@@ -293,32 +311,34 @@
 
     document.getElementById('btn-sync-from-cloud').addEventListener('click', async ()=>{
       if(!auth.currentUser){ alert('Connecte-toi avec Twitch pour synchroniser.'); return; }
-      try {
-        const snap = await getDoc(doc(db,'players', auth.currentUser.uid));
+      try{
+        const snap=await getDoc(doc(db,'players', auth.currentUser.uid));
         if(!snap.exists()) { alert('Aucune collection cloud.'); return; }
-        const data = snap.data();
+        const data=snap.data();
         collection = { ...(data.collection||{}) };
         stats.packsOpened = data.stats?.packsOpened||0; profile.level=data.level||1; profile.xp=data.xp||0;
-        saveCollection(); saveStats(); saveProfile();
+        save(LS_KEY,collection); save(LS_STATS,stats); save(LS_PROFILE,profile);
         log('[DEBUG] Synchro forcée Cloud → Local : OK');
         render();
-      } catch(e){ console.error(e); alert('Erreur de synchro: '+(e?.message||e)); }
+      }catch(e){ console.error(e); alert('Erreur de synchro: '+(e?.message||e)); }
     });
 
     document.getElementById('btn-export-json').addEventListener('click', ()=>{
-      const payload = { collection, stats, profile, exportedAt: new Date().toISOString() };
-      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='grimoire-collection.json'; a.click(); URL.revokeObjectURL(url);
+      const payload={ collection, stats, profile, exportedAt:new Date().toISOString() };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='grimoire-collection.json'; a.click(); URL.revokeObjectURL(url);
     });
 
     document.getElementById('btn-clear-local').addEventListener('click', ()=>{
       if(confirm('Effacer la collection locale ? (Cloud inchangé)')){
-        collection={}; saveCollection(); render();
+        collection={}; save(LS_KEY,collection); render();
       }
     });
 
-    // Démarrage (si pas encore connecté, on affiche le local)
+    // Init
+    await loadCardSet();
+    fillSets();
     render();
   </script>
 </body>
