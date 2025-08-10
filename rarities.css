@@ -1,0 +1,47 @@
+/* Couleurs harmonisées pour les raretés */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+/* Commune - gris clair */
+.tag.common {
+  background: rgba(154, 166, 190, 0.15);
+  border-color: rgba(154, 166, 190, 0.4);
+  color: #9aa6be;
+}
+
+/* Peu commune - vert */
+.tag.uncommon {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+/* Rare - bleu */
+.tag.rare {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #3b82f6;
+}
+
+/* Légendaire - violet */
+.tag.legendary {
+  background: rgba(124, 92, 255, 0.15);
+  border-color: rgba(124, 92, 255, 0.4);
+  color: #7c5cff;
+}
+
+/* Exotique - doré */
+.tag.exotic {
+  background: rgba(214, 161, 122, 0.15);
+  border-color: rgba(214, 161, 122, 0.4);
+  color: #d6a17a;
+}
