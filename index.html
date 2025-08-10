@@ -3,104 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype V3</title>
+  <title>Grimoire · Prototype V3 (popup auth)</title>
   <style>
-    :root{
-      --bg:#0b0f1a; /* nuit spatiale */
-      --panel:#121829;
-      --panel-2:#0e1423;
-      --text:#e8ecf3;
-      --muted:#9aa6be;
-      --accent:#7c5cff; /* indigo céleste */
-      --accent-2:#b86bff; /* améthyste */
-      --copper:#d6a17a; /* cuivre rosé */
-      --success:#34d399;
-      --warning:#f59e0b;
-      --danger:#ef4444;
-      --rare:#3b82f6;
-      --legendary:#f59e0b;
-      --exotic:#eab308;
-      --radius:16px;
-      --radius-lg:20px;
-      --shadow:0 8px 24px rgba(0,0,0,.35);
-      --shadow-sm:0 4px 12px rgba(0,0,0,.25);
-      --card-w: 220px;
-    }
+    :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),
-                  radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),
-                  linear-gradient(180deg, #0b0f1a 0%, #0b0f1a 100%);
-      color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter: blur(8px);
-      background: linear-gradient(180deg, rgba(11,15,26,.9) 0%, rgba(11,15,26,.6) 100%);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);color:var(--text)}
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:linear-gradient(180deg,rgba(11,15,26,.9),rgba(11,15,26,.6));border-bottom:1px solid rgba(255,255,255,.06)}
     .container{max-width:1100px;margin:0 auto;padding:24px}
     .row{display:flex;gap:20px;flex-wrap:wrap}
-
     .brand{display:flex;align-items:center;gap:14px}
-    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--copper), var(--accent)); box-shadow:var(--shadow-sm)}
-    .title{font-size:20px;font-weight:700;letter-spacing:.3px}
+    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
+    .title{font-size:20px;font-weight:700}
     .subtitle{font-size:12px;color:var(--muted)}
-
     .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:700}
-
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);box-shadow:var(--shadow);}    
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow)}
     .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
-    .panel .hd h3{margin:0;font-size:16px;letter-spacing:.3px}
     .panel .bd{padding:18px}
-
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
     .stat{background:#0e1423;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}
     .stat .v{font-size:24px;font-weight:800}
     .stat .k{font-size:12px;color:var(--muted)}
-
-    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .08s ease,opacity .2s ease}
-    .btn:hover{transform:translateY(-1px)}
-    .btn:active{transform:translateY(0)}
-    .btn.secondary{background:#1f2937;color:var(--text)}
+    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm)}
     .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
-    .btn.success{background:var(--success)}
-    .btn.warning{background:var(--warning)}
-    .btn.disabled{opacity:.5;cursor:not-allowed}
-
-    .packs{display:grid;grid-template-columns:repeat(auto-fit, minmax(260px,1fr));gap:16px}
-    .pack{display:flex;flex-direction:column;gap:12px;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;position:relative;overflow:hidden}
-    .pack .loot{font-size:12px;color:var(--muted)}
-    .pack .odds{font-size:12px;color:var(--muted)}
-
+    .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .pack{display:flex;flex-direction:column;gap:12px;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
-    .card{ width:var(--card-w); aspect-ratio:2/3; border-radius:18px; background:linear-gradient(180deg,#141b33,#0b0f1a); border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow-sm); overflow:hidden;position:relative }
-    .card .img{position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%), url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.6;mix-blend:screen}
-    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.7));}
-    .card .name{font-weight:800;letter-spacing:.3px}
+    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:18px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .card .img{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.6;mix-blend:screen}
+    .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.7))}
     .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
-    .tag .dot{width:8px;height:8px;border-radius:999px}
-    .rarity-common .dot{background:#94a3b8}
-    .rarity-uncommon .dot{background:#34d399}
-    .rarity-rare .dot{background:var(--rare)}
-    .rarity-legendary .dot{background:var(--legendary)}
-    .rarity-exotic .dot{background:var(--exotic)}
-
-    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg, rgba(234,179,8,.15), rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.3)}
-
+    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.3)}
     .collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
     .mini-card{background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
-    .mini-card .qty{font-size:12px;color:var(--muted)}
-
     .footerbar{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}
-
-    @media (max-width:780px){ .grid{grid-template-columns:1fr} }
-    /* Diag */
-    .diag{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:var(--muted)}
-    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto}
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
   </style>
 </head>
 <body>
@@ -110,7 +47,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div class="title">Grimoire</div>
-          <div class="subtitle">TCG digital — prototype V3</div>
+          <div class="subtitle">TCG digital — prototype V3 (popup)</div>
         </div>
       </div>
       <div class="row" style="gap:10px">
@@ -125,7 +62,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span id="build-badge" class="badge">Alpha — Firebase V3</span>
+          <span class="badge">Alpha — Firebase V3</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -135,19 +72,18 @@
             <div class="stat"><div class="v" id="stat-rank">Bronze I</div><div class="k">Rang</div></div>
           </div>
 
-          <!-- XP / Level Progress -->
           <div id="xp-wrap" style="margin-top:12px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
               <div class="subtitle">Niveau <span id="stat-level">1</span> · XP <span id="stat-xp">0</span>/<span id="stat-xp-next">100</span></div>
               <div class="subtitle">Prochaine récompense : <span id="stat-next-reward">Pack Standard</span></div>
             </div>
             <div class="xpbar" style="height:10px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden">
-              <div id="xp-fill" style="height:100%;width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .25s ease"></div>
+              <div id="xp-fill" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s ease"></div>
             </div>
           </div>
 
           <div class="footerbar">
-            <button id="btn-claim-rewards" class="btn secondary">🎁 Réclamer mes récompenses de niveau</button>
+            <button id="btn-claim-rewards" class="btn">🎁 Réclamer mes récompenses de niveau</button>
             <button id="btn-reset" class="btn ghost">Réinitialiser la collection (local)</button>
           </div>
         </div>
@@ -166,7 +102,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Résultats d'ouverture</h3>
-          <div class="row"><button id="btn-open-standard" class="btn">Ouvrir un pack Standard</button><button id="btn-open-premium" class="btn disabled" disabled>Ouvrir un pack Premium</button></div>
+          <div class="row"><button id="btn-open-standard" class="btn">Ouvrir un pack Standard</button><button id="btn-open-premium" class="btn ghost">Ouvrir un pack Premium</button></div>
         </div>
         <div class="bd">
           <div id="special-banner" class="banner" style="display:none"></div>
@@ -184,7 +120,6 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
         <div class="bd">
-          <div class="diag">Projet: <span id="cfg-project" class="diag">(—)</span> — Auth Domain: <span id="cfg-authdomain" class="diag">(—)</span> — API Key: <span id="cfg-apikey" class="diag">(—)</span></div>
           <div class="footerbar">
             <button id="btn-test-config" class="btn ghost">Tester config Firebase</button>
             <button id="btn-test-auth" class="btn ghost">Tester Auth (qui suis‑je ?)</button>
@@ -200,69 +135,49 @@
   </main>
 
   <script type="module">
-    // Firebase + Auth (Twitch OIDC) + Firestore — config directe
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI",
-      authDomain: "legends-collection.firebaseapp.com",
-      projectId: "legends-collection",
-      storageBucket: "legends-collection.firebasestorage.app",
-      messagingSenderId: "133783086150",
-      appId: "1:133783086150:web:762f209f7f778ef83a1647"
+      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+      authDomain: 'legends-collection.firebaseapp.com',
+      projectId: 'legends-collection',
+      storageBucket: 'legends-collection.firebasestorage.app',
+      messagingSenderId: '133783086150',
+      appId: '1:133783086150:web:762f209f7f778ef83a1647'
     };
 
     console.log('[DEBUG] Initialisation Firebase');
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e){ console.warn('[DEBUG] Persistence failed', e); }
 
-    // IMPORTANT : forcer la persistance de session avant tout sign‑in
-    try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e) { console.warn('Set persistence failed', e); }
-
-    // UI diag config
-    document.getElementById('cfg-project').textContent = firebaseConfig.projectId;
-    document.getElementById('cfg-authdomain').textContent = firebaseConfig.authDomain;
-    document.getElementById('cfg-apikey').textContent = firebaseConfig.apiKey.slice(0,4)+'…'+firebaseConfig.apiKey.slice(-4);
-
-    // Auth Twitch OIDC
     const twitchProvider = new OAuthProvider('oidc.twitch');
-    try {
-      twitchProvider.addScope('openid');
-      twitchProvider.addScope('user:read:email');
-      // Évite les retours silencieux si une session Twitch existe déjà
-      twitchProvider.setCustomParameters({ prompt: 'consent' });
-    } catch {}
+    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
 
     const loginBtn = document.getElementById('btn-login');
     const logoutBtn = document.getElementById('btn-logout');
 
     loginBtn.addEventListener('click', async ()=>{
-      try { console.log('[DEBUG] Click login -> redirect'); await signInWithRedirect(auth, twitchProvider); }
-      catch(e){ alert('Erreur de connexion Twitch: '+(e?.message||e)); console.error(e); }
+      try {
+        console.log('[DEBUG] Click login -> POPUP');
+        await signInWithPopup(auth, twitchProvider);
+      } catch(e){
+        console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
+        if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
+          try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
+          catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
+        } else {
+          alert('Erreur de connexion Twitch: '+(e?.message||e));
+        }
+      }
     });
     logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 
-    // Récupérer le résultat de redirection (si présent)
-    try {
-      console.log('[DEBUG] getRedirectResult...');
-      const res = await getRedirectResult(auth);
-      if(res?.user){
-        console.log('[DEBUG] Redirect success, user:', res.user.uid);
-        const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += ('[OIDC] Redirect OK — uid: '+res.user.uid+'
-'); }
-      }
-    } catch(e){
-      const msg = 'OIDC redirect error: '+ (e?.code||'') + ' — ' + (e?.message||e);
-      console.warn(msg, e);
-      const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += (msg+'
-'); }
-      alert(msg);
-    }
+    console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
 
-    // Données jeu — Set: Nouvelle Lumière
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const CARD_POOLS = [
       { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
@@ -270,12 +185,11 @@
       { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
       { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
       { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
-      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' },
+      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' }
     ];
     const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-    // Local state + profile
     const LS_KEY = 'grimoire.alpha.collection.v2_5';
     const LS_STATS = 'grimoire.alpha.stats.v2_5';
     const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
@@ -283,8 +197,8 @@
     let collection = loadCollection();
     let stats = loadStats();
     let profile = loadProfile();
-    let currentUser = null; // Firebase user
-    let playerDocRef = null; // /players/{uid}
+    let currentUser = null;
+    let playerDocRef = null;
 
     function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
     function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
@@ -293,16 +207,9 @@
     function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
     function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
 
-    // XP / Level config
-    const XP_PER_PACK = 5; // par pack ouvert
-    const LEVEL_XP_BASE = 100; // XP requis par niveau (constante)
-
+    const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
     function xpForLevel(level){ return LEVEL_XP_BASE; }
-    function nextRewardForLevel(level){
-      if(level===1) return {type:'pack_standard', label:'Pack Standard'};
-      if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
-      return {type:'pack_standard', label:'Pack Standard'};
-    }
+    function nextRewardForLevel(level){ if(level===1) return {type:'pack_standard', label:'Pack Standard'}; if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'}; return {type:'pack_standard', label:'Pack Standard'}; }
 
     function renderStats(){
       const uniqueOwned = Object.keys(collection).length;
@@ -312,316 +219,71 @@
       document.getElementById('stat-uniques').textContent = uniqueOwned;
       document.getElementById('stat-completion').textContent = completion+"%";
       document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
-
-      const level = profile.level||1;
-      const xp = profile.xp||0;
-      const need = xpForLevel(level);
-      const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
-      document.getElementById('stat-level').textContent = level;
-      document.getElementById('stat-xp').textContent = xp;
-      document.getElementById('stat-xp-next').textContent = need;
-      document.getElementById('xp-fill').style.width = pct + '%';
-      document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
+      const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
+      document.getElementById('stat-level').textContent = level; document.getElementById('stat-xp').textContent = xp; document.getElementById('stat-xp-next').textContent = need; document.getElementById('xp-fill').style.width = pct + '%'; document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
     }
     function rankFromCompletion(p){ if(p>=80) return 'Astreal'; if(p>=60) return 'Mythique'; if(p>=40) return 'Or'; if(p>=20) return 'Argent'; return 'Bronze I'; }
-
     function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
     function renderResults(cards){
-      const wrap = document.getElementById('results'); wrap.innerHTML='';
-      let hasLegendary=false, hasExotic=false;
-      for(const card of cards){
-        const div = document.createElement('div'); div.className='card';
-        div.innerHTML = `
-          <div class="img" aria-hidden="true"></div>
-          <div class="footer">
-            <div class="name">${card.name}</div>
-            <div class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>
-          </div>`;
-        wrap.appendChild(div);
-        if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
-        if(card.rarity===RARITY.EXOTIC) hasExotic=true;
-      }
-      const banner = document.getElementById('special-banner');
-      if(hasExotic){ banner.style.display='block'; banner.innerHTML='✨ <strong>EXOTIQUE !</strong> Vous venez de tirer une carte <em>exotique</em> !'; }
-      else if(hasLegendary){ banner.style.display='block'; banner.innerHTML='⭐ <strong>LEGENDAIRE !</strong> Une carte <em>légendaire</em> rejoint votre collection !'; }
-      else { banner.style.display='none'; }
+      const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false;
+      for(const card of cards){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<div class="img"></div><div class="footer"><div class="name">${card.name}</div><div class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div></div>`; wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
+      const banner=document.getElementById('special-banner'); if(hasExotic){ banner.style.display='block'; banner.innerHTML='✨ <strong>EXOTIQUE !</strong> Carte exotique !'; } else if(hasLegendary){ banner.style.display='block'; banner.innerHTML='⭐ <strong>LÉGENDAIRE !</strong>'; } else { banner.style.display='none'; }
     }
 
     function renderCollection(){
-      const wrap = document.getElementById('collection'); wrap.innerHTML='';
-      const byRarityIdx = c => rarityOrder.indexOf(c.rarity);
-      const all = CARD_POOLS.slice().sort((a,b)=> byRarityIdx(a)-byRarityIdx(b) || a.id.localeCompare(b.id));
-      for(const card of all){
-        const qty = collection[card.id]||0;
-        const div = document.createElement('div'); div.className='mini-card';
-        div.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-            <div style="font-weight:700">${card.name}</div>
-            <span class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.rarity}</span>
-          </div>
-          <div class="qty">${card.set} — ${card.id}</div>
-          <div class="qty">Quantité : <strong>${qty}</strong></div>`;
-        wrap.appendChild(div);
-      }
+      const wrap=document.getElementById('collection'); wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
+      for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700">${card.name}</div><span class="tag rarity-${rarityClass(card.rarity)}"><span class="dot"></span>${card.rarity}</span></div><div class="qty">${card.set} — ${card.id}</div><div class="qty">Quantité : <strong>${qty}</strong></div>`; wrap.appendChild(div); }
     }
 
-    // Tirage
-    function weightedRandomRarity(){
-      const entries = Object.entries(RARITY_WEIGHTS); const total = entries.reduce((s,[,w])=>s+w,0);
-      let r = Math.random()*total; for(const [rarity, weight] of entries){ if(r<weight) return rarity; r -= weight; }
-      return RARITY.COMMON;
-    }
-    function pickCardByRarity(rarity){
-      const pool = CARD_POOLS.filter(c=>c.rarity===rarity);
-      if(pool.length===0){ const idx = rarityOrder.indexOf(rarity); for(let j=idx-1; j>=0; j--){ const p = CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]); if(p.length) return p[Math.floor(Math.random()*p.length)]; } return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)]; }
-      return pool[Math.floor(Math.random()*pool.length)];
-    }
-    function ensureAtLeastRare(){
-      const r = Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
-      const thresholds = [[RARITY.RARE, RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY, RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC, RARITY_WEIGHTS[RARITY.EXOTIC]]];
-      let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
-    }
+    function weightedRandomRarity(){ const entries=Object.entries(RARITY_WEIGHTS); const total=entries.reduce((s,[,w])=>s+w,0); let r=Math.random()*total; for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight;} return RARITY.COMMON; }
+    function pickCardByRarity(rarity){ const pool=CARD_POOLS.filter(c=>c.rarity===rarity); if(pool.length===0){ const idx=rarityOrder.indexOf(rarity); for(let j=idx-1;j>=0;j--){ const p=CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]); if(p.length) return p[Math.floor(Math.random()*p.length)]; } return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)]; } return pool[Math.floor(Math.random()*pool.length)]; }
+    function ensureAtLeastRare(){ const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]); const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]]; let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE; }
 
-    function addToCollection(cards){ for(const card of cards){ collection[card.id] = (collection[card.id]||0)+1; } saveCollection(); }
+    function addToCollection(cards){ for(const card of cards){ collection[card.id]=(collection[card.id]||0)+1; } saveCollection(); }
 
     async function openPack({type='standard'}={}){
-      const cards = [];
-      if(type==='premium'){
-        let guaranteedRareIndex = Math.floor(Math.random()*5);
-        for(let i=0;i<5;i++){ const rarity = (i===guaranteedRareIndex)? ensureAtLeastRare() : weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
-      } else {
-        for(let i=0;i<5;i++){ const rarity = weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
-      }
-      stats.packsOpened = (stats.packsOpened||0)+1; saveStats(); addToCollection(cards);
-      // XP local + rendu
-      await gainXpAndMaybeLevelUp(XP_PER_PACK);
-      renderStats(); renderResults(cards); renderCollection();
-      // Sync Firestore si connecté
-      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards, {xpGain: XP_PER_PACK}).catch(console.error); }
+      const cards=[]; if(type==='premium'){ let idx=Math.floor(Math.random()*5); for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); } } else { for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); } }
+      stats.packsOpened=(stats.packsOpened||0)+1; saveStats(); addToCollection(cards); await gainXpAndMaybeLevelUp(XP_PER_PACK); renderStats(); renderResults(cards); renderCollection(); if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards,{xpGain:XP_PER_PACK}).catch(console.error); }
     }
 
-    // Firestore — priorité cloud + profil
     async function loadOrCreatePlayerDoc(user){
-      playerDocRef = doc(db, 'players', user.uid);
-      const snap = await getDoc(playerDocRef);
-      if(!snap.exists()){
-        // Initialiser avec l'état local existant (si présent)
-        const base = {
-          displayName: user.displayName||'', photoURL: user.photoURL||'',
-          createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
-          stats: { packsOpened: stats.packsOpened||0 },
-          collection: collection,
-          level: profile.level||1, xp: profile.xp||0,
-          rewardsInbox: []
-        };
-        await setDoc(playerDocRef, base);
-        return base;
-      }
-      // PRIORITÉ CLOUD -> remplace local par cloud
-      const data = snap.data();
-      collection = { ...(data.collection||{}) }; saveCollection();
-      stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
-      profile.level = data.level||1; profile.xp = data.xp||0; saveProfile();
-      renderStats(); renderCollection();
-      try{ await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); }catch{}
-      return data;
+      playerDocRef=doc(db,'players',user.uid); const snap=await getDoc(playerDocRef); if(!snap.exists()){ const base={ displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt:serverTimestamp(), updatedAt:serverTimestamp(), stats:{packsOpened:stats.packsOpened||0}, collection:collection, level:profile.level||1, xp:profile.xp||0, rewardsInbox:[] }; await setDoc(playerDocRef, base); return base; }
+      const data=snap.data(); collection={...(data.collection||{})}; saveCollection(); stats.packsOpened=(data.stats?.packsOpened||0); saveStats(); profile.level=data.level||1; profile.xp=data.xp||0; saveProfile(); renderStats(); renderCollection(); try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{} return data;
     }
 
-    async function syncPackResultToFirestore(cards, {xpGain=0}={}){
-      await runTransaction(db, async (trx)=>{
-        const docSnap = await trx.get(playerDocRef);
-        const cur = docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
-        const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
-        const newCollection = { ...(cur.collection||{}) };
-        for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0)+1; }
-        // XP & Level côté serveur
-        let level = cur.level||1; let xp = (cur.xp||0) + xpGain; let rewards = cur.rewardsInbox||[];
-        let need = xpForLevel(level);
-        while(xp >= need){
-          xp -= need; level += 1; need = xpForLevel(level);
-          const rw = nextRewardForLevel(level-1); // récompense pour le niveau atteint
-          rewards = [...rewards, { id: 'rw_'+Date.now()+Math.random().toString(36).slice(2), type: rw.type, label: rw.label, t: Date.now() }];
-        }
-        trx.set(playerDocRef, { stats: newStats, collection: newCollection, level, xp, rewardsInbox: rewards, updatedAt: serverTimestamp() }, { merge: true });
-      });
+    async function syncPackResultToFirestore(cards,{xpGain=0}={}){
+      await runTransaction(db, async (trx)=>{ const docSnap=await trx.get(playerDocRef); const cur=docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] }; const newStats={...cur.stats, packsOpened:(cur.stats?.packsOpened||0)+1}; const newCollection={...(cur.collection||{})}; for(const c of cards){ newCollection[c.id]=(newCollection[c.id]||0)+1; } let level=cur.level||1; let xp=(cur.xp||0)+xpGain; let rewards=cur.rewardsInbox||[]; let need=xpForLevel(level); while(xp>=need){ xp-=need; level+=1; need=xpForLevel(level); const rw=nextRewardForLevel(level-1); rewards=[...rewards,{id:'rw_'+Date.now()+Math.random().toString(36).slice(2),type:rw.type,label:rw.label,t:Date.now()}]; } trx.set(playerDocRef,{ stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt:serverTimestamp() },{merge:true}); });
     }
 
-    // Auth listener — toujours actif
-    onAuthStateChanged(auth, async (user)=>{
-      currentUser = user || null;
-      console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null');
-      loginBtn.style.display = currentUser? 'none' : '';
-      logoutBtn.style.display = currentUser? '' : 'none';
-      if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }
-    });
+    onAuthStateChanged(auth, async (user)=>{ currentUser=user||null; console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null'); loginBtn.style.display=currentUser? 'none' : ''; logoutBtn.style.display=currentUser? '' : 'none'; if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }});
 
-    // Diagnostics & tests
-    const diag = document.getElementById('diag-log');
-    function printDiag(line){ diag.textContent += (line+'
-'); }
-    function clearDiag(){ diag.textContent=''; }
+    const diag=document.getElementById('diag-log'); function printDiag(line){ diag.textContent+=(line+'\n'); } function clearDiag(){ diag.textContent=''; }
+    document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('\nConfig OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
 
-    document.getElementById('btn-test-config').addEventListener('click', ()=>{
-      clearDiag();
-      const checks = [];
-      checks.push(['apiKey ok', !!firebaseConfig.apiKey]);
-      checks.push(['authDomain ok', !!firebaseConfig.authDomain]);
-      checks.push(['projectId ok', !!firebaseConfig.projectId]);
-      checks.push(['appId ok', !!firebaseConfig.appId]);
-      for(const [name, ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`); }
-      printDiag('
-Config OK pour initialiser Firebase si toutes les coches sont vertes.');
-      printDiag('Domaines autorisés Firebase -> ajoute ton domaine Vercel + firebaseapp.com');
-    });
+    document.getElementById('btn-test-auth').addEventListener('click',()=>{ clearDiag(); if(currentUser){ printDiag('Connecté ✅'); printDiag('uid: '+currentUser.uid); printDiag('displayName: '+(currentUser.displayName||'(—)')); printDiag('email: '+(currentUser.email||'(—)')); printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)')); } else { printDiag('Non connecté ❌'); printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.'); }});
 
-    document.getElementById('btn-test-auth').addEventListener('click', ()=>{
-      clearDiag();
-      if(currentUser){
-        printDiag('Connecté ✅');
-        printDiag('uid: '+ currentUser.uid);
-        printDiag('displayName: '+ (currentUser.displayName||'(—)'));
-        printDiag('email: '+ (currentUser.email||'(—)'));
-        printDiag('providerId: '+ (currentUser.providerData?.[0]?.providerId||'(—)'));
-      } else {
-        printDiag('Non connecté ❌');
-        printDiag('Astuce: Redirect URL exacte sur Twitch => https://'+ location.host +'/__/auth/handler');
-        printDiag('Vérifie aussi Firebase → Authentication → Domaines autorisés : ajoute ton domaine Vercel.');
-      }
-    });
+    document.getElementById('btn-test-draws').addEventListener('click',()=>{ clearDiag(); const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0}; for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; } const pct=x=>(100*x/N).toFixed(2)+'%'; printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:'); for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){ printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')'); } });
 
-    document.getElementById('btn-test-draws').addEventListener('click', ()=>{
-      clearDiag(); const N=10000; const counts={ [RARITY.COMMON]:0,[RARITY.UNCOMMON]:0,[RARITY.RARE]:0,[RARITY.LEGENDARY]:0,[RARITY.EXOTIC]:0 };
-      for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
-      const pct=x=> (100*x/N).toFixed(2)+'%';
-      printDiag('Distribution (attendu ~ 60/25/10/4/1) sur '+N+' tirages:');
-      for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){ printDiag(r.padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')'); }
-    });
+    document.getElementById('btn-test-premium').addEventListener('click',()=>{ clearDiag(); const P=1000; let ok=0,fail=0; for(let p=0;p<P;p++){ const cards=[]; let idx=Math.floor(Math.random()*5); for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity);} if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++; } printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`); printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.'); });
 
-    document.getElementById('btn-test-premium').addEventListener('click', ()=>{
-      clearDiag(); const P=1000; let ok=0, fail=0;
-      for(let p=0;p<P;p++){
-        const cards=[]; let idx=Math.floor(Math.random()*5);
-        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
-        if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
-      }
-      printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`);
-      printDiag(fail===0? '✅ Tous les packs Premium contiennent au moins une carte rare ou +.' : '❌ Certains packs Premium n\'ont pas respecté la garantie.');
-    });
+    document.getElementById('btn-test-firestore').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return;} try{ const now=Date.now(); await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()}); const back=await getDoc(doc(db,'players',currentUser.uid)); printDiag('Firestore round‑trip OK, _rtTest='+ back.data()._rtTest); } catch(e){ printDiag('❌ Firestore round‑trip échoué: '+(e?.message||e)); console.error(e);} });
 
-    document.getElementById('btn-test-firestore').addEventListener('click', async ()=>{
-      clearDiag();
-      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
-      try{
-        const now = Date.now();
-        await updateDoc(doc(db,'players',currentUser.uid), { _rtTest: now, updatedAt: serverTimestamp() });
-        const back = await getDoc(doc(db,'players',currentUser.uid));
-        printDiag('Firestore round‑trip OK, _rtTest=' + back.data()._rtTest);
-      }catch(e){ printDiag('❌ Firestore round‑trip échoué: ' + (e?.message||e)); console.error(e); }
-    });
+    document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return;} try{ const snap=await getDoc(doc(db,'players',currentUser.uid)); if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return;} const data=snap.data(); printDiag('Avant — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length); collection={...(data.collection||{})}; saveCollection(); stats.packsOpened=(data.stats?.packsOpened||0); saveStats(); profile.level=data.level||1; profile.xp=data.xp||0; saveProfile(); renderStats(); renderCollection(); printDiag('Après — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length); printDiag('✅ Priorité cloud appliquée.'); } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); } });
 
-    document.getElementById('btn-test-cloud-priority').addEventListener('click', async ()=>{
-      clearDiag();
-      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
-      try{
-        const snap = await getDoc(doc(db,'players', currentUser.uid));
-        if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud -> rien à prioriser.'); return; }
-        const data = snap.data();
-        printDiag('Avant remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
-        collection = { ...(data.collection||{}) }; saveCollection();
-        stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
-        profile.level = data.level||1; profile.xp = data.xp||0; saveProfile();
-        renderStats(); renderCollection();
-        printDiag('Après remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
-        printDiag('✅ Priorité cloud appliquée (lecture seule).');
-      }catch(e){ printDiag('❌ Erreur priorité cloud: ' + (e?.message||e)); }
-    });
+    document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{ if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; } try{ await runTransaction(db, async (trx)=>{ const snap=await trx.get(playerDocRef); if(!snap.exists()) throw new Error('Profil introuvable'); const data=snap.data(); const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[]; if(inbox.length===0) throw new Error('Aucune récompense à réclamer'); const reward=inbox.shift(); trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()}); setTimeout(()=>{ if(reward.type==='pack_standard') openPack({type:'standard'}); else if(reward.type==='pack_premium') openPack({type:'premium'}); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100); }); } catch(e){ alert(e.message||String(e)); } });
 
-    document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
-      if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
-      try{
-        await runTransaction(db, async (trx)=>{
-          const snap = await trx.get(playerDocRef);
-          if(!snap.exists()) throw new Error('Profil introuvable');
-          const data = snap.data();
-          const inbox = Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice() : [];
-          if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
-          const reward = inbox.shift();
-          trx.update(playerDocRef, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
-          // Appliquer la récompense côté client après la transaction
-          setTimeout(()=>{
-            if(reward.type==='pack_standard') openPack({type:'standard'});
-            else if(reward.type==='pack_premium') openPack({type:'premium'});
-            else alert('Récompense appliquée: '+ (reward.label||reward.type));
-          }, 100);
-        });
-      } catch(e){ alert(e.message||String(e)); }
-    });
-
-    // Actions UI
-    function renderPacks(){
-      const wrap = document.getElementById('packs');
-      wrap.innerHTML='';
-      const packs = [
-        {
-          id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires',
-          loot:["Set inclus : La Tour, Nouvelle Lumière"],
-          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
-          action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) }
-        },
-        {
-          id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)',
-          loot:["Set inclus : Nouvelle Lumière"],
-          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
-          locked:true,
-          action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') }
-        }
-      ];
-      for(const p of packs){
-        const card = document.createElement('div');
-        card.className='pack';
-        card.innerHTML = `
-          <div style=\"display:flex;justify-content:space-between;align-items:start;gap:10px\">
-            <div>
-              <div style=\"font-size:18px;font-weight:800\">${p.name}</div>
-              <div class=\"subtitle\">${p.desc}</div>
-            </div>
-            ${p.locked? '<span class=\"tag\"><span class=\"dot\" style=\"background:#ef4444\"></span>Verrouillé</span>':''}
-          </div>
-          <div class=\"loot\">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
-          <div class=\"odds\">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
-          <div style=\"margin-top:10px\"><button class=\"btn ${p.locked?'secondary':''}\" aria-label=\"${p.action.label}\">${p.action.label}</button></div>
-        `;
-        const btn = card.querySelector('button');
-        btn.addEventListener('click', p.action.click);
-        wrap.appendChild(card);
-      }
-    }
+    function renderPacks(){ const wrap=document.getElementById('packs'); wrap.innerHTML=''; const packs=[ { id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires', loot:["Set inclus : La Tour, Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) } }, { id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], locked:true, action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') } } ]; for(const p of packs){ const card=document.createElement('div'); card.className='pack'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:start;gap:10px"><div><div style="font-size:18px;font-weight:800">${p.name}</div><div class="subtitle">${p.desc}</div></div>${p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':''}</div><div class="loot">${p.loot.map(x=>'• '+x).join('<br/>')}</div><div class="odds">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div><div style="margin-top:10px"><button class="btn ${p.locked?'ghost':''}" aria-label="${p.action.label}">${p.action.label}</button></div>`; const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click); wrap.appendChild(card);} }
 
     document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
     document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
-    document.getElementById('btn-reset').addEventListener('click', ()=>{
-      if(confirm('Réinitialiser la collection locale ?')){
-        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); profile={level:1,xp:0}; saveProfile();
-        renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
-      }
-    });
+    document.getElementById('btn-reset').addEventListener('click', ()=>{ if(confirm('Réinitialiser la collection locale ?')){ collection={}; saveCollection(); stats={packsOpened:0}; saveStats(); profile={level:1,xp:0}; saveProfile(); renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none'; }});
 
-    // Rendu initial
     function init(){ renderStats(); renderCollection(); renderPacks(); }
     init();
 
-    // XP helpers (local) + sync minimal
-    async function gainXpAndMaybeLevelUp(amount){
-      profile.xp = (profile.xp||0) + amount;
-      let need = xpForLevel(profile.level||1);
-      let leveled = false;
-      while(profile.xp >= need){ profile.xp -= need; profile.level = (profile.level||1)+1; need = xpForLevel(profile.level); leveled = true; }
-      saveProfile(); renderStats();
-      if(leveled && currentUser && playerDocRef){
-        await updateDoc(playerDocRef, { level: profile.level, xp: profile.xp, updatedAt: serverTimestamp() }).catch(()=>{});
-      }
-    }
+    async function gainXpAndMaybeLevelUp(amount){ profile.xp=(profile.xp||0)+amount; let need=xpForLevel(profile.level||1); let leveled=false; while(profile.xp>=need){ profile.xp-=need; profile.level=(profile.level||1)+1; need=xpForLevel(profile.level); leveled=true; } saveProfile(); renderStats(); if(leveled && currentUser && playerDocRef){ await updateDoc(playerDocRef,{ level:profile.level, xp:profile.xp, updatedAt:serverTimestamp() }).catch(()=>{}); } }
+
   </script>
 </body>
 </html>
