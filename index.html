@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype v2.5 (Auth fix)</title>
+  <title>Grimoire · Prototype V3</title>
   <style>
     :root{
       --bg:#0b0f1a; /* nuit spatiale */
@@ -110,7 +110,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div class="title">Grimoire</div>
-          <div class="subtitle">TCG digital — prototype v2.5</div>
+          <div class="subtitle">TCG digital — prototype V3</div>
         </div>
       </div>
       <div class="row" style="gap:10px">
@@ -125,7 +125,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span id="build-badge" class="badge">Alpha — Firebase v2.5</span>
+          <span id="build-badge" class="badge">Alpha — Firebase V3</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -214,12 +214,13 @@
       appId: "1:133783086150:web:762f209f7f778ef83a1647"
     };
 
+    console.log('[DEBUG] Initialisation Firebase');
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     // IMPORTANT : forcer la persistance de session avant tout sign‑in
-    try { await setPersistence(auth, browserLocalPersistence); } catch(e) { console.warn('Set persistence failed', e); }
+    try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e) { console.warn('Set persistence failed', e); }
 
     // UI diag config
     document.getElementById('cfg-project').textContent = firebaseConfig.projectId;
@@ -239,22 +240,25 @@
     const logoutBtn = document.getElementById('btn-logout');
 
     loginBtn.addEventListener('click', async ()=>{
-      try { await signInWithRedirect(auth, twitchProvider); }
+      try { console.log('[DEBUG] Click login -> redirect'); await signInWithRedirect(auth, twitchProvider); }
       catch(e){ alert('Erreur de connexion Twitch: '+(e?.message||e)); console.error(e); }
     });
-    logoutBtn.addEventListener('click', async ()=>{ try{ await signOut(auth);}catch(e){ console.error(e);} });
+    logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 
     // Récupérer le résultat de redirection (si présent)
     try {
+      console.log('[DEBUG] getRedirectResult...');
       const res = await getRedirectResult(auth);
       if(res?.user){
-        console.log('[OIDC] redirect -> connecté', res.user.uid);
-        const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += ('[OIDC] Redirect OK — uid: '+res.user.uid+'\n'); }
+        console.log('[DEBUG] Redirect success, user:', res.user.uid);
+        const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += ('[OIDC] Redirect OK — uid: '+res.user.uid+'
+'); }
       }
     } catch(e){
       const msg = 'OIDC redirect error: '+ (e?.code||'') + ' — ' + (e?.message||e);
       console.warn(msg, e);
-      const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += (msg+'\n'); }
+      const diag = document.getElementById('diag-log'); if(diag){ diag.textContent += (msg+'
+'); }
       alert(msg);
     }
 
@@ -454,7 +458,8 @@
 
     // Diagnostics & tests
     const diag = document.getElementById('diag-log');
-    function printDiag(line){ diag.textContent += (line+'\n'); }
+    function printDiag(line){ diag.textContent += (line+'
+'); }
     function clearDiag(){ diag.textContent=''; }
 
     document.getElementById('btn-test-config').addEventListener('click', ()=>{
@@ -465,7 +470,8 @@
       checks.push(['projectId ok', !!firebaseConfig.projectId]);
       checks.push(['appId ok', !!firebaseConfig.appId]);
       for(const [name, ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`); }
-      printDiag('\nConfig OK pour initialiser Firebase si toutes les coches sont vertes.');
+      printDiag('
+Config OK pour initialiser Firebase si toutes les coches sont vertes.');
       printDiag('Domaines autorisés Firebase -> ajoute ton domaine Vercel + firebaseapp.com');
     });
 
@@ -550,6 +556,55 @@
           }, 100);
         });
       } catch(e){ alert(e.message||String(e)); }
+    });
+
+    // Actions UI
+    function renderPacks(){
+      const wrap = document.getElementById('packs');
+      wrap.innerHTML='';
+      const packs = [
+        {
+          id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires',
+          loot:["Set inclus : La Tour, Nouvelle Lumière"],
+          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
+          action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) }
+        },
+        {
+          id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)',
+          loot:["Set inclus : Nouvelle Lumière"],
+          odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ],
+          locked:true,
+          action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') }
+        }
+      ];
+      for(const p of packs){
+        const card = document.createElement('div');
+        card.className='pack';
+        card.innerHTML = `
+          <div style=\"display:flex;justify-content:space-between;align-items:start;gap:10px\">
+            <div>
+              <div style=\"font-size:18px;font-weight:800\">${p.name}</div>
+              <div class=\"subtitle\">${p.desc}</div>
+            </div>
+            ${p.locked? '<span class=\"tag\"><span class=\"dot\" style=\"background:#ef4444\"></span>Verrouillé</span>':''}
+          </div>
+          <div class=\"loot\">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
+          <div class=\"odds\">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
+          <div style=\"margin-top:10px\"><button class=\"btn ${p.locked?'secondary':''}\" aria-label=\"${p.action.label}\">${p.action.label}</button></div>
+        `;
+        const btn = card.querySelector('button');
+        btn.addEventListener('click', p.action.click);
+        wrap.appendChild(card);
+      }
+    }
+
+    document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
+    document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
+    document.getElementById('btn-reset').addEventListener('click', ()=>{
+      if(confirm('Réinitialiser la collection locale ?')){
+        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); profile={level:1,xp:0}; saveProfile();
+        renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
+      }
     });
 
     // Rendu initial
