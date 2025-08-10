@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype V3 (popup auth)</title>
+  <title>Grimoire · Prototype V3 (hotfix)</title>
   <style>
     :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
     *{box-sizing:border-box}
@@ -135,6 +135,7 @@
   </main>
 
   <script type="module">
+    console.log('[DEBUG] script chargé');
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -258,11 +259,11 @@
 
     onAuthStateChanged(auth, async (user)=>{ currentUser=user||null; console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null'); loginBtn.style.display=currentUser? 'none' : ''; logoutBtn.style.display=currentUser? '' : 'none'; if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }});
 
-    const diag=document.getElementById('diag-log'); function printDiag(line){ diag.textContent += (line + '
-'); } function clearDiag(){ diag.textContent=''; }
-    document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('
-Config OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); }); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('
-Config OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
+    const diag=document.getElementById('diag-log');
+    function printDiag(line){ diag.textContent += (line + '\n'); }
+    function clearDiag(){ diag.textContent=''; }
+
+    document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('\nConfig OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
 
     document.getElementById('btn-test-auth').addEventListener('click',()=>{ clearDiag(); if(currentUser){ printDiag('Connecté ✅'); printDiag('uid: '+currentUser.uid); printDiag('displayName: '+(currentUser.displayName||'(—)')); printDiag('email: '+(currentUser.email||'(—)')); printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)')); } else { printDiag('Non connecté ❌'); printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.'); }});
 
