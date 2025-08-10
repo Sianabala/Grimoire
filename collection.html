@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grimoire · Ma collection</title>
+  <style>
+    :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);color:var(--text)}
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:linear-gradient(180deg,rgba(11,15,26,.9),rgba(11,15,26,.6));border-bottom:1px solid rgba(255,255,255,.06)}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .row{display:flex;gap:20px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
+    .title{font-size:20px;font-weight:700}
+    .subtitle{font-size:12px;color:var(--muted)}
+    nav a{color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:12px}
+    nav a:hover{background:rgba(255,255,255,.06)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow)}
+    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .bd{padding:18px}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+    .stat{background:#0e1423;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}
+    .stat .v{font-size:24px;font-weight:800}
+    .stat .k{font-size:12px;color:var(--muted)}
+    .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+    .input{background:#0e1423;border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 10px;border-radius:10px}
+    .select{appearance:none}
+    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm)}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .mini-card{background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;position:relative}
+    .qty{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:2px 8px;border-radius:999px;font-weight:700}
+    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+    .muted{color:var(--muted)}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+    .footerbar{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row" style="justify-content:space-between;align-items:center">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Grimoire</div>
+          <div class="subtitle">Ma collection</div>
+        </div>
+      </div>
+      <nav class="row" style="gap:10px">
+        <a href="/" aria-label="Retour au jeu">← Retour au jeu</a>
+        <a href="/collection.html" aria-current="page">Collection</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel" style="grid-column:span 12">
+      <div class="hd">
+        <h3>Statut & Filtres</h3>
+        <span id="sync-badge" class="pill">Local</span>
+      </div>
+      <div class="bd">
+        <div class="stats">
+          <div class="stat"><div class="v" id="stat-uniques">0</div><div class="k">Cartes uniques</div></div>
+          <div class="stat"><div class="v" id="stat-total">0</div><div class="k">Cartes au total</div></div>
+          <div class="stat"><div class="v" id="stat-completion">0%</div><div class="k">% de complétion</div></div>
+          <div class="stat"><div class="v" id="stat-by-rarity">—</div><div class="k">Par rareté</div></div>
+        </div>
+
+        <div class="filters">
+          <input id="q" class="input" placeholder="Rechercher un nom ou ID…" />
+          <select id="setFilter" class="input select">
+            <option value="">Tous les sets</option>
+          </select>
+          <label class="pill"><input type="checkbox" id="r-common" checked> Commune</label>
+          <label class="pill"><input type="checkbox" id="r-uncommon" checked> Peu commune</label>
+          <label class="pill"><input type="checkbox" id="r-rare" checked> Rare</label>
+          <label class="pill"><input type="checkbox" id="r-legendary" checked> Légendaire</label>
+          <label class="pill"><input type="checkbox" id="r-exotic" checked> Exotique</label>
+          <select id="sortBy" class="input select">
+            <option value="set,id">Trier par Set → ID</option>
+            <option value="rarity,id">Trier par Rareté → ID</option>
+            <option value="name">Trier par Nom</option>
+            <option value="qty-desc">Trier par Quantité (desc)</option>
+          </select>
+          <button id="btn-clear" class="btn ghost">Réinitialiser filtres</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="grid-column:span 12">
+      <div class="hd" style="align-items:center">
+        <h3>Ma collection</h3>
+        <small class="muted" id="count">0 éléments</small>
+      </div>
+      <div class="bd">
+        <div id="cards" class="cards"></div>
+      </div>
+    </section>
+
+    <section class="panel" style="grid-column:span 12">
+      <div class="hd"><h3>Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
+      <div class="bd">
+        <div class="footerbar">
+          <button id="btn-sync-from-cloud" class="btn">🔄 Forcer synchro Cloud → Local</button>
+          <button id="btn-export-json" class="btn ghost">Exporter JSON</button>
+          <button id="btn-clear-local" class="btn ghost">Effacer local</button>
+        </div>
+        <pre id="diag-log" class="diag"></pre>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    console.log('[DEBUG][collection] script chargé');
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // ⚙️ Firebase config — même projet que l'index
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+      authDomain: 'legends-collection.firebaseapp.com',
+      projectId: 'legends-collection',
+      storageBucket: 'legends-collection.firebasestorage.app',
+      messagingSenderId: '133783086150',
+      appId: '1:133783086150:web:762f209f7f778ef83a1647'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    try { await setPersistence(auth, browserLocalPersistence); } catch {}
+
+    const twitchProvider = new OAuthProvider('oidc.twitch');
+    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
+
+    // 🗃️ Données (mêmes clés local que V3.1)
+    const LS_KEY = 'grimoire.alpha.collection.v2_5';
+    const LS_STATS = 'grimoire.alpha.stats.v2_5';
+    const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
+
+    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
+
+    const CARD_POOLS = [
+      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON },
+      { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON },
+      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON },
+      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE },
+      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY },
+      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC }
+    ];
+
+    let collection = loadCollection();
+    let stats = loadStats();
+    let profile = loadProfile();
+    let currentUser = null;
+    let playerDocRef = null;
+
+    function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
+    function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
+    function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
+    function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
+    function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
+    function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
+
+    // 🧭 UI refs
+    const elCards = document.getElementById('cards');
+    const elCount = document.getElementById('count');
+    const elUniques = document.getElementById('stat-uniques');
+    const elTotal = document.getElementById('stat-total');
+    const elCompletion = document.getElementById('stat-completion');
+    const elByRarity = document.getElementById('stat-by-rarity');
+    const elSync = document.getElementById('sync-badge');
+
+    const q = document.getElementById('q');
+    const setFilter = document.getElementById('setFilter');
+    const cbCommon = document.getElementById('r-common');
+    const cbUncommon = document.getElementById('r-uncommon');
+    const cbRare = document.getElementById('r-rare');
+    const cbLegendary = document.getElementById('r-legendary');
+    const cbExotic = document.getElementById('r-exotic');
+    const sortBy = document.getElementById('sortBy');
+
+    const diag=document.getElementById('diag-log');
+    function log(line){ diag.textContent += (line + '\n'); }
+    function clearLog(){ diag.textContent=''; }
+
+    // 📌 Remplit la liste des sets (d'après le pool)
+    (function fillSets(){
+      const sets = [...new Set(CARD_POOLS.map(c=>c.set))].sort();
+      for(const s of sets){ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; setFilter.appendChild(opt); }
+    })();
+
+    // 🔐 Auth & Cloud sync (cloud -> remplace local)
+    onAuthStateChanged(auth, async (user)=>{
+      currentUser = user||null;
+      elSync.textContent = currentUser? 'Cloud ✓' : 'Local';
+      elSync.style.background = currentUser? 'rgba(52,211,153,.18)' : '';
+      if(currentUser){
+        playerDocRef = doc(db,'players', currentUser.uid);
+        const snap = await getDoc(playerDocRef);
+        if(snap.exists()){
+          const data = snap.data();
+          collection = { ...(data.collection||{}) };
+          stats.packsOpened = data.stats?.packsOpened||stats.packsOpened||0;
+          profile.level = data.level||profile.level||1;
+          profile.xp = data.xp||profile.xp||0;
+          saveCollection(); saveStats(); saveProfile();
+          log('[DEBUG] Cloud → local appliqué');
+        } else {
+          log('[DEBUG] Aucun doc cloud — affichage local');
+        }
+      } else {
+        log('[DEBUG] Non connecté — affichage local');
+      }
+      render();
+    });
+
+    // 🧮 Rendus & filtres
+    function render(){
+      const all = CARD_POOLS.map(c=> ({...c, qty: (collection[c.id]||0) }));
+      const rarityEnabled = new Set([
+        cbCommon.checked? RARITY.COMMON : null,
+        cbUncommon.checked? RARITY.UNCOMMON : null,
+        cbRare.checked? RARITY.RARE : null,
+        cbLegendary.checked? RARITY.LEGENDARY : null,
+        cbExotic.checked? RARITY.EXOTIC : null,
+      ].filter(Boolean));
+
+      let list = all.filter(c=> rarityEnabled.has(c.rarity));
+      if(setFilter.value) list = list.filter(c=> c.set===setFilter.value);
+      if(q.value?.trim()){
+        const s = q.value.trim().toLowerCase();
+        list = list.filter(c=> c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s));
+      }
+
+      switch(sortBy.value){
+        case 'rarity,id': list.sort((a,b)=> rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || a.id.localeCompare(b.id)); break;
+        case 'name': list.sort((a,b)=> a.name.localeCompare(b.name)); break;
+        case 'qty-desc': list.sort((a,b)=> (b.qty||0)-(a.qty||0) || a.id.localeCompare(b.id)); break;
+        default: // set,id
+          list.sort((a,b)=> a.set.localeCompare(b.set) || a.id.localeCompare(b.id));
+      }
+
+      // Stats
+      const uniques = Object.keys(collection).length;
+      const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
+      const completion = totalUnique? Math.round(100*uniques/totalUnique):0;
+      const totalCards = Object.values(collection).reduce((s,n)=> s+(n||0), 0);
+      const byR = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
+      for(const id in collection){ const card = CARD_POOLS.find(c=>c.id===id); if(card) byR[card.rarity]+=collection[id]; }
+
+      elUniques.textContent = uniques;
+      elTotal.textContent = totalCards;
+      elCompletion.textContent = completion + '%';
+      elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
+
+      // Cards
+      elCards.innerHTML = '';
+      for(const c of list){
+        const div = document.createElement('div');
+        div.className = 'mini-card';
+        div.innerHTML = `
+          <span class="qty">x${c.qty||0}</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+            <strong>${c.name}</strong>
+            <span class="tag">${c.rarity}</span>
+          </div>
+          <div class="muted">${c.set} — ${c.id}</div>
+        `;
+        elCards.appendChild(div);
+      }
+      elCount.textContent = `${list.length} éléments`;
+    }
+
+    // 🔘 UI events
+    for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy]){
+      el.addEventListener('input', ()=> render());
+      el.addEventListener('change', ()=> render());
+    }
+    document.getElementById('btn-clear').addEventListener('click', ()=>{
+      q.value=''; setFilter.value='';
+      cbCommon.checked=cbUncommon.checked=cbRare.checked=cbLegendary.checked=cbExotic.checked=true;
+      sortBy.value='set,id';
+      render();
+    });
+
+    document.getElementById('btn-sync-from-cloud').addEventListener('click', async ()=>{
+      if(!auth.currentUser){ alert('Connecte-toi avec Twitch pour synchroniser.'); return; }
+      try {
+        const snap = await getDoc(doc(db,'players', auth.currentUser.uid));
+        if(!snap.exists()) { alert('Aucune collection cloud.'); return; }
+        const data = snap.data();
+        collection = { ...(data.collection||{}) };
+        stats.packsOpened = data.stats?.packsOpened||0; profile.level=data.level||1; profile.xp=data.xp||0;
+        saveCollection(); saveStats(); saveProfile();
+        log('[DEBUG] Synchro forcée Cloud → Local : OK');
+        render();
+      } catch(e){ console.error(e); alert('Erreur de synchro: '+(e?.message||e)); }
+    });
+
+    document.getElementById('btn-export-json').addEventListener('click', ()=>{
+      const payload = { collection, stats, profile, exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='grimoire-collection.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btn-clear-local').addEventListener('click', ()=>{
+      if(confirm('Effacer la collection locale ? (Cloud inchangé)')){
+        collection={}; saveCollection(); render();
+      }
+    });
+
+    // Démarrage (si pas encore connecté, on affiche le local)
+    render();
+  </script>
+</body>
+</html>
