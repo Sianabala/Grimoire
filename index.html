@@ -369,7 +369,19 @@
       document.getElementById('xp-fill').style.width = pct + '%';
       document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
     }
-    function rankFromCompletion(p){ if(p>=80) return 'Astreal'; if(p>=60) return 'Mythique'; if(p>=40) return 'Or'; if(p>=20) return 'Argent'; return 'Bronze I'; }
+   function rankFromCompletion(p){
+  if(p >= 100) return 'Parangon';
+  if(p >= 90) return 'Exemplaire';
+  if(p >= 80) return 'Vainqueur';
+  if(p >= 70) return 'Justicier';
+  if(p >= 60) return 'Elite';
+  if(p >= 50) return 'Vétéran';
+  if(p >= 40) return 'Aventurier';
+  if(p >= 30) return 'Éclaireur';
+  if(p >= 20) return 'Initié';
+  if(p >= 10) return 'Explorateur';
+  return 'Nouvelle lumière';
+}
     function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
     function renderResults(cards){
