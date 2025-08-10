@@ -696,22 +696,6 @@
     }
     init();
 
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-
-const auth = getAuth();
-const ADMIN_NAME = 'siana_tv';
-const btnAdmin = document.getElementById('btn-admin');
-
-function isAdmin(user){
-  if(!user) return false;
-  const name = (user.displayName||'').trim().toLowerCase();
-  const providerName = (user.providerData?.[0]?.displayName||'').trim().toLowerCase();
-  return name === ADMIN_NAME || providerName === ADMIN_NAME;
-}
-
-onAuthStateChanged(auth, (user)=>{
-  btnAdmin.style.display = isAdmin(user) ? '' : 'none';
-});
-  </script>
+   </script>
 </body>
 </html>
