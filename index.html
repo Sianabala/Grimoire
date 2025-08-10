@@ -241,6 +241,21 @@
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+onst auth = getAuth(); // Pas besoin de initializeApp si c’est déjà fait dans un autre fichier importé
+const ADMIN_NAME = 'siana_tv';
+const btnAdmin = document.getElementById('btn-admin');
+
+function isAdmin(user){
+  if(!user) return false;
+  const name = (user.displayName||'').trim().toLowerCase();
+  const providerName = (user.providerData?.[0]?.displayName||'').trim().toLowerCase();
+  return name === ADMIN_NAME || providerName === ADMIN_NAME;
+}
+
+onAuthStateChanged(auth, (user)=>{
+  btnAdmin.style.display = isAdmin(user) ? '' : 'none';
+});
+    
     // --- Firebase config
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
