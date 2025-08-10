@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype v2</title>
+  <title>Grimoire · Prototype v2.5</title>
   <style>
     :root{
       --bg:#0b0f1a; /* nuit spatiale */
@@ -110,7 +110,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div class="title">Grimoire</div>
-          <div class="subtitle">TCG digital — prototype v2</div>
+          <div class="subtitle">TCG digital — prototype v2.5</div>
         </div>
       </div>
       <div class="row" style="gap:10px">
@@ -125,7 +125,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span id="build-badge" class="badge">Alpha — Firebase v2</span>
+          <span id="build-badge" class="badge">Alpha — Firebase v2.5</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -134,6 +134,18 @@
             <div class="stat"><div class="v" id="stat-completion">0%</div><div class="k">% de complétion</div></div>
             <div class="stat"><div class="v" id="stat-rank">Bronze I</div><div class="k">Rang</div></div>
           </div>
+
+          <!-- XP / Level Progress -->
+          <div id="xp-wrap" style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="subtitle">Niveau <span id="stat-level">1</span> · XP <span id="stat-xp">0</span>/<span id="stat-xp-next">100</span></div>
+              <div class="subtitle">Prochaine récompense : <span id="stat-next-reward">Pack Standard</span></div>
+            </div>
+            <div class="xpbar" style="height:10px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden">
+              <div id="xp-fill" style="height:100%;width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .25s ease"></div>
+            </div>
+          </div>
+
           <div class="footerbar">
             <button id="btn-claim-rewards" class="btn secondary">🎁 Réclamer mes récompenses de niveau</button>
             <button id="btn-reset" class="btn ghost">Réinitialiser la collection (local)</button>
@@ -238,11 +250,14 @@
     const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-    // État local
-    const LS_KEY = 'grimoire.alpha.collection.v2';
-    const LS_STATS = 'grimoire.alpha.stats.v2';
+    // Local state + profile
+    const LS_KEY = 'grimoire.alpha.collection.v2_5';
+    const LS_STATS = 'grimoire.alpha.stats.v2_5';
+    const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
+
     let collection = loadCollection();
     let stats = loadStats();
+    let profile = loadProfile();
     let currentUser = null; // Firebase user
     let playerDocRef = null; // /players/{uid}
 
@@ -250,6 +265,20 @@
     function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
     function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
     function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
+    function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
+    function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
+
+    // XP / Level config
+    const XP_PER_PACK = 5; // par pack ouvert
+    const LEVEL_XP_BASE = 100; // XP requis par niveau (constante)
+
+    function xpForLevel(level){ return LEVEL_XP_BASE; }
+    function nextRewardForLevel(level){
+      // Exemple: niveaux 2,5,10 -> Premium ; sinon Standard
+      if(level===1) return {type:'pack_standard', label:'Pack Standard'};
+      if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
+      return {type:'pack_standard', label:'Pack Standard'};
+    }
 
     function renderStats(){
       const uniqueOwned = Object.keys(collection).length;
@@ -259,6 +288,16 @@
       document.getElementById('stat-uniques').textContent = uniqueOwned;
       document.getElementById('stat-completion').textContent = completion+"%";
       document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
+
+      const level = profile.level||1;
+      const xp = profile.xp||0;
+      const need = xpForLevel(level);
+      const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
+      document.getElementById('stat-level').textContent = level;
+      document.getElementById('stat-xp').textContent = xp;
+      document.getElementById('stat-xp-next').textContent = need;
+      document.getElementById('xp-fill').style.width = pct + '%';
+      document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
     }
     function rankFromCompletion(p){ if(p>=80) return 'Astreal'; if(p>=60) return 'Mythique'; if(p>=40) return 'Or'; if(p>=20) return 'Argent'; return 'Bronze I'; }
 
@@ -331,43 +370,56 @@
         for(let i=0;i<5;i++){ const rarity = weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
       }
       stats.packsOpened = (stats.packsOpened||0)+1; saveStats(); addToCollection(cards);
+      // XP local + rendu
+      await gainXpAndMaybeLevelUp(XP_PER_PACK);
       renderStats(); renderResults(cards); renderCollection();
-      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards).catch(console.error); }
+      // Sync Firestore si connecté
+      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards, {xpGain: XP_PER_PACK}).catch(console.error); }
     }
 
-    // Firestore — priorité cloud
+    // Firestore — priorité cloud + profil
     async function loadOrCreatePlayerDoc(user){
       playerDocRef = doc(db, 'players', user.uid);
       const snap = await getDoc(playerDocRef);
       if(!snap.exists()){
-        // Pas de doc : on initialise avec l'état local existant (si présent)
+        // Initialiser avec l'état local existant (si présent)
         const base = {
           displayName: user.displayName||'', photoURL: user.photoURL||'',
           createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
           stats: { packsOpened: stats.packsOpened||0 },
           collection: collection,
-          xp: 0, level: 1, rewardsInbox: []
+          level: profile.level||1, xp: profile.xp||0,
+          rewardsInbox: []
         };
         await setDoc(playerDocRef, base);
         return base;
       }
-      // Doc existe : PRIORITÉ CLOUD -> on remplace le local par le cloud
+      // PRIORITÉ CLOUD -> remplace local par cloud
       const data = snap.data();
       collection = { ...(data.collection||{}) }; saveCollection();
       stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
+      profile.level = data.level||1; profile.xp = data.xp||0; saveProfile();
       renderStats(); renderCollection();
       try{ await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); }catch{}
       return data;
     }
 
-    async function syncPackResultToFirestore(cards){
+    async function syncPackResultToFirestore(cards, {xpGain=0}={}){
       await runTransaction(db, async (trx)=>{
         const docSnap = await trx.get(playerDocRef);
-        const cur = docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{} };
+        const cur = docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
         const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
         const newCollection = { ...(cur.collection||{}) };
         for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0)+1; }
-        trx.update(playerDocRef, { stats: newStats, collection: newCollection, updatedAt: serverTimestamp() });
+        // XP & Level côté serveur
+        let level = cur.level||1; let xp = (cur.xp||0) + xpGain; let rewards = cur.rewardsInbox||[];
+        let need = xpForLevel(level);
+        while(xp >= need){
+          xp -= need; level += 1; need = xpForLevel(level);
+          const rw = nextRewardForLevel(level-1); // récompense pour le niveau atteint
+          rewards = [...rewards, { id: 'rw_'+Date.now()+Math.random().toString(36).slice(2), type: rw.type, label: rw.label, t: Date.now() }];
+        }
+        trx.set(playerDocRef, { stats: newStats, collection: newCollection, level, xp, rewardsInbox: rewards, updatedAt: serverTimestamp() }, { merge: true });
       });
     }
 
@@ -435,6 +487,7 @@
         printDiag('Avant remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
         collection = { ...(data.collection||{}) }; saveCollection();
         stats.packsOpened = (data.stats?.packsOpened||0); saveStats();
+        profile.level = data.level||1; profile.xp = data.xp||0; saveProfile();
         renderStats(); renderCollection();
         printDiag('Après remplacement — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
         printDiag('✅ Priorité cloud appliquée (lecture seule).');
@@ -464,16 +517,16 @@
         const card = document.createElement('div');
         card.className='pack';
         card.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+          <div style=\"display:flex;justify-content:space-between;align-items:start;gap:10px\">
             <div>
-              <div style="font-size:18px;font-weight:800">${p.name}</div>
-              <div class="subtitle">${p.desc}</div>
+              <div style=\"font-size:18px;font-weight:800\">${p.name}</div>
+              <div class=\"subtitle\">${p.desc}</div>
             </div>
-            ${p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':''}
+            ${p.locked? '<span class=\"tag\"><span class=\"dot\" style=\"background:#ef4444\"></span>Verrouillé</span>':''}
           </div>
-          <div class="loot">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
-          <div class="odds">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
-          <div style="margin-top:10px"><button class="btn ${p.locked?'secondary':''}" aria-label="${p.action.label}">${p.action.label}</button></div>
+          <div class=\"loot\">${p.loot.map(x=>`• ${x}`).join('<br/>')}</div>
+          <div class=\"odds\">${p.odds.map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
+          <div style=\"margin-top:10px\"><button class=\"btn ${p.locked?'secondary':''}\" aria-label=\"${p.action.label}\">${p.action.label}</button></div>
         `;
         const btn = card.querySelector('button');
         btn.addEventListener('click', p.action.click);
@@ -485,14 +538,46 @@
     document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
     document.getElementById('btn-reset').addEventListener('click', ()=>{
       if(confirm('Réinitialiser la collection locale ?')){
-        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
+        collection = {}; saveCollection(); stats={packsOpened:0}; saveStats(); profile={level:1,xp:0}; saveProfile();
+        renderStats(); renderCollection(); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none';
       }
     });
-    document.getElementById('btn-claim-rewards').addEventListener('click', ()=>{ alert('Boîte de réception des récompenses : à connecter à Firebase (rewardsInbox)'); });
+    document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
+      if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
+      try{
+        await runTransaction(db, async (trx)=>{
+          const snap = await trx.get(playerDocRef);
+          if(!snap.exists()) throw new Error('Profil introuvable');
+          const data = snap.data();
+          const inbox = Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice() : [];
+          if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
+          const reward = inbox.shift();
+          trx.update(playerDocRef, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
+          // Appliquer la récompense côté client après la transaction
+          setTimeout(()=>{
+            if(reward.type==='pack_standard') openPack({type:'standard'});
+            else if(reward.type==='pack_premium') openPack({type:'premium'});
+            else alert('Récompense appliquée: '+ (reward.label||reward.type));
+          }, 100);
+        });
+      } catch(e){ alert(e.message||String(e)); }
+    });
 
     // Rendu initial
     function init(){ renderStats(); renderCollection(); renderPacks(); }
     init();
+
+    // XP helpers (local) + sync minimal
+    async function gainXpAndMaybeLevelUp(amount){
+      profile.xp = (profile.xp||0) + amount;
+      let need = xpForLevel(profile.level||1);
+      let leveled = false;
+      while(profile.xp >= need){ profile.xp -= need; profile.level = (profile.level||1)+1; need = xpForLevel(profile.level); leveled = true; }
+      saveProfile(); renderStats();
+      if(leveled && currentUser && playerDocRef){
+        await updateDoc(playerDocRef, { level: profile.level, xp: profile.xp, updatedAt: serverTimestamp() }).catch(()=>{});
+      }
+    }
   </script>
 </body>
 </html>
