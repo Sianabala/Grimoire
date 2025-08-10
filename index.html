@@ -4,9 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire · Prototype V3.2 (popup auth + sets dynamiques)</title>
+  <link rel="prefetch" href="/collection.html" as="document">
   <style>
     :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
-    *{box-sizing:border-box}
+    *{box-sizing:border-box; scrollbar-width: thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04); }
+    *::-webkit-scrollbar{ height:10px; width:10px; }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6); }
+
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.2), transparent 60%),radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);color:var(--text)}
     header{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:linear-gradient(180deg,rgba(11,15,26,.9),rgba(11,15,26,.6));border-bottom:1px solid rgba(255,255,255,.06)}
     .container{max-width:1100px;margin:0 auto;padding:24px}
@@ -17,27 +22,90 @@
     .subtitle{font-size:12px;color:var(--muted)}
     .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:700}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow)}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow); position:relative; overflow:clip}
     .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
     .panel .bd{padding:18px}
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
-    .stat{background:#0e1423;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}
-    .stat .v{font-size:24px;font-weight:800}
-    .stat .k{font-size:12px;color:var(--muted)}
-    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm)}
+    .stat{background: linear-gradient(180deg,#0f172a,#0b1120); border:1px solid rgba(255,255,255,.06); border-radius:14px;padding:12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.04)}
+    .stat .v{font-size:24px;font-weight:800; letter-spacing:.2px }
+    .stat .k{font-size:12px;color:var(--muted); opacity:.9 }
+    .btn{appearance:none;border:0;outline:0;padding:10px 14px;border-radius:14px;font-weight:700;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm); transition: transform .06s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease, color .2s ease}
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124,92,255,.25);}
+    .btn:active{ transform: translateY(0); box-shadow: var(--shadow-sm); }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+    .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06); }
     .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
     .pack{display:flex;flex-direction:column;gap:12px;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
-    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:18px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .card{width:var(--card-w);aspect-ratio:2/3;border-radius:18px;background:linear-gradient(180deg,#141b33,#0b0f1a);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow-sm);position:relative;overflow:hidden; transition: transform .18s ease, box-shadow .18s ease, outline-color .2s ease; outline: 1px solid rgba(255,255,255,.06) }
+    .card:hover{ transform: translateY(-2px); }
     .card .img{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%),url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;opacity:.6;mix-blend:screen}
     .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.7))}
-    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
-    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.3)}
+    .card .footer .name{ font-weight:700; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
+    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05); position:relative}
+    .tag .dot{ display:inline-block;width:8px;height:8px;border-radius:999px;background:currentColor;opacity:.9; }
+    .tag.rarity-common{ color:#9aa6be; }
+    .tag.rarity-uncommon{ color:#22c55e; }
+    .tag.rarity-rare{ color:#3b82f6; }
+    .tag.rarity-legendary{ color:#f59e0b; }
+    .tag.rarity-exotic{ color:#eab308; }
+    .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset; }
+    .banner{margin:12px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px) }
+    .banner .close{ margin-left:auto; appearance:none; border:0; background:transparent; color:var(--text); opacity:.7; cursor:pointer; font-weight:700; font-size:14px; line-height:1 }
+    .banner .close:hover{ opacity:1 }
     .collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
     .mini-card{background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
     .footerbar{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
+
+    /* Border gradient + hover depth on panels */
+    .panel::before{
+      content:"";
+      position:absolute; inset:0;
+      border-radius:inherit;
+      padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.25));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      pointer-events:none;
+    }
+    .panel:hover{
+      box-shadow: 0 12px 30px rgba(124,92,255,.10);
+      transform: translateY(-1px);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    /* Rareté glow par carte (via tag dans le footer) */
+    .card:has(.rarity-rare){ box-shadow: 0 6px 20px rgba(59,130,246,.10); }
+    .card:has(.rarity-legendary){ box-shadow: 0 6px 22px rgba(245,158,11,.12); }
+    .card:has(.rarity-exotic){ box-shadow: 0 6px 24px rgba(234,179,8,.14); }
+
+    /* Skeletons */
+    .skel{ position:relative; overflow:hidden; background:#0e1423; border-radius:12px; min-height:58px; border:1px solid rgba(255,255,255,.06); }
+    .skel::after{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+      transform: translateX(-100%); animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer{ 100%{ transform: translateX(100%); } }
+
+    /* Toast */
+    .toast{
+      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      background: rgba(18,24,41,.9); color: var(--text); border:1px solid rgba(255,255,255,.12);
+      padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50;
+      opacity:0; transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
+
+    /* Accessibilité focus */
+    .btn:focus-visible, a:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius:8px; }
+
+    /* Respect mode réduit (animations) */
+    @media (prefers-reduced-motion: no-preference){
+      .tag .dot{ animation: pulse 1.6s ease-in-out infinite; }
+      @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
+    }
   </style>
 </head>
 <body>
@@ -111,8 +179,8 @@
         </div>
       </section>
 
-      <!-- Section "Ma collection (local)" retirée : l'affichage de la collection vit désormais dans collection.html -->
-      
+      <!-- Section "Ma collection (local)" retirée : la collection vit dans collection.html -->
+
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
         <div class="bd">
@@ -281,12 +349,19 @@
         if(card.rarity===RARITY.EXOTIC) hasExotic=true;
       }
       const banner=document.getElementById('special-banner');
-      if(hasExotic){ banner.style.display='block'; banner.innerHTML='✨ <strong>EXOTIQUE !</strong> Carte exotique !'; }
-      else if(hasLegendary){ banner.style.display='block'; banner.innerHTML='⭐ <strong>LÉGENDAIRE !</strong>'; }
-      else { banner.style.display='none'; }
+      if(hasExotic || hasLegendary){
+        banner.style.display='flex';
+        banner.innerHTML=(hasExotic
+          ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
+          : '⭐ <strong>LÉGENDAIRE !</strong>')
+          + '<button class="close" aria-label="Fermer">×</button>';
+        banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
+      } else {
+        banner.style.display='none';
+      }
     }
 
-    // ⚠️ Safe-no-op si l’élément #collection n’existe pas (car la collection est sur collection.html)
+    // Safe-no-op si l’élément #collection n’existe pas (collection sur collection.html)
     function renderCollection(){
       const wrap=document.getElementById('collection');
       if(!wrap) return;
@@ -346,6 +421,7 @@
       await gainXpAndMaybeLevelUp(XP_PER_PACK);
       renderStats(); renderResults(cards); renderCollection();
       if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards,{xpGain:XP_PER_PACK}).catch(console.error); }
+      toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
     }
 
     // --- Cloud sync
@@ -515,6 +591,13 @@
       }
     }
 
+    // --- Toast helper
+    function toast(msg,ms=1800){
+      let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+      requestAnimationFrame(()=> t.classList.add('show'));
+      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
+    }
+
     // --- Reset & XP
     document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
     document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
@@ -540,10 +623,13 @@
 
     // --- Init
     async function init(){
-      await loadCardSet();
+      // Skeletons rapides avant chargement
+      document.getElementById('results').innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+      await loadCardSet();            // charge /data/sets/nouvelle-lumiere.json (ou fallback)
       renderStats();
-      renderCollection(); // no-op ici (pas d’élément sur index.html)
+      renderCollection();             // no-op ici (pas d’élément sur index.html)
       renderPacks();
+      document.getElementById('results').innerHTML = ''; // clear skeleton si vide
       console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
     }
     init();
