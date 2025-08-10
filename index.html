@@ -111,22 +111,17 @@
         </div>
       </section>
 
-      <section class="panel" style="grid-column:span 12">
-        <div class="hd"><h3>Ma collection (local)</h3></div>
-        <div class="bd">
-          <div class="collection" id="collection"></div>
-        </div>
-      </section>
-
+      <!-- Section "Ma collection (local)" retirée : l'affichage de la collection vit désormais dans collection.html -->
+      
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
         <div class="bd">
           <div class="footerbar">
             <button id="btn-test-config" class="btn ghost">Tester config Firebase</button>
-            <button id="btn-test-auth" class="btn ghost">Tester Auth (qui suis‑je ?)</button>
-            <button id="btn-test-draws" class="btn ghost">Test tirages (10 000)</button>
-            <button id="btn-test-premium" class="btn ghost">Test Premium garanti (1 000)</button>
-            <button id="btn-test-firestore" class="btn ghost">Test Firestore round‑trip</button>
+            <button id="btn-test-auth" class="btn ghost">Tester Auth (qui suis-je ?)</button>
+            <button id="btn-test-draws" class="btn ghost">Test tirages (10 000)</button>
+            <button id="btn-test-premium" class="btn ghost">Test Premium garanti (1 000)</button>
+            <button id="btn-test-firestore" class="btn ghost">Test Firestore round-trip</button>
             <button id="btn-test-cloud-priority" class="btn ghost">Test priorité cloud (lecture)</button>
           </div>
           <pre id="diag-log" class="diag"></pre>
@@ -291,8 +286,11 @@
       else { banner.style.display='none'; }
     }
 
+    // ⚠️ Safe-no-op si l’élément #collection n’existe pas (car la collection est sur collection.html)
     function renderCollection(){
-      const wrap=document.getElementById('collection'); wrap.innerHTML='';
+      const wrap=document.getElementById('collection');
+      if(!wrap) return;
+      wrap.innerHTML='';
       const byRarityIdx=c=>rarityOrder.indexOf(c.rarity);
       const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
       for(const card of all){
@@ -458,8 +456,8 @@
         const now=Date.now();
         await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()});
         const back=await getDoc(doc(db,'players',currentUser.uid));
-        printDiag('Firestore round‑trip OK, _rtTest='+ back.data()._rtTest);
-      } catch(e){ printDiag('❌ Firestore round‑trip échoué: '+(e?.message||e)); console.error(e); }
+        printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest);
+      } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); }
     });
 
     document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{
@@ -542,9 +540,9 @@
 
     // --- Init
     async function init(){
-      await loadCardSet();            // charge /data/sets/nouvelle-lumiere.json (ou fallback)
+      await loadCardSet();
       renderStats();
-      renderCollection();
+      renderCollection(); // no-op ici (pas d’élément sur index.html)
       renderPacks();
       console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
     }
