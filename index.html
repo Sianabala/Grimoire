@@ -696,6 +696,27 @@
     }
     init();
 
+const adminBtn = document.getElementById('btn-admin');
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user || null;
+    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+    loginBtn.style.display = currentUser ? 'none' : '';
+    logoutBtn.style.display = currentUser ? '' : 'none';
+
+    if (currentUser) {
+      await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+      // Afficher le bouton Admin uniquement si l'utilisateur est "siana_tv" (en minuscules)
+      if ((currentUser.displayName || '').toLowerCase() === 'siana_tv') {
+        adminBtn.style.display = '';
+      } else {
+        adminBtn.style.display = 'none';
+      }
+    } else {
+      adminBtn.style.display = 'none';
+    }
+  });
+    
    </script>
 </body>
 </html>
