@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype V3.1 (popup auth)</title>
+  <title>Grimoire · Prototype V3 (popup auth)</title>
   <style>
     :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --rare:#3b82f6; --legendary:#f59e0b; --exotic:#eab308; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
     *{box-sizing:border-box}
@@ -47,10 +47,11 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div class="title">Grimoire</div>
-          <div class="subtitle">TCG digital — prototype V3.1 (popup)</div>
+          <div class="subtitle">TCG digital — prototype V3 (popup)</div>
         </div>
       </div>
       <div class="row" style="gap:10px">
+        <a href="/collection.html" class="btn ghost" aria-label="Voir ma collection">Collection</a>
         <button id="btn-login" class="btn">Se connecter avec Twitch</button>
         <button id="btn-logout" class="btn ghost" style="display:none">Se déconnecter</button>
       </div>
@@ -62,7 +63,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span class="badge">Alpha — Firebase V3.1</span>
+          <span class="badge">Alpha — Firebase V3</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -135,12 +136,10 @@
   </main>
 
   <script type="module">
-    console.log('[DEBUG] script chargé V3.1');
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // --- Firebase (prod) ---
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
       authDomain: 'legends-collection.firebaseapp.com',
@@ -156,7 +155,6 @@
     const db = getFirestore(app);
     try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e){ console.warn('[DEBUG] Persistence failed', e); }
 
-    // --- Auth Twitch (OIDC) en POPUP (fallback redirect si bloqué) ---
     const twitchProvider = new OAuthProvider('oidc.twitch');
     try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
 
@@ -181,7 +179,6 @@
 
     console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
 
-    // --- Données de jeu ---
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const CARD_POOLS = [
       { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
@@ -194,7 +191,6 @@
     const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-    // --- État local persistant (clé conservée pour compat) ---
     const LS_KEY = 'grimoire.alpha.collection.v2_5';
     const LS_STATS = 'grimoire.alpha.stats.v2_5';
     const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
@@ -263,11 +259,11 @@
 
     onAuthStateChanged(auth, async (user)=>{ currentUser=user||null; console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null'); loginBtn.style.display=currentUser? 'none' : ''; logoutBtn.style.display=currentUser? '' : 'none'; if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }});
 
-    const diag=document.getElementById('diag-log');
-    function printDiag(line){ diag.textContent += (line + '\n'); }
-    function clearDiag(){ diag.textContent=''; }
-
-    document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('\nConfig OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
+    const diag=document.getElementById('diag-log'); function printDiag(line){ diag.textContent += (line + '
+'); } function clearDiag(){ diag.textContent=''; }
+    document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('
+Config OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); }); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag(`${ok?'✅':'❌'} ${name}`);} printDiag('
+Config OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
 
     document.getElementById('btn-test-auth').addEventListener('click',()=>{ clearDiag(); if(currentUser){ printDiag('Connecté ✅'); printDiag('uid: '+currentUser.uid); printDiag('displayName: '+(currentUser.displayName||'(—)')); printDiag('email: '+(currentUser.email||'(—)')); printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)')); } else { printDiag('Non connecté ❌'); printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.'); }});
 
