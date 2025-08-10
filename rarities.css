@@ -45,3 +45,8 @@
   border-color: rgba(214, 161, 122, 0.4);
   color: #d6a17a;
 }
+
+  /* Glow par rareté (détecte la classe sur le tag) */
+    .card:has(.tag.rare){ box-shadow: 0 6px 20px rgba(59,130,246,.12); }
+    .card:has(.tag.legendary){ box-shadow: 0 6px 22px rgba(124, 92, 255, .14); }
+    .card:has(.tag.exotic){ box-shadow: 0 6px 24px rgba(234,179,8,.14); }
