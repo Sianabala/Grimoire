@@ -447,6 +447,21 @@
       printDiag('\nConfig OK pour initialiser Firebase si toutes les coches sont vertes.');
     });
 
+    document.getElementById('btn-test-auth').addEventListener('click', ()=>{
+      clearDiag();
+      if(currentUser){
+        printDiag('Connecté ✅');
+        printDiag('uid: '+ currentUser.uid);
+        printDiag('displayName: '+ (currentUser.displayName||'(—)'));
+        printDiag('email: '+ (currentUser.email||'(—)'));
+        printDiag('providerId: '+ (currentUser.providerData?.[0]?.providerId||'(—)'));
+      } else {
+        printDiag('Non connecté ❌');
+        printDiag('Astuce: Redirect URL exacte sur Twitch => https://'+ location.host +'/__/auth/handler');
+        printDiag('Vérifie aussi Firebase → Authentication → Domaines autorisés : ajoute ton domaine Vercel.');
+      }
+    });
+
     document.getElementById('btn-test-draws').addEventListener('click', ()=>{
       clearDiag(); const N=10000; const counts={ [RARITY.COMMON]:0,[RARITY.UNCOMMON]:0,[RARITY.RARE]:0,[RARITY.LEGENDARY]:0,[RARITY.EXOTIC]:0 };
       for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
