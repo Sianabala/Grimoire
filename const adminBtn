@@ -524,13 +524,29 @@
     }
 
     // --- Auth state
-    onAuthStateChanged(auth, async (user)=>{
-      currentUser=user||null;
-      console.log('[Auth] onAuthStateChanged ->', currentUser? currentUser.uid : 'null');
-      loginBtn.style.display=currentUser? 'none' : '';
-      logoutBtn.style.display=currentUser? '' : 'none';
-      if(currentUser){ await loadOrCreatePlayerDoc(currentUser).catch(console.error); }
-    });
+   onAuthStateChanged(auth, async (user) => {
+  currentUser = user || null;
+  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+
+  // État des boutons de base
+  loginBtn.style.display  = currentUser ? 'none' : '';
+  logoutBtn.style.display = currentUser ? '' : 'none';
+  adminBtn.style.display  = 'none'; // caché par défaut
+
+  if (!currentUser) return;
+
+  // Charge/Crée le profil joueur depuis Firestore
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+
+  // Autorisations admin
+  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);                          // Option 1 : whitelist via UID
+  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));  // Option 2 : rôle Firestore
+
+  if (allowByUid || allowByRole) {
+    adminBtn.style.display = '';
+  }
+});
+
 
     // --- Diagnostic helpers
     const diag=document.getElementById('diag-log');
@@ -697,28 +713,7 @@
       console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
     }
     init();
-
-const adminBtn = document.getElementById('btn-admin');
-
-  onAuthStateChanged(auth, async (user) => {
-    currentUser = user || null;
-    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-    loginBtn.style.display = currentUser ? 'none' : '';
-    logoutBtn.style.display = currentUser ? '' : 'none';
-
-    if (currentUser) {
-      await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-      // Afficher le bouton Admin uniquement si l'utilisateur est "siana_tv" (en minuscules)
-      if ((currentUser.displayName || '').toLowerCase() === 'siana_tv') {
-        adminBtn.style.display = '';
-      } else {
-        adminBtn.style.display = 'none';
-      }
-    } else {
-      adminBtn.style.display = 'none';
-    }
-  });
-    
+ 
    </script>
 </body>
 </html>
