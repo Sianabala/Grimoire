@@ -240,7 +240,9 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    
+    // + dans les imports auth (ligne des imports Firebase auth)
+import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence, getIdTokenResult } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
     // --- Firebase config
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
@@ -537,6 +539,35 @@
 
   // Charge/Crée le profil joueur depuis Firestore
   const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+
+     if (currentUser) {
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+  await ensureDisplayName(currentUser);   // <= AJOUT
+}
+
+     async function ensureDisplayName(user){
+  // 1) Essais directs
+  let dn = user?.displayName || user?.providerData?.[0]?.displayName || '';
+
+  // 2) Si vide, on essaie les claims OIDC (preferred_username / nickname)
+  if(!dn){
+    try{
+      const token = await getIdTokenResult(user, true);
+      dn = token?.claims?.preferred_username || token?.claims?.nickname || '';
+    }catch(e){}
+  }
+
+  if(dn && playerDocRef){
+    try{
+      await updateDoc(playerDocRef, {
+        displayName: dn,
+        displayNameLower: dn.toLowerCase(),
+        updatedAt: serverTimestamp()
+      });
+      console.log('[Admin] displayName enregistré:', dn);
+    }catch(e){ console.warn('ensureDisplayName failed', e); }
+  }
+}
 
   // Autorisations admin
   const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);                          // Option 1 : whitelist via UID
