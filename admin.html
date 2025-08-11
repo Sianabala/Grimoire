@@ -3,49 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin · Grimoire V3.4</title>
-  <link rel="prefetch" href="/index.html" as="document">
+  <title>Grimoire · Admin</title>
   <link rel="stylesheet" href="/rarities.css">
   <style>
-    :root{ --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25); }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
-      radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
-      radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
-      linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%); color:var(--text); min-height:100svh }
-    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));border-bottom:1px solid rgba(255,255,255,.06)}
+    :root{
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444;
+      --ring:0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+                  radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+                  radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+                  linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
+    }
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
     .container{max-width:1200px;margin:0 auto;padding:22px}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
-    .title{font-size:22px;font-weight:800}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm); position:relative}
+    .logo::after{content:""; position:absolute; inset:2px; border-radius:12px; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.2), transparent 40%) }
+    .title{font-size:22px;font-weight:800;letter-spacing:.2px}
     .subtitle{font-size:12px;color:var(--muted)}
-    .btn{appearance:none;border:1px solid transparent;outline:0;padding:10px 14px;border-radius:14px;font-weight:800;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);transition: transform .08s ease, box-shadow .15s ease}
+    .btn{appearance:none;border:1px solid transparent;outline:0;padding:10px 14px;border-radius:14px;font-weight:800;color:#0b0f1a;background:var(--accent);cursor:pointer;box-shadow:var(--shadow-sm);
+      transition: transform .08s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease, color .2s ease}
     .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(124,92,255,.28)}
+    .btn:active{ transform: translateY(0) }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
     .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
-    .btn.danger{ background: transparent; color: #fecaca; border:1px solid rgba(239,68,68,.45) }
-
+    .btn.danger{ background:var(--danger); color:white }
+    .btn.warn{ background:var(--warning); color:#0b0f1a }
+    .btn.success{ background:var(--success); color:#0b0f1a }
+    .pill{border-radius:999px}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
     @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
     @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
-
     .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);box-shadow:var(--shadow); position:relative; overflow:clip}
     .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
     .panel .bd{padding:18px 20px}
-    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none}
-
-    .input{ width:100%; padding:10px 12px; border-radius:12px; background:#0f1324; color:var(--text); border:1px solid rgba(255,255,255,.08) }
-    label{ font-size:12px; color: var(--muted) }
-    table{ width:100%; border-collapse: collapse; font-size:14px }
-    th, td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.06) }
-    tr:hover{ background: rgba(255,255,255,.03) }
-
-    .empty{ padding:14px; font-size:14px; color: var(--muted); border:1px dashed rgba(255,255,255,.12); border-radius:12px }
-    .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
-
-    .guard{ display:none; padding:16px; margin:18px 0; border-radius:12px; border:1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.08) }
+    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+    .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .card{background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px; box-shadow: var(--ring)}
+    .k{font-size:12px;color:var(--muted)}
+    .v{font-weight:800}
+    .row.space{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .section-title{font-weight:900;margin-bottom:8px}
+    .input{background:#0e1423;border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:10px;padding:8px 10px;width:100%}
+    .toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: rgba(18,24,41,.92); color: var(--text); border:1px solid rgba(255,255,255,.12); padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50; opacity:0; transition: opacity .2s ease, transform .2s ease }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
+    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
   </style>
 </head>
 <body>
@@ -54,93 +70,64 @@
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
-          <div class="title">Admin · Grimoire</div>
-          <div class="subtitle">Gestion des joueurs & attribution de packs</div>
+          <div class="title">Grimoire — Administration</div>
+          <div class="subtitle">Gestion des joueurs & récompenses</div>
         </div>
       </div>
       <div class="row">
-        <a href="/index.html" class="btn ghost">← Retour au jeu</a>
-        <button id="btn-logout" class="btn ghost" style="display:none">Se déconnecter</button>
+        <a href="/index.html" class="btn ghost pill">← Retour</a>
+        <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <section class="panel" style="grid-column: span 12">
-      <div class="hd">
-        <h3>Contrôle d'accès</h3>
-        <span class="tag" id="whoami">Utilisateur: inconnu</span>
-      </div>
+    <div id="gate" class="panel" style="margin-bottom:16px">
+      <div class="hd"><h3>Contrôle d'accès</h3></div>
       <div class="bd">
-        <p class="subtitle">Accès réservé à l'admin <strong>siana_tv</strong>. Connecte-toi avec Twitch pour continuer.</p>
-        <div class="row" style="margin-top:8px">
-          <button id="btn-login" class="btn">Se connecter avec Twitch</button>
-        </div>
-        <div id="not-admin" class="guard">Accès refusé : ce compte n'est pas autorisé. (Requis: <strong>siana_tv</strong>)</div>
+        <div id="gate-msg" class="subtitle">Vérification des droits d'accès…</div>
       </div>
-    </section>
+    </div>
 
-    <div class="grid" id="admin-grid" style="display:none">
-      <!-- Liste des joueurs -->
-      <section class="panel" style="grid-column: span 7">
+    <div class="grid" id="admin-ui" style="display:none">
+
+      <!-- Liste joueurs -->
+      <section class="panel" style="grid-column:span 6">
         <div class="hd">
           <h3>Joueurs</h3>
           <div class="row">
-            <input id="search" class="input" type="search" placeholder="Rechercher par pseudo, UID ou email…" style="min-width:260px" />
-            <button id="btn-refresh" class="btn ghost">Rafraîchir</button>
+            <input id="search" class="input" placeholder="Rechercher (pseudo ou UID)…" style="width:260px">
+            <button id="btn-refresh" class="btn pill">Rafraîchir</button>
           </div>
         </div>
         <div class="bd">
-          <div class="subtitle" style="margin-bottom:8px">Clique une ligne pour sélectionner un joueur</div>
-          <div id="players-wrap">
-            <table id="players-table" aria-label="Liste des joueurs">
-              <thead><tr><th>Pseudo</th><th>UID</th><th>Packs ouverts</th><th>Uniques</th></tr></thead>
-              <tbody id="players-tbody"></tbody>
-            </table>
-            <div id="players-empty" class="empty" style="display:none">Aucun joueur trouvé.</div>
-          </div>
+          <div id="players" class="list"></div>
         </div>
       </section>
 
-      <!-- Détails + Attribution -->
-      <section class="panel" style="grid-column: span 5">
-        <div class="hd">
-          <h3>Détails du joueur</h3>
-          <span class="tag" id="selected-tag">Aucun</span>
-        </div>
-        <div class="bd">
-          <div id="player-details" class="empty">Sélectionne un joueur dans la liste.</div>
-
-          <div style="margin-top:16px">
-            <h4 style="margin:0 0 10px 0">Attribuer des packs</h4>
-            <div class="row">
-              <label>
-                Type
-                <select id="grant-type" class="input" style="width:180px">
-                  <option value="pack_standard">Pack Standard</option>
-                  <option value="pack_premium">Pack Premium</option>
-                </select>
-              </label>
-              <label>
-                Quantité
-                <input id="grant-qty" class="input" type="number" value="1" min="1" max="50" style="width:120px" />
-              </label>
-              <button id="btn-grant" class="btn">Attribuer</button>
-            </div>
-            <div class="subtitle" style="margin-top:8px">Les packs sont ajoutés à la <em>boîte de récompenses</em> (rewardsInbox) du joueur. Le joueur cliquera ensuite « Réclamer mes récompenses » pour les ouvrir.</div>
-          </div>
+      <!-- Détail joueur -->
+      <section class="panel" style="grid-column:span 6">
+        <div class="hd"><h3>Détails du joueur</h3></div>
+        <div class="bd" id="player-detail">
+          <div class="subtitle">Sélectionne un joueur dans la liste.</div>
         </div>
       </section>
+
+      <!-- Diagnostic -->
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd"><h3>Diagnostic</h3></div>
+        <div class="bd"><pre id="diag" class="diag"></pre></div>
+      </section>
+
     </div>
   </main>
 
   <script type="module">
-    // --- Firebase imports
+    // Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // --- Firebase config (identique au projet)
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
       authDomain: 'legends-collection.firebaseapp.com',
@@ -150,176 +137,182 @@
       appId: '1:133783086150:web:762f209f7f778ef83a1647'
     };
 
-    // --- Init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     try { await setPersistence(auth, browserLocalPersistence); } catch {}
 
-    // --- OIDC Twitch
-    const twitchProvider = new OAuthProvider('oidc.twitch');
-    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
+    // Access control
+    const gate = document.getElementById('gate');
+    const gateMsg = document.getElementById('gate-msg');
+    const adminUI = document.getElementById('admin-ui');
+    const logoutBtn = document.getElementById('btn-logout');
 
-    // --- UI refs
-    const btnLogin = document.getElementById('btn-login');
-    const btnLogout = document.getElementById('btn-logout');
-    const whoami = document.getElementById('whoami');
-    const notAdmin = document.getElementById('not-admin');
-    const grid = document.getElementById('admin-grid');
-    const searchInput = document.getElementById('search');
-    const btnRefresh = document.getElementById('btn-refresh');
-    const tbody = document.getElementById('players-tbody');
-    const empty = document.getElementById('players-empty');
-    const selectedTag = document.getElementById('selected-tag');
-    const playerDetails = document.getElementById('player-details');
-    const grantType = document.getElementById('grant-type');
-    const grantQty = document.getElementById('grant-qty');
-    const btnGrant = document.getElementById('btn-grant');
+    // ⚠️ Remplace par ton UID si tu veux une whitelist locale en plus du rôle Firestore
+    const ADMIN_UIDS = ['TON_UID_ICI'];
 
-    let currentUser = null;
-    let playersCache = [];
-    let selectedPlayer = null;
-
-    // --- Guards
-    const ADMIN_NAME = 'siana_tv'; // Twitch displayName attendu (insensible à la casse)
-
-    function isAdmin(user){
-      if(!user) return false;
-      const name = (user.displayName||'').trim().toLowerCase();
-      // On accepte aussi le cas où le pseudo Twitch est dans providerData
-      const providerName = (user.providerData?.[0]?.displayName||'').trim().toLowerCase();
-      return name === ADMIN_NAME || providerName === ADMIN_NAME;
+    function toast(msg,ms=1800){
+      let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+      requestAnimationFrame(()=> t.classList.add('show'));
+      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
     }
 
-    function updateGuard(user){
-      whoami.textContent = user ? `Utilisateur: ${user.displayName||user.email||user.uid}` : 'Utilisateur: inconnu';
-      if(isAdmin(user)){
-        notAdmin.style.display = 'none';
-        grid.style.display = '';
-        btnLogin.style.display = 'none';
-        btnLogout.style.display = '';
-        loadPlayers();
-      } else {
-        grid.style.display = 'none';
-        btnLogin.style.display = '';
-        btnLogout.style.display = user ? '' : 'none';
-        notAdmin.style.display = user ? '' : 'none';
-      }
-    }
+    logoutBtn.addEventListener('click', async ()=>{ try{ await signOut(auth); }catch{} });
 
-    // --- Auth listeners
-    btnLogin.addEventListener('click', async ()=>{
-      try{ await signInWithPopup(auth, twitchProvider); }catch(e){ try{ await signInWithRedirect(auth, twitchProvider); }catch(err){ alert(err?.message||String(err)); }}
-    });
-    btnLogout.addEventListener('click', async ()=>{ try{ await signOut(auth); }catch(e){ console.error(e); }});
+    onAuthStateChanged(auth, async (user)=>{
+      logoutBtn.style.display = user ? '' : 'none';
+      if(!user){ gateMsg.innerHTML = 'Non connecté. <a href="/index.html" class="btn pill ghost" style="margin-left:8px">Se connecter</a>'; adminUI.style.display='none'; return; }
 
-    onAuthStateChanged(auth, (user)=>{ currentUser=user||null; updateGuard(currentUser); });
-
-    // --- Load players list
-    async function loadPlayers(){
-      tbody.innerHTML = '';
-      playersCache = [];
+      // Vérifie droits admin : via UID OU via champ isAdmin/role sur doc joueur
+      let allowByUid = ADMIN_UIDS.includes(user.uid);
+      let allowByRole = false;
       try{
-        const q = query(collection(db,'players'), orderBy('updatedAt','desc'), limit(200));
-        const snap = await getDocs(q);
-        snap.forEach(d => {
-          const data = d.data();
-          const row = {
-            uid: d.id,
-            displayName: data.displayName || '(—)',
-            email: data.email || '',
-            packsOpened: data.stats?.packsOpened || 0,
-            uniques: data.collection ? Object.keys(data.collection).length : 0
-          };
-          playersCache.push(row);
-        });
-        renderPlayers(playersCache);
-      }catch(e){
-        console.error(e);
-        tbody.innerHTML = '';
-        empty.style.display = '';
-        empty.textContent = 'Erreur de chargement des joueurs : '+(e?.message||e);
+        const snap = await getDoc(doc(db,'players',user.uid));
+        const data = snap.exists()? snap.data() : null;
+        allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+      }catch{}
+
+      if(!(allowByUid || allowByRole)){
+        gateMsg.innerHTML = 'Accès refusé. Ton compte ne possède pas les droits Admin.';
+        adminUI.style.display='none';
+        return;
       }
+
+      // Autorisé
+      gate.style.display='none';
+      adminUI.style.display='grid';
+      loadPlayers();
+    });
+
+    // --- UI Logic ---
+    const playersWrap = document.getElementById('players');
+    const detailWrap  = document.getElementById('player-detail');
+    const diag = document.getElementById('diag');
+    const search = document.getElementById('search');
+    document.getElementById('btn-refresh').addEventListener('click', ()=> loadPlayers());
+    search.addEventListener('input', ()=> filterCards());
+
+    let lastPlayers = [];
+
+    async function loadPlayers(){
+      playersWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
+      try{
+        let qRef;
+        try { qRef = query(collection(db,'players'), orderBy('updatedAt','desc'), limit(200)); }
+        catch { qRef = query(collection(db,'players'), limit(200)); }
+        const snap = await getDocs(qRef);
+        lastPlayers = snap.docs.map(d=> ({ uid:d.id, ...d.data() }));
+        renderPlayers(lastPlayers);
+        diag.textContent = 'Joueurs chargés: '+lastPlayers.length;
+      }catch(e){ playersWrap.innerHTML='<div class="subtitle">Erreur de chargement</div>'; diag.textContent = 'Erreur loadPlayers: '+(e?.message||e); }
     }
 
     function renderPlayers(list){
-      tbody.innerHTML = '';
-      empty.style.display = list.length ? 'none' : '';
-      for(const p of list){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(p.displayName)}</td><td style="font-family:ui-monospace,Menlo,Consolas">${p.uid}</td><td>${p.packsOpened}</td><td>${p.uniques}</td>`;
-        tr.addEventListener('click', ()=> selectPlayer(p.uid));
-        tbody.appendChild(tr);
+      const term = (search.value||'').toLowerCase();
+      const filtered = list.filter(p=>{
+        const dn = (p.displayName||'').toLowerCase();
+        return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
+      });
+      playersWrap.innerHTML = '';
+      for(const p of filtered){
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <div class="row space">
+            <div>
+              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+              <div class="k">UID: <span class="v">${p.uid}</span></div>
+              <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
+              <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
+              <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
+            </div>
+            <div class="row">
+              <button class="btn ghost pill" data-act="view">Voir</button>
+              <button class="btn warn pill" data-act="add-std">+ Pack Standard</button>
+              <button class="btn success pill" data-act="add-prem">+ Pack Premium</button>
+              <button class="btn danger pill" data-act="reset">Réinitialiser</button>
+            </div>
+          </div>`;
+        el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
+        el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
+        el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard'));
+        el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium'));
+        playersWrap.appendChild(el);
       }
     }
 
-    // --- Search
-    searchInput.addEventListener('input', ()=>{
-      const q = searchInput.value.trim().toLowerCase();
-      if(!q){ renderPlayers(playersCache); return; }
-      const filtered = playersCache.filter(p =>
-        p.uid.toLowerCase().includes(q) ||
-        (p.displayName||'').toLowerCase().includes(q) ||
-        (p.email||'').toLowerCase().includes(q)
-      );
-      renderPlayers(filtered);
-    });
-    btnRefresh.addEventListener('click', loadPlayers);
-
-    // --- Select player
-    async function selectPlayer(uid){
-      selectedPlayer = null;
-      selectedTag.textContent = 'Chargement…';
-      playerDetails.textContent = 'Chargement…';
+    async function viewPlayer(uid){
+      detailWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
       try{
-        const ref = doc(db,'players',uid);
-        const snap = await getDoc(ref);
-        if(!snap.exists()){ selectedTag.textContent = 'Introuvable'; playerDetails.textContent = 'Aucun document.'; return; }
-        const data = snap.data();
-        selectedPlayer = { uid, ...data };
-        selectedTag.textContent = data.displayName || uid;
-        const uniques = data.collection ? Object.keys(data.collection).length : 0;
-        const packsOpened = data.stats?.packsOpened || 0;
-        const inbox = Array.isArray(data.rewardsInbox) ? data.rewardsInbox.length : 0;
-        playerDetails.innerHTML = `
-          <div class="row" style="align-items:flex-start; gap:14px">
-            ${data.photoURL ? `<img src="${data.photoURL}" alt="avatar" style="width:56px;height:56px;border-radius:12px;border:1px solid rgba(255,255,255,.12)"/>` : ''}
+        const snap = await getDoc(doc(db,'players',uid));
+        if(!snap.exists()){ detailWrap.innerHTML = '<div class="subtitle">Profil introuvable.</div>'; return; }
+        const p = snap.data();
+        const uniques = Object.keys(p.collection||{});
+        const rewards = Array.isArray(p.rewardsInbox)? p.rewardsInbox.slice() : [];
+        detailWrap.innerHTML = `
+          <div class="row space">
             <div>
-              <div style="font-weight:800; font-size:16px">${escapeHtml(data.displayName||'(—)')}</div>
-              <div class="subtitle">UID: <span style="font-family:ui-monospace,Menlo,Consolas">${uid}</span></div>
-              <div class="subtitle">Packs ouverts: <strong>${packsOpened}</strong> · Cartes uniques: <strong>${uniques}</strong> · Rewards en attente: <strong>${inbox}</strong></div>
+              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+              <div class="k">UID: <span class="v">${uid}</span></div>
             </div>
-          </div>`;
-      }catch(e){ selectedTag.textContent = 'Erreur'; playerDetails.textContent = e?.message||String(e); }
+            <div class="row">
+              <button class="btn warn pill" id="btn-std">+ Pack Standard</button>
+              <button class="btn success pill" id="btn-prem">+ Pack Premium</button>
+              <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
+            </div>
+          </div>
+          <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs <span class="v">${p.stats?.packsOpened||0}</span></div>
+          <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
+          <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
+          <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
+          <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
+          <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
+        `;
+        document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
+        document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard'));
+        document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium'));
+      }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
     }
 
-    // --- Grant packs (push dans rewardsInbox)
-    btnGrant.addEventListener('click', async ()=>{
-      if(!selectedPlayer){ alert('Sélectionne d\'abord un joueur.'); return; }
-      const type = grantType.value;
-      const qty = Math.max(1, Math.min(50, Number(grantQty.value||1)));
-      const label = type === 'pack_premium' ? 'Pack Premium' : 'Pack Standard';
+    async function resetPlayer(uid){
+      if(!confirm('Réinitialiser la progression de ce joueur ?')) return;
+      try{
+        await updateDoc(doc(db,'players',uid),{
+          stats:{packsOpened:0},
+          collection:{},
+          level:1,
+          xp:0,
+          rewardsInbox:[],
+          updatedAt: serverTimestamp()
+        });
+        toast('Progression réinitialisée');
+        viewPlayer(uid); // refresh
+        loadPlayers();
+      }catch(e){ toast('Erreur: '+(e?.message||e)); }
+    }
+
+    async function grantPack(uid,type,label){
       try{
         await runTransaction(db, async (trx)=>{
-          const ref = doc(db,'players',selectedPlayer.uid);
+          const ref = doc(db,'players',uid);
           const snap = await trx.get(ref);
-          if(!snap.exists()) throw new Error('Joueur introuvable');
+          if(!snap.exists()) throw new Error('Profil introuvable');
           const data = snap.data();
-          const inbox = Array.isArray(data.rewardsInbox) ? data.rewardsInbox.slice() : [];
-          const now = Date.now();
-          for(let i=0;i<qty;i++){
-            inbox.push({ id:'rw_'+now+'_'+i+'_'+Math.random().toString(36).slice(2), type, label, t: now });
-          }
+          const inbox = Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice() : [];
+          inbox.push({ id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type, label, t: Date.now() });
           trx.update(ref, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
         });
-        alert(`Attribué: ${qty} × ${label}`);
-        // Recharge les détails
-        selectPlayer(selectedPlayer.uid);
-      }catch(e){ alert(e?.message||String(e)); }
-    });
+        toast(label+' ajouté');
+        // refresh si on regarde ce joueur
+        const uidShown = (detailWrap.querySelector('.k span.v')||{}).textContent;
+        if(uidShown === uid){ viewPlayer(uid); }
+      }catch(e){ toast('Erreur: '+(e?.message||e)); }
+    }
 
-    // --- Utils
-    function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s])); }
+    function filterCards(){ renderPlayers(lastPlayers); }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+    }
   </script>
 </body>
 </html>
