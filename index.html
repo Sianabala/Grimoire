@@ -17,7 +17,7 @@
     }
 
     *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
-    *::-webkit-scrollbar{ height:10px; width:10px }uid
+    *::-webkit-scrollbar{ height:10px; width:10px }
     *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
     *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
 
@@ -238,7 +238,7 @@
   <script type="module">
     // --- Firebase imports
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     // + dans les imports auth (ligne des imports Firebase auth)
 
@@ -262,29 +262,72 @@
     const twitchProvider = new OAuthProvider('oidc.twitch');
     try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
 
+// --- Helpers pour enregistrer le pseudo Twitch ---
+function decodeJwtPayload(jwt){
+  try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return {}; }
+}
+
+async function saveDisplayNameIfAny(user, nick){
+  if(!user || !nick) return;
+  // s'assure que playerDocRef pointe vers le bon doc
+  playerDocRef = playerDocRef || doc(db,'players',user.uid);
+  try{
+    await setDoc(playerDocRef, {
+      displayName: nick,
+      displayNameLower: nick.toLowerCase(),
+      updatedAt: serverTimestamp()
+    }, { merge:true });
+    console.log('[DEBUG] Pseudo enregistré:', nick);
+  }catch(e){ console.warn('saveDisplayNameIfAny failed', e); }
+}
+
+async function trySavePseudonymFromCredential(cred, user){
+  if(!user) return;
+  let nick = user.displayName || '';
+  if(!nick && cred?.idToken){
+    const claims = decodeJwtPayload(cred.idToken);
+    nick = claims.preferred_username || claims.nickname || '';
+  }
+  await saveDisplayNameIfAny(user, nick);
+}
+
+    
     // --- UI buttons
     const loginBtn = document.getElementById('btn-login');
     const logoutBtn = document.getElementById('btn-logout');
     const adminBtn  = document.getElementById('btn-admin');      // <= AJOUT
     const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
 
-    loginBtn.addEventListener('click', async ()=>{
-      try {
-        console.log('[DEBUG] Click login -> POPUP');
-        await signInWithPopup(auth, twitchProvider);
-      } catch(e){
-        console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
-        if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
-          try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
-          catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
-        } else {
-          alert('Erreur de connexion Twitch: '+(e?.message||e));
-        }
-      }
-    });
+   loginBtn.addEventListener('click', async ()=>{
+  try {
+    console.log('[DEBUG] Click login -> POPUP');
+    const result = await signInWithPopup(auth, twitchProvider);
+    // récupère l'idToken OIDC pour lire preferred_username et l'enregistre
+    const cred = OAuthProvider.credentialFromResult(result);
+    await trySavePseudonymFromCredential(cred, result.user);
+  } catch(e){
+    console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
+    if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
+      try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
+      catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
+    } else {
+      alert('Erreur de connexion Twitch: '+(e?.message||e));
+    }
+  }
+});
+
     logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 
     console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
+
+    // Si on revient d'un signInWithRedirect, on récupère aussi le pseudo
+try{
+  const redirRes = await getRedirectResult(auth);
+  if(redirRes){
+    const cred = OAuthProvider.credentialFromResult(redirRes);
+    await trySavePseudonymFromCredential(cred, redirRes.user);
+  }
+}catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
 
     // --- Rarity constants
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
