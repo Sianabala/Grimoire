@@ -264,6 +264,8 @@
     // --- UI buttons
     const loginBtn = document.getElementById('btn-login');
     const logoutBtn = document.getElementById('btn-logout');
+    const adminBtn  = document.getElementById('btn-admin');      // <= AJOUT
+    const ADMIN_UIDS = ['195656777'];
 
     loginBtn.addEventListener('click', async ()=>{
       try {
