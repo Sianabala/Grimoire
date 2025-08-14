@@ -380,7 +380,8 @@ function cardFrontUrl(c){ return `${CARD_IMAGE_BASE}${c.id}.${CARD_IMAGE_EXT}`; 
       elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
 
       // Cards
-     for (const c of list) {
+    elCards.innerHTML = ''; 
+      for (const c of list) {
   const has = (c.qty || 0) > 0;
   const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
 
