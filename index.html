@@ -236,631 +236,582 @@
   </main>
 
   <script type="module">
-    // --- Firebase imports
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    // + dans les imports auth (ligne des imports Firebase auth)
+   <script type="module">
+  // --- Firebase imports
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import {
+    getAuth, onAuthStateChanged, OAuthProvider,
+    signInWithPopup, signInWithRedirect, getRedirectResult,
+    signOut, setPersistence, browserLocalPersistence
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc,
+    runTransaction, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // --- Firebase config
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
-      authDomain: 'legends-collection.firebaseapp.com',
-      projectId: 'legends-collection',
-      storageBucket: 'legends-collection.firebasestorage.app',
-      messagingSenderId: '133783086150',
-      appId: '1:133783086150:web:762f209f7f778ef83a1647'
-    };
+  // --- Firebase config
+  const firebaseConfig = {
+    apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+    authDomain: 'legends-collection.firebaseapp.com',
+    projectId: 'legends-collection',
+    storageBucket: 'legends-collection.firebasestorage.app',
+    messagingSenderId: '133783086150',
+    appId: '1:133783086150:web:762f209f7f778ef83a1647'
+  };
 
-    console.log('[DEBUG] Initialisation Firebase');
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e){ console.warn('[DEBUG] Persistence failed', e); }
+  console.log('[DEBUG] Initialisation Firebase');
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  try { await setPersistence(auth, browserLocalPersistence); console.log('[DEBUG] Persistence OK'); } catch(e){ console.warn('[DEBUG] Persistence failed', e); }
 
-    // --- Auth provider (Twitch via OIDC)
-    const twitchProvider = new OAuthProvider('oidc.twitch');
-    try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
-
-// --- Helpers pour enregistrer le pseudo Twitch ---
-function decodeJwtPayload(jwt){
-  try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return {}; }
-}
-
-async function saveDisplayNameIfAny(user, nick){
-  if(!user || !nick) return;
-  // s'assure que playerDocRef pointe vers le bon doc
-  playerDocRef = playerDocRef || doc(db,'players',user.uid);
-  try{
-    await setDoc(playerDocRef, {
-      displayName: nick,
-      displayNameLower: nick.toLowerCase(),
-      updatedAt: serverTimestamp()
-    }, { merge:true });
-    console.log('[DEBUG] Pseudo enregistré:', nick);
-  }catch(e){ console.warn('saveDisplayNameIfAny failed', e); }
-}
-
-async function trySavePseudonymFromCredential(cred, user){
-  if(!user) return;
-  let nick = user.displayName || '';
-  if(!nick && cred?.idToken){
-    const claims = decodeJwtPayload(cred.idToken);
-    nick = claims.preferred_username || claims.nickname || '';
-  }
-  await saveDisplayNameIfAny(user, nick);
-}
-
-    
-    // --- UI buttons
-    const loginBtn = document.getElementById('btn-login');
-    const logoutBtn = document.getElementById('btn-logout');
-    const adminBtn  = document.getElementById('btn-admin');      // <= AJOUT
-    const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
-
-   loginBtn.addEventListener('click', async ()=>{
+  // --- Auth provider (Twitch via OIDC)
+  const twitchProvider = new OAuthProvider('oidc.twitch');
   try {
-    console.log('[DEBUG] Click login -> POPUP');
-    const result = await signInWithPopup(auth, twitchProvider);
-    // récupère l'idToken OIDC pour lire preferred_username et l'enregistre
-    const cred = OAuthProvider.credentialFromResult(result);
-    await trySavePseudonymFromCredential(cred, result.user);
-  } catch(e){
-    console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
-    if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
-      try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
-      catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
-    } else {
-      alert('Erreur de connexion Twitch: '+(e?.message||e));
-    }
+    twitchProvider.addScope('openid');
+    twitchProvider.addScope('user:read:email');
+    twitchProvider.setCustomParameters({ prompt: 'consent' });
+  } catch {}
+
+  // --- Helpers pour enregistrer le pseudo Twitch ---
+  function decodeJwtPayload(jwt){
+    try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return {}; }
   }
-});
 
-    logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
-
-    console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
-
-    // Si on revient d'un signInWithRedirect, on récupère aussi le pseudo
-try{
-  const redirRes = await getRedirectResult(auth);
-  if(redirRes){
-    const cred = OAuthProvider.credentialFromResult(redirRes);
-    await trySavePseudonymFromCredential(cred, redirRes.user);
+  async function saveDisplayNameIfAny(user, nick){
+    if(!user || !nick) return;
+    playerDocRef = playerDocRef || doc(db,'players',user.uid);
+    try{
+      await setDoc(playerDocRef, {
+        displayName: nick,
+        displayNameLower: nick.toLowerCase(),
+        updatedAt: serverTimestamp()
+      }, { merge:true });
+      console.log('[DEBUG] Pseudo enregistré:', nick);
+    }catch(e){ console.warn('saveDisplayNameIfAny failed', e); }
   }
-}catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
 
-    // --- Rarity constants
-    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-    const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
-    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
-
-    // --- Dynamic card set (loaded from JSON)
-    let CARD_POOLS = []; // will be filled by loadCardSet()
-    const FALLBACK_CARDS = [
-      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
-      { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
-      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
-      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
-      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
-      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' }
-    ];
-
-    async function loadCardSet(){
-      const url = '/data/sets/nouvelle-lumiere.json';
-      try{
-        console.log('[DEBUG] Chargement du set JSON:', url);
-        const res = await fetch(url, {cache:'no-store'});
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
-        // Normalise les raretés si besoin (common -> commune, etc.)
-        const mapRarity = (r) => {
-          const x = (r||'').toLowerCase();
-          if(x === 'common' || x === 'commune') return RARITY.COMMON;
-          if(x === 'uncommon' || x === 'peu commune') return RARITY.UNCOMMON;
-          if(x === 'rare') return RARITY.RARE;
-          if(x === 'legendary' || x === 'légendaire' || x === 'legendaire') return RARITY.LEGENDARY;
-          if(x === 'exotic' || x === 'exotique') return RARITY.EXOTIC;
-          return RARITY.COMMON;
-        };
-        CARD_POOLS = data.cards
-          .filter(c => !!c.id && !!c.name)
-          .map(c => ({ id:c.id, name:c.name, set:(c.set||'Nouvelle Lumière'), rarity: mapRarity(c.rarity), image:(c.image||'') }));
-        console.log('[DEBUG] Set chargé:', CARD_POOLS.length, 'cartes.');
-      }catch(e){
-        console.warn('[DEBUG] Échec du chargement JSON, fallback local.', e);
-        CARD_POOLS = FALLBACK_CARDS.slice();
-      }
+  async function trySavePseudonymFromCredential(cred, user){
+    if(!user) return;
+    let nick = user.displayName || '';
+    if(!nick && cred?.idToken){
+      const claims = decodeJwtPayload(cred.idToken);
+      nick = claims.preferred_username || claims.nickname || '';
     }
-
-    // --- Local/state
-    const LS_KEY = 'grimoire.alpha.collection.v2_5';
-    const LS_STATS = 'grimoire.alpha.stats.v2_5';
-    const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
-
-    let collection = loadCollection();
-    let stats = loadStats();
-    let profile = loadProfile();
-    let currentUser = null;
-    let playerDocRef = null;
-
-// --- Cloud-first helpers
-const isCloud = () => !!currentUser && !!playerDocRef;
-
-function updateLocalFromCloud(data){
-  // Met à jour l'état mémoire depuis Firestore (sans localStorage)
-  collection = { ...(data.collection || {}) };
-  stats = { packsOpened: data?.stats?.packsOpened || 0 };
-  profile = { level: data?.level || 1, xp: data?.xp || 0 };
-  renderStats();
-  renderCollection();
-}
-
-// Désactive les writes localStorage en mode cloud
-function maybeSaveLocal(){
-  if (!isCloud()) {
-    localStorage.setItem(LS_KEY, JSON.stringify(collection));
-    localStorage.setItem(LS_STATS, JSON.stringify(stats));
-    localStorage.setItem(LS_PROFILE, JSON.stringify(profile));
+    await saveDisplayNameIfAny(user, nick);
   }
-}
 
-    
-    function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
-    function saveCollection(){ maybeSaveLocal(); }
-    function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
-    function saveStats(){ maybeSaveLocal(); }
-    function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
-    function saveProfile(){ maybeSaveLocal(); }
+  // --- UI buttons
+  const loginBtn = document.getElementById('btn-login');
+  const logoutBtn = document.getElementById('btn-logout');
+  const adminBtn  = document.getElementById('btn-admin');
+  const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
 
-    // --- XP / Levels
-    const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
-    function xpForLevel(level){ return LEVEL_XP_BASE; }
-    function nextRewardForLevel(level){
-      if(level===1) return {type:'pack_standard', label:'Pack Standard'};
-      if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
-      return {type:'pack_standard', label:'Pack Standard'};
-    }
-
-    // --- Rendering
-    function renderStats(){
-      const uniqueOwned = Object.keys(collection).length;
-      const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
-      const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0;
-      document.getElementById('stat-packs').textContent = stats.packsOpened||0;
-      document.getElementById('stat-uniques').textContent = uniqueOwned;
-      document.getElementById('stat-completion').textContent = completion+"%";
-      document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
-      const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
-      document.getElementById('stat-level').textContent = level;
-      document.getElementById('stat-xp').textContent = xp;
-      document.getElementById('stat-xp-next').textContent = need;
-      document.getElementById('xp-fill').style.width = pct + '%';
-      document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
-    }
-   function rankFromCompletion(p){
-  if(p >= 100) return 'Parangon';
-  if(p >= 90) return 'Exemplaire';
-  if(p >= 80) return 'Vainqueur';
-  if(p >= 70) return 'Justicier';
-  if(p >= 60) return 'Elite';
-  if(p >= 50) return 'Vétéran';
-  if(p >= 40) return 'Aventurier';
-  if(p >= 30) return 'Éclaireur';
-  if(p >= 20) return 'Initié';
-  if(p >= 10) return 'Explorateur';
-  return 'Nouvelle lumière';
-}
-    function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
-
-    function renderResults(cards){
-      const wrap = document.getElementById('results'); wrap.innerHTML='';
-      let hasLegendary=false, hasExotic=false;
-      for(const card of cards){
-        const div=document.createElement('div'); div.className='card';
-        const img=document.createElement('div'); img.className='img';
-        // Utiliser l'image fournie si disponible
-        if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; }
-        const shine=document.createElement('div'); shine.className='shine';
-        div.appendChild(img); div.appendChild(shine);
-        div.addEventListener('pointermove', (e)=>{
-          const r=e.currentTarget.getBoundingClientRect();
-          const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100;
-          shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%');
-        });
-        const footer=document.createElement('div'); footer.className='footer';
-        footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
-        div.appendChild(footer);
-        wrap.appendChild(div);
-        if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
-        if(card.rarity===RARITY.EXOTIC) hasExotic=true;
-      }
-      const banner=document.getElementById('special-banner');
-      if(hasExotic || hasLegendary){
-        banner.style.display='flex';
-        banner.innerHTML=(hasExotic
-          ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
-          : '⭐ <strong>LÉGENDAIRE !</strong>')
-          + '<button class="close" aria-label="Fermer">×</button>';
-        banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
+  loginBtn.addEventListener('click', async ()=>{
+    try {
+      console.log('[DEBUG] Click login -> POPUP');
+      const result = await signInWithPopup(auth, twitchProvider);
+      const cred = OAuthProvider.credentialFromResult(result);
+      await trySavePseudonymFromCredential(cred, result.user);
+    } catch(e){
+      console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
+      if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
+        try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
+        catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
       } else {
-        banner.style.display='none';
+        alert('Erreur de connexion Twitch: '+(e?.message||e));
       }
     }
-
-    // Safe-no-op si l’élément #collection n’existe pas (collection sur collection.html)
-    function renderCollection(){
-      const wrap=document.getElementById('collection');
-      if(!wrap) return;
-      wrap.innerHTML='';
-      const byRarityIdx=c=>rarityOrder.indexOf(c.rarity);
-      const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
-      for(const card of all){
-        const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card';
-        div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
-          + '<div style="font-weight:700">'+card.name+'</div>'
-          + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>'
-          + '</div><div class="qty">'+card.set+' — '+card.id+'</div>'
-          + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>';
-        wrap.appendChild(div);
-      }
-    }
-
-    // --- Draw logic
-    function weightedRandomRarity(){
-      const entries=Object.entries(RARITY_WEIGHTS);
-      const total=entries.reduce((s,[,w])=>s+w,0);
-      let r=Math.random()*total;
-      for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight; }
-      return RARITY.COMMON;
-    }
-    function pickCardByRarity(rarity){
-      const pool=CARD_POOLS.filter(c=>c.rarity===rarity);
-      if(pool.length===0){
-        const idx=rarityOrder.indexOf(rarity);
-        for(let j=idx-1;j>=0;j--){
-          const p=CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]);
-          if(p.length) return p[Math.floor(Math.random()*p.length)];
-        }
-        return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)];
-      }
-      return pool[Math.floor(Math.random()*pool.length)];
-    }
-    function ensureAtLeastRare(){
-      const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
-      const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]];
-      let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
-    }
-
-    function addToCollection(cards){ for(const card of cards){ collection[card.id]=(collection[card.id]||0)+1; } saveCollection(); }
-
-  async function openPack({ type='standard' } = {}) {
-  if (!CARD_POOLS.length) { alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
-  if (!isCloud()) { alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
-
-  // Tirage côté client (affichage), mais état écrit en transaction cloud
-  const cards = [];
-  if (type === 'premium') {
-    const idx = Math.floor(Math.random() * 5);
-    for (let i=0; i<5; i++) {
-      const rarity = (i === idx) ? ensureAtLeastRare() : weightedRandomRarity();
-      cards.push(pickCardByRarity(rarity));
-    }
-  } else {
-    for (let i=0; i<5; i++) {
-      const rarity = weightedRandomRarity();
-      cards.push(pickCardByRarity(rarity));
-    }
-  }
-
-  // Transaction Firestore = vérité
-  const result = await runTransaction(db, async (trx) => {
-    const docSnap = await trx.get(playerDocRef);
-    const cur = docSnap.exists() ? docSnap.data() : {
-      stats: { packsOpened: 0 }, collection: {}, level: 1, xp: 0, rewardsInbox: []
-    };
-
-    const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened || 0) + 1 };
-    const newCollection = { ...(cur.collection || {}) };
-    for (const c of cards) newCollection[c.id] = (newCollection[c.id] || 0) + 1;
-
-    let level = cur.level || 1;
-    let xp = (cur.xp || 0) + XP_PER_PACK;
-    let rewards = cur.rewardsInbox || [];
-    let need = xpForLevel(level);
-
-    while (xp >= need) {
-      xp -= need;
-      level += 1;
-      need = xpForLevel(level);
-      const rw = nextRewardForLevel(level - 1);
-      rewards = [
-        ...rewards,
-        { id: 'rw_' + Date.now() + Math.random().toString(36).slice(2), type: rw.type, label: rw.label, t: Date.now() }
-      ];
-    }
-
-    const newDoc = {
-      stats: newStats,
-      collection: newCollection,
-      level, xp,
-      rewardsInbox: rewards,
-      updatedAt: serverTimestamp()
-    };
-
-    trx.set(playerDocRef, newDoc, { merge: true });
-    return newDoc; // ⬅️ on renvoie l’état final pour maj UI
   });
 
-  // Màj UI depuis le cloud
-  updateLocalFromCloud(result);
-  renderResults(cards);
-  toast(type === 'premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
-}
+  logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 
+  console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
+  try{
+    const redirRes = await getRedirectResult(auth);
+    if(redirRes){
+      const cred = OAuthProvider.credentialFromResult(redirRes);
+      await trySavePseudonymFromCredential(cred, redirRes.user);
+    }
+  }catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
 
-    // --- Cloud sync
-    async function loadOrCreatePlayerDoc(user){
-  playerDocRef = doc(db, 'players', user.uid);
-  const snap = await getDoc(playerDocRef);
+  // --- Rarity constants
+  const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+  const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
+  const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-  if (!snap.exists()) {
+  // --- Dynamic card set (loaded from JSON)
+  let CARD_POOLS = []; // will be filled by loadCardSet()
+  const FALLBACK_CARDS = [
+    { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+    { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+    { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
+    { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
+    { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
+    { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' }
+  ];
+
+  async function loadCardSet(){
+    const url = '/data/sets/nouvelle-lumiere.json';
+    try{
+      console.log('[DEBUG] Chargement du set JSON:', url);
+      const res = await fetch(url, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
+      const mapRarity = (r) => {
+        const x = (r||'').toLowerCase();
+        if(x === 'common' || x === 'commune') return RARITY.COMMON;
+        if(x === 'uncommon' || x === 'peu commune') return RARITY.UNCOMMON;
+        if(x === 'rare') return RARITY.RARE;
+        if(x === 'legendary' || x === 'légendaire' || x === 'legendaire') return RARITY.LEGENDARY;
+        if(x === 'exotic' || x === 'exotique') return RARITY.EXOTIC;
+        return RARITY.COMMON;
+      };
+      CARD_POOLS = data.cards
+        .filter(c => !!c.id && !!c.name)
+        .map(c => ({ id:c.id, name:c.name, set:(c.set||'Nouvelle Lumière'), rarity: mapRarity(c.rarity), image:(c.image||'') }));
+      console.log('[DEBUG] Set chargé:', CARD_POOLS.length, 'cartes.');
+    }catch(e){
+      console.warn('[DEBUG] Échec du chargement JSON, fallback local.', e);
+      CARD_POOLS = FALLBACK_CARDS.slice();
+    }
+  }
+
+  // --- Local/state (utilisé uniquement en mode déconnecté)
+  const LS_KEY = 'grimoire.alpha.collection.v2_5';
+  const LS_STATS = 'grimoire.alpha.stats.v2_5';
+  const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
+
+  let collection = loadCollection();
+  let stats = loadStats();
+  let profile = loadProfile();
+  let currentUser = null;
+  let playerDocRef = null;
+
+  function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
+  function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
+  function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
+
+  // --- Cloud-first helpers
+  const isCloud = () => !!currentUser && !!playerDocRef;
+
+  function updateLocalFromCloud(data){
+    collection = { ...(data.collection || {}) };
+    stats = { packsOpened: data?.stats?.packsOpened || 0 };
+    profile = { level: data?.level || 1, xp: data?.xp || 0 };
+    renderStats();
+    renderCollection();
+  }
+
+  function maybeSaveLocal(){
+    if (!isCloud()) {
+      localStorage.setItem(LS_KEY, JSON.stringify(collection));
+      localStorage.setItem(LS_STATS, JSON.stringify(stats));
+      localStorage.setItem(LS_PROFILE, JSON.stringify(profile));
+    }
+  }
+  // Sauvegardes neutralisées en mode cloud
+  function saveCollection(){ maybeSaveLocal(); }
+  function saveStats(){ maybeSaveLocal(); }
+  function saveProfile(){ maybeSaveLocal(); }
+
+  // --- XP / Levels
+  const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
+  function xpForLevel(level){ return LEVEL_XP_BASE; }
+  function nextRewardForLevel(level){
+    if(level===1) return {type:'pack_standard', label:'Pack Standard'};
+    if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
+    return {type:'pack_standard', label:'Pack Standard'};
+  }
+
+  // --- Rendering
+  function renderStats(){
+    const uniqueOwned = Object.keys(collection).length;
+    const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
+    const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0;
+    document.getElementById('stat-packs').textContent = stats.packsOpened||0;
+    document.getElementById('stat-uniques').textContent = uniqueOwned;
+    document.getElementById('stat-completion').textContent = completion+"%";
+    document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
+    const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
+    document.getElementById('stat-level').textContent = level;
+    document.getElementById('stat-xp').textContent = xp;
+    document.getElementById('stat-xp-next').textContent = need;
+    document.getElementById('xp-fill').style.width = pct + '%';
+    document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
+  }
+  function rankFromCompletion(p){
+    if(p >= 100) return 'Parangon';
+    if(p >= 90) return 'Exemplaire';
+    if(p >= 80) return 'Vainqueur';
+    if(p >= 70) return 'Justicier';
+    if(p >= 60) return 'Elite';
+    if(p >= 50) return 'Vétéran';
+    if(p >= 40) return 'Aventurier';
+    if(p >= 30) return 'Éclaireur';
+    if(p >= 20) return 'Initié';
+    if(p >= 10) return 'Explorateur';
+    return 'Nouvelle lumière';
+  }
+  function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
+
+  function renderResults(cards){
+    const wrap = document.getElementById('results'); wrap.innerHTML='';
+    let hasLegendary=false, hasExotic=false;
+    for(const card of cards){
+      const div=document.createElement('div'); div.className='card';
+      const img=document.createElement('div'); img.className='img';
+      if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; }
+      const shine=document.createElement('div'); shine.className='shine';
+      div.appendChild(img); div.appendChild(shine);
+      div.addEventListener('pointermove', (e)=>{
+        const r=e.currentTarget.getBoundingClientRect();
+        const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100;
+        shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%');
+      });
+      const footer=document.createElement('div'); footer.className='footer';
+      footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
+      div.appendChild(footer);
+      wrap.appendChild(div);
+      if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
+      if(card.rarity===RARITY.EXOTIC) hasExotic=true;
+    }
+    const banner=document.getElementById('special-banner');
+    if(hasExotic || hasLegendary){
+      banner.style.display='flex';
+      banner.innerHTML=(hasExotic
+        ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
+        : '⭐ <strong>LÉGENDAIRE !</strong>')
+        + '<button class="close" aria-label="Fermer">×</button>';
+      banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
+    } else {
+      banner.style.display='none';
+    }
+  }
+
+  // Safe-no-op si l’élément #collection n’existe pas (collection sur collection.html)
+  function renderCollection(){
+    const wrap=document.getElementById('collection');
+    if(!wrap) return;
+    wrap.innerHTML='';
+    const byRarityIdx=c=>rarityOrder.indexOf(c.rarity);
+    const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
+    for(const card of all){
+      const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card';
+      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        + '<div style="font-weight:700">'+card.name+'</div>'
+        + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>'
+        + '</div><div class="qty">'+card.set+' — '+card.id+'</div>'
+        + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>';
+      wrap.appendChild(div);
+    }
+  }
+
+  // --- Tirage helpers
+  function weightedRandomRarity(){
+    const entries=Object.entries(RARITY_WEIGHTS);
+    const total=entries.reduce((s,[,w])=>s+w,0);
+    let r=Math.random()*total;
+    for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight; }
+    return RARITY.COMMON;
+  }
+  function pickCardByRarity(rarity){
+    const pool=CARD_POOLS.filter(c=>c.rarity===rarity);
+    if(pool.length===0){
+      const idx=rarityOrder.indexOf(rarity);
+      for(let j=idx-1;j>=0;j--){
+        const p=CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]);
+        if(p.length) return p[Math.floor(Math.random()*p.length)];
+      }
+      return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)];
+    }
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  function ensureAtLeastRare(){
+    const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
+    const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]];
+    let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
+  }
+
+  // --- Ouverture de pack 100% cloud
+  async function openPack({type='standard'} = {}){
+    if(!CARD_POOLS.length){ alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
+    if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
+
+    // Tirage pour l’affichage
+    const cards=[];
+    if(type==='premium'){
+      const idx=Math.floor(Math.random()*5);
+      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+    } else {
+      for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+    }
+
+    // Transaction Firestore = source de vérité
+    const result = await runTransaction(db, async (trx)=>{
+      const docSnap = await trx.get(playerDocRef);
+      const cur = docSnap.exists() ? docSnap.data() : {
+        stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[]
+      };
+
+      const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
+      const newCollection = { ...(cur.collection||{}) };
+      for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
+
+      let level = cur.level || 1;
+      let xp = (cur.xp || 0) + XP_PER_PACK;
+      let rewards = cur.rewardsInbox || [];
+      let need = xpForLevel(level);
+
+      while(xp >= need){
+        xp -= need; level += 1; need = xpForLevel(level);
+        const rw = nextRewardForLevel(level - 1);
+        rewards = [...rewards, { id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() }];
+      }
+
+      const newDoc = {
+        stats:newStats,
+        collection:newCollection,
+        level, xp,
+        rewardsInbox:rewards,
+        updatedAt: serverTimestamp()
+      };
+      trx.set(playerDocRef, newDoc, { merge:true });
+      return newDoc;
+    });
+
+    // UI depuis l'état cloud
+    updateLocalFromCloud(result);
+    renderResults(cards);
+    toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
+  }
+
+  // --- (Option) gain XP ailleurs : neutre en cloud-first, déjà géré lors de l’ouverture
+  async function gainXpAndMaybeLevelUp(amount){
+    if(!isCloud()) return;
+    await updateDoc(playerDocRef,{ updatedAt: serverTimestamp() }).catch(()=>{});
+  }
+
+  // --- Auth state
+  function setPacksButtonsEnabled(enabled){
+    const openStd = document.getElementById('btn-open-standard');
+    const openPrem = document.getElementById('btn-open-premium');
+    [openStd, openPrem].forEach(b => {
+      if (!b) return;
+      b.disabled = !enabled;
+      b.style.opacity = enabled ? '' : '.6';
+      b.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+      b.setAttribute('aria-disabled', String(!enabled));
+    });
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user || null;
+    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+
+    loginBtn.style.display  = currentUser ? 'none' : '';
+    logoutBtn.style.display = currentUser ? '' : 'none';
+    adminBtn.style.display  = 'none';
+
+    setPacksButtonsEnabled(!!currentUser);
+
+    if (!currentUser) return;
+
+    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+
+    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+    if (allowByUid || allowByRole) adminBtn.style.display = '';
+  });
+
+  // --- Cloud bootstrap
+  async function loadOrCreatePlayerDoc(user){
+    playerDocRef = doc(db,'players',user.uid);
+    const snap = await getDoc(playerDocRef);
+    if(!snap.exists()){
+      const base = {
+        displayName:user.displayName||'',
+        photoURL:user.photoURL||'',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        stats:{packsOpened:0},
+        collection:{},
+        level:1,
+        xp:0,
+        rewardsInbox:[]
+      };
+      await setDoc(playerDocRef, base);
+      updateLocalFromCloud(base);
+      return base;
+    }
+    const data = snap.data();
+    updateLocalFromCloud(data);
+    try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
+    return data;
+  }
+
+  // --- Diagnostic helpers
+  const diag=document.getElementById('diag-log');
+  function printDiag(line){ diag.textContent += (line + '\n'); }
+  function clearDiag(){ diag.textContent=''; }
+
+  document.getElementById('btn-test-config').addEventListener('click',()=>{
+    clearDiag();
+    const checks=[];
+    checks.push(['apiKey ok',!!firebaseConfig.apiKey]);
+    checks.push(['authDomain ok',!!firebaseConfig.authDomain]);
+    checks.push(['projectId ok',!!firebaseConfig.projectId]);
+    checks.push(['appId ok',!!firebaseConfig.appId]);
+    for(const [name,ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
+    printDiag('\nConfig OK si toutes les coches sont vertes.');
+    printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.');
+  });
+
+  document.getElementById('btn-test-auth').addEventListener('click',()=>{
+    clearDiag();
+    if(currentUser){
+      printDiag('Connecté ✅');
+      printDiag('uid: '+currentUser.uid);
+      printDiag('displayName: '+(currentUser.displayName||'(—)'));
+      printDiag('email: '+(currentUser.email||'(—)'));
+      printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
+    } else {
+      printDiag('Non connecté ❌');
+      printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.');
+    }
+  });
+
+  document.getElementById('btn-test-draws').addEventListener('click',()=>{
+    clearDiag();
+    const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0};
+    for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
+    const pct=x=>(100*x/N).toFixed(2)+'%';
+    printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:');
+    for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
+      printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
+    }
+  });
+
+  document.getElementById('btn-test-premium').addEventListener('click',()=>{
+    clearDiag();
+    const P=1000; let ok=0,fail=0;
+    for(let p=0;p<P;p++){
+      const cards=[]; let idx=Math.floor(Math.random()*5);
+      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
+      if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
+    }
+    printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail);
+    printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.');
+  });
+
+  document.getElementById('btn-test-firestore').addEventListener('click',async()=>{
+    clearDiag();
+    if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
+    try{
+      const now=Date.now();
+      await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()});
+      const back=await getDoc(doc(db,'players',currentUser.uid));
+      printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest);
+    } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); }
+  });
+
+  document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{
+    clearDiag();
+    if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
+    try{
+      const snap=await getDoc(doc(db,'players',currentUser.uid));
+      if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
+      const data=snap.data();
+      updateLocalFromCloud(data);
+      printDiag('✅ Priorité cloud appliquée.');
+    } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); }
+  });
+
+  document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
+    if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
+    try{
+      await runTransaction(db, async (trx)=>{
+        const snap=await trx.get(playerDocRef);
+        if(!snap.exists()) throw new Error('Profil introuvable');
+        const data=snap.data();
+        const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[];
+        if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
+        const reward=inbox.shift();
+        trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()});
+        setTimeout(()=>{ if(reward.type==='pack_standard') openPack({type:'standard'}); else if(reward.type==='pack_premium') openPack({type:'premium'}); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100);
+      });
+    } catch(e){ alert(e.message||String(e)); }
+  });
+
+  // --- Packs UI
+  function renderPacks(){
+    const wrap=document.getElementById('packs'); wrap.innerHTML='';
+    const packs=[
+      { id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) } },
+      { id:'premium',  name:'💎 Premium',  desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], locked:true, action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') } }
+    ];
+    for(const p of packs){
+      const card=document.createElement('div'); card.className='pack';
+      card.innerHTML =
+        '<div class="cover" aria-hidden="true"></div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
+        + '<div><div style="font-size:18px;font-weight:900">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
+        + (p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':'' )
+        + '</div>'
+        + '<div class="loot">'+p.loot.map(x=>'• '+x).join('<br/>')+'</div>'
+        + '<div class="odds">'+p.odds.map(([k,v])=>k+': '+v).join(' · ')+'</div>'
+        + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+' pill" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
+      const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click);
+      wrap.appendChild(card);
+    }
+  }
+
+  // --- Toast helper
+  function toast(msg,ms=1800){
+    let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+    requestAnimationFrame(()=> t.classList.add('show'));
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
+  }
+
+  // --- Reset -> cloud
+  const resetBtn = document.getElementById('btn-reset');
+  resetBtn.textContent = 'Réinitialiser la collection (cloud)';
+  resetBtn.addEventListener('click', async ()=>{
+    if(!isCloud()){ alert('Connecte-toi pour réinitialiser (cloud).'); return; }
+    if(!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
     const base = {
-      displayName: user.displayName || '',
-      photoURL: user.photoURL || '',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
       stats: { packsOpened: 0 },
       collection: {},
       level: 1,
       xp: 0,
-      rewardsInbox: []
+      rewardsInbox: [],
+      updatedAt: serverTimestamp()
     };
-    await setDoc(playerDocRef, base);
-    updateLocalFromCloud(base);
-    return base;
-  }
-
-  const data = snap.data();
-  updateLocalFromCloud(data);                  // ⬅️ cloud -> mémoire (pas de localStorage)
-  try { await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); } catch {}
-  return data;
-}
-
-
-    async function syncPackResultToFirestore(cards,{xpGain=0}={}){
-      await runTransaction(db, async (trx)=>{
-        const docSnap=await trx.get(playerDocRef);
-        const cur=docSnap.exists()? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
-        const newStats={...cur.stats, packsOpened:(cur.stats?.packsOpened||0)+1};
-        const newCollection={...(cur.collection||{})};
-        for(const c of cards){ newCollection[c.id]=(newCollection[c.id]||0)+1; }
-        let level=cur.level||1;
-        let xp=(cur.xp||0)+xpGain;
-        let rewards=cur.rewardsInbox||[];
-        let need=xpForLevel(level);
-        while(xp>=need){
-          xp-=need; level+=1; need=xpForLevel(level);
-          const rw=nextRewardForLevel(level-1);
-          rewards=[...rewards,{id:'rw_'+Date.now()+Math.random().toString(36).slice(2),type:rw.type,label:rw.label,t:Date.now()}];
-        }
-        trx.set(playerDocRef,{ stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt:serverTimestamp() },{merge:true});
-      });
-    }
-
-    // --- Auth state
-  onAuthStateChanged(auth, async (user) => {
-  currentUser = user || null;
-  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-
-  loginBtn.style.display  = currentUser ? 'none' : '';
-  logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display  = 'none';
-
-  setPacksButtonsEnabled(!!currentUser); // ⬅️ packs seulement connectée
-
-  if (!currentUser) {
-    // Optionnel: vider l’affichage runtime
-    // results/banneer sans toucher au localStorage
-    return;
-  }
-
-  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-
-  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-  if (allowByUid || allowByRole) adminBtn.style.display = '';
-});
-
-
-    function setPacksButtonsEnabled(enabled){
-  const openStd = document.getElementById('btn-open-standard');
-  const openPrem = document.getElementById('btn-open-premium');
-  [openStd, openPrem].forEach(b => {
-    if (!b) return;
-    b.disabled = !enabled;
-    b.style.opacity = enabled ? '' : '.6';
-    b.style.cursor  = enabled ? 'pointer' : 'not-allowed';
-    b.setAttribute('aria-disabled', String(!enabled));
+    try{
+      await updateDoc(playerDocRef, base);
+      updateLocalFromCloud(base);
+      document.getElementById('results').innerHTML='';
+      document.getElementById('special-banner').style.display='none';
+      toast('Progression réinitialisée (cloud).');
+    }catch(e){ alert('Échec de réinitialisation: ' + (e?.message||e)); }
   });
-}
 
-    // --- Diagnostic helpers
-    const diag=document.getElementById('diag-log');
-    function printDiag(line){ diag.textContent += (line + '\n'); }
-    function clearDiag(){ diag.textContent=''; }
-
-    document.getElementById('btn-test-config').addEventListener('click',()=>{
-      clearDiag();
-      const checks=[];
-      checks.push(['apiKey ok',!!firebaseConfig.apiKey]);
-      checks.push(['authDomain ok',!!firebaseConfig.authDomain]);
-      checks.push(['projectId ok',!!firebaseConfig.projectId]);
-      checks.push(['appId ok',!!firebaseConfig.appId]);
-      for(const [name,ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
-      printDiag('\nConfig OK si toutes les coches sont vertes.');
-      printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.');
-    });
-
-    document.getElementById('btn-test-auth').addEventListener('click',()=>{
-      clearDiag();
-      if(currentUser){
-        printDiag('Connecté ✅');
-        printDiag('uid: '+currentUser.uid);
-        printDiag('displayName: '+(currentUser.displayName||'(—)'));
-        printDiag('email: '+(currentUser.email||'(—)'));
-        printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
-      } else {
-        printDiag('Non connecté ❌');
-        printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.');
-      }
-    });
-
-    document.getElementById('btn-test-draws').addEventListener('click',()=>{
-      clearDiag();
-      const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0};
-      for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
-      const pct=x=>(100*x/N).toFixed(2)+'%';
-      printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:');
-      for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
-        printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
-      }
-    });
-
-    document.getElementById('btn-test-premium').addEventListener('click',()=>{
-      clearDiag();
-      const P=1000; let ok=0,fail=0;
-      for(let p=0;p<P;p++){
-        const cards=[]; let idx=Math.floor(Math.random()*5);
-        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
-        if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
-      }
-      printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail);
-      printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.');
-    });
-
-    document.getElementById('btn-test-firestore').addEventListener('click',async()=>{
-      clearDiag();
-      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
-      try{
-        const now=Date.now();
-        await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()});
-        const back=await getDoc(doc(db,'players',currentUser.uid));
-        printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest);
-      } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); }
-    });
-
-    document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{
-      clearDiag();
-      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
-      try{
-        const snap=await getDoc(doc(db,'players',currentUser.uid));
-        if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
-        const data=snap.data();
-        printDiag('Avant — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
-        collection={...(data.collection||{})}; saveCollection();
-        stats.packsOpened=(data.stats?.packsOpened||0); saveStats();
-        profile.level=data.level||1; profile.xp=data.xp||0; saveProfile();
-        renderStats(); renderCollection();
-        printDiag('Après — local packsOpened='+ (stats.packsOpened||0) + ', uniques='+Object.keys(collection).length);
-        printDiag('✅ Priorité cloud appliquée.');
-      } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); }
-    });
-
-    document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
-      if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
-      try{
-        await runTransaction(db, async (trx)=>{
-          const snap=await trx.get(playerDocRef);
-          if(!snap.exists()) throw new Error('Profil introuvable');
-          const data=snap.data();
-          const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[];
-          if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
-          const reward=inbox.shift();
-          trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()});
-          setTimeout(()=>{ if(reward.type==='pack_standard') openPack({type:'standard'}); else if(reward.type==='pack_premium') openPack({type:'premium'}); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100);
-        });
-      } catch(e){ alert(e.message||String(e)); }
-    });
-
-    // --- Packs UI
-    function renderPacks(){
-      const wrap=document.getElementById('packs'); wrap.innerHTML='';
-      const packs=[
-        { id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) } },
-        { id:'premium', name:'💎 Premium', desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], locked:true, action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') } }
-      ];
-      for(const p of packs){
-        const card=document.createElement('div'); card.className='pack';
-        card.innerHTML =
-          '<div class="cover" aria-hidden="true"></div>'+
-          '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
-          + '<div><div style="font-size:18px;font-weight:900">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
-          + (p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':'' )
-          + '</div>'
-          + '<div class="loot">'+p.loot.map(x=>'• '+x).join('<br/>')+'</div>'
-          + '<div class="odds">'+p.odds.map(([k,v])=>k+': '+v).join(' · ')+'</div>'
-          + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+' pill" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
-        const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click);
-        wrap.appendChild(card);
-      }
-    }
-
-    // --- Toast helper
-    function toast(msg,ms=1800){
-      let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
-      requestAnimationFrame(()=> t.classList.add('show'));
-      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
-    }
-
-    // --- Reset & XP
-   document.getElementById('btn-reset').textContent = 'Réinitialiser la collection (cloud)';
-document.getElementById('btn-reset').addEventListener('click', async () => {
-  if (!isCloud()) { alert('Connecte-toi pour réinitialiser (cloud).'); return; }
-  if (!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
-
-  const base = {
-    stats: { packsOpened: 0 },
-    collection: {},
-    level: 1,
-    xp: 0,
-    rewardsInbox: [],
-    updatedAt: serverTimestamp()
-  };
-  try {
-    await updateDoc(playerDocRef, base);
-    updateLocalFromCloud(base);
-    document.getElementById('results').innerHTML = '';
-    document.getElementById('special-banner').style.display = 'none';
-    toast('Progression réinitialisée (cloud).');
-  } catch(e) {
-    alert('Échec de réinitialisation: ' + (e?.message || e));
-  }
-});
-
-
-   async function gainXpAndMaybeLevelUp(amount){
-  if (!isCloud()) return; // en mode cloud-only, on n'utilise plus cette voie hors transaction
-  await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }).catch(()=>{});
-}
-
-    }
-
-    // --- Init
-    async function init(){
-      // Skeletons rapides avant chargement
-      const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px">\
+  // --- Init
+  async function init(){
+    const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px">\
 <div class="card"></div><div class="card"></div><div class="card"></div></div>';
-      document.getElementById('results').innerHTML = skel;
-      await loadCardSet();            // charge /data/sets/nouvelle-lumiere.json (ou fallback)
-      renderStats();
-      renderCollection();             // no-op ici (pas d’élément sur index.html)
-      renderPacks();
-      document.getElementById('results').innerHTML = ''; // clear skeleton si vide
-      console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
-    }
-    init();
- 
-   </script>
+    document.getElementById('results').innerHTML = skel;
+    await loadCardSet();
+    renderStats();
+    renderCollection();
+    renderPacks();
+    document.getElementById('results').innerHTML = '';
+    console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
+  }
+  init();
+
+</script>
+
 </body>
 </html>
