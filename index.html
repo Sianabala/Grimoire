@@ -384,12 +384,34 @@ try{
     let currentUser = null;
     let playerDocRef = null;
 
+// --- Cloud-first helpers
+const isCloud = () => !!currentUser && !!playerDocRef;
+
+function updateLocalFromCloud(data){
+  // Met à jour l'état mémoire depuis Firestore (sans localStorage)
+  collection = { ...(data.collection || {}) };
+  stats = { packsOpened: data?.stats?.packsOpened || 0 };
+  profile = { level: data?.level || 1, xp: data?.xp || 0 };
+  renderStats();
+  renderCollection();
+}
+
+// Désactive les writes localStorage en mode cloud
+function maybeSaveLocal(){
+  if (!isCloud()) {
+    localStorage.setItem(LS_KEY, JSON.stringify(collection));
+    localStorage.setItem(LS_STATS, JSON.stringify(stats));
+    localStorage.setItem(LS_PROFILE, JSON.stringify(profile));
+  }
+}
+
+    
     function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
-    function saveCollection(){ localStorage.setItem(LS_KEY, JSON.stringify(collection)); }
+    function saveCollection(){ maybeSaveLocal(); }
     function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
-    function saveStats(){ localStorage.setItem(LS_STATS, JSON.stringify(stats)); }
+    function saveStats(){ maybeSaveLocal(); }
     function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
-    function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); }
+    function saveProfile(){ maybeSaveLocal(); }
 
     // --- XP / Levels
     const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
@@ -512,40 +534,99 @@ try{
 
     function addToCollection(cards){ for(const card of cards){ collection[card.id]=(collection[card.id]||0)+1; } saveCollection(); }
 
-    async function openPack({type='standard'}={}){
-      if(!CARD_POOLS.length){ alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
-      const cards=[];
-      if(type==='premium'){
-        let idx=Math.floor(Math.random()*5);
-        for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
-      } else {
-        for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
-      }
-      stats.packsOpened=(stats.packsOpened||0)+1; saveStats();
-      addToCollection(cards);
-      await gainXpAndMaybeLevelUp(XP_PER_PACK);
-      renderStats(); renderResults(cards); renderCollection();
-      if(currentUser && playerDocRef){ await syncPackResultToFirestore(cards,{xpGain:XP_PER_PACK}).catch(console.error); }
-      toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
+  async function openPack({ type='standard' } = {}) {
+  if (!CARD_POOLS.length) { alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
+  if (!isCloud()) { alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
+
+  // Tirage côté client (affichage), mais état écrit en transaction cloud
+  const cards = [];
+  if (type === 'premium') {
+    const idx = Math.floor(Math.random() * 5);
+    for (let i=0; i<5; i++) {
+      const rarity = (i === idx) ? ensureAtLeastRare() : weightedRandomRarity();
+      cards.push(pickCardByRarity(rarity));
     }
+  } else {
+    for (let i=0; i<5; i++) {
+      const rarity = weightedRandomRarity();
+      cards.push(pickCardByRarity(rarity));
+    }
+  }
+
+  // Transaction Firestore = vérité
+  const result = await runTransaction(db, async (trx) => {
+    const docSnap = await trx.get(playerDocRef);
+    const cur = docSnap.exists() ? docSnap.data() : {
+      stats: { packsOpened: 0 }, collection: {}, level: 1, xp: 0, rewardsInbox: []
+    };
+
+    const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened || 0) + 1 };
+    const newCollection = { ...(cur.collection || {}) };
+    for (const c of cards) newCollection[c.id] = (newCollection[c.id] || 0) + 1;
+
+    let level = cur.level || 1;
+    let xp = (cur.xp || 0) + XP_PER_PACK;
+    let rewards = cur.rewardsInbox || [];
+    let need = xpForLevel(level);
+
+    while (xp >= need) {
+      xp -= need;
+      level += 1;
+      need = xpForLevel(level);
+      const rw = nextRewardForLevel(level - 1);
+      rewards = [
+        ...rewards,
+        { id: 'rw_' + Date.now() + Math.random().toString(36).slice(2), type: rw.type, label: rw.label, t: Date.now() }
+      ];
+    }
+
+    const newDoc = {
+      stats: newStats,
+      collection: newCollection,
+      level, xp,
+      rewardsInbox: rewards,
+      updatedAt: serverTimestamp()
+    };
+
+    trx.set(playerDocRef, newDoc, { merge: true });
+    return newDoc; // ⬅️ on renvoie l’état final pour maj UI
+  });
+
+  // Màj UI depuis le cloud
+  updateLocalFromCloud(result);
+  renderResults(cards);
+  toast(type === 'premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
+}
+
 
     // --- Cloud sync
     async function loadOrCreatePlayerDoc(user){
-      playerDocRef=doc(db,'players',user.uid);
-      const snap=await getDoc(playerDocRef);
-      if(!snap.exists()){
-        const base={ displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt:serverTimestamp(), updatedAt:serverTimestamp(), stats:{packsOpened:stats.packsOpened||0}, collection:collection, level:profile.level||1, xp:profile.xp||0, rewardsInbox:[] };
-        await setDoc(playerDocRef, base);
-        return base;
-      }
-      const data=snap.data();
-      collection={...(data.collection||{})}; saveCollection();
-      stats.packsOpened=(data.stats?.packsOpened||0); saveStats();
-      profile.level=data.level||1; profile.xp=data.xp||0; saveProfile();
-      renderStats(); renderCollection();
-      try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
-      return data;
-    }
+  playerDocRef = doc(db, 'players', user.uid);
+  const snap = await getDoc(playerDocRef);
+
+  if (!snap.exists()) {
+    const base = {
+      displayName: user.displayName || '',
+      photoURL: user.photoURL || '',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      stats: { packsOpened: 0 },
+      collection: {},
+      level: 1,
+      xp: 0,
+      rewardsInbox: []
+    };
+    await setDoc(playerDocRef, base);
+    updateLocalFromCloud(base);
+    return base;
+  }
+
+  const data = snap.data();
+  updateLocalFromCloud(data);                  // ⬅️ cloud -> mémoire (pas de localStorage)
+  try { await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); } catch {}
+  return data;
+}
+
 
     async function syncPackResultToFirestore(cards,{xpGain=0}={}){
       await runTransaction(db, async (trx)=>{
@@ -568,29 +649,41 @@ try{
     }
 
     // --- Auth state
-   onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, async (user) => {
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
-  // État des boutons de base
   loginBtn.style.display  = currentUser ? 'none' : '';
   logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display  = 'none'; // caché par défaut
+  adminBtn.style.display  = 'none';
 
-  if (!currentUser) return;
+  setPacksButtonsEnabled(!!currentUser); // ⬅️ packs seulement connectée
 
-  // Charge/Crée le profil joueur depuis Firestore
+  if (!currentUser) {
+    // Optionnel: vider l’affichage runtime
+    // results/banneer sans toucher au localStorage
+    return;
+  }
+
   const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
-         // Autorisations admin
-  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);                          // Option 1 : whitelist via UID
-  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));  // Option 2 : rôle Firestore
-
-  if (allowByUid || allowByRole) {
-    adminBtn.style.display = '';
-  }
+  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+  if (allowByUid || allowByRole) adminBtn.style.display = '';
 });
 
+
+    function setPacksButtonsEnabled(enabled){
+  const openStd = document.getElementById('btn-open-standard');
+  const openPrem = document.getElementById('btn-open-premium');
+  [openStd, openPrem].forEach(b => {
+    if (!b) return;
+    b.disabled = !enabled;
+    b.style.opacity = enabled ? '' : '.6';
+    b.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+    b.setAttribute('aria-disabled', String(!enabled));
+  });
+}
 
     // --- Diagnostic helpers
     const diag=document.getElementById('diag-log');
@@ -721,26 +814,36 @@ try{
     }
 
     // --- Reset & XP
-    document.getElementById('btn-open-standard').addEventListener('click', ()=>openPack({type:'standard'}));
-    document.getElementById('btn-open-premium').addEventListener('click', ()=>openPack({type:'premium'}));
-    document.getElementById('btn-reset').addEventListener('click', ()=>{
-      if(confirm('Réinitialiser la collection locale ?')){
-        collection={}; saveCollection();
-        stats={packsOpened:0}; saveStats();
-        profile={level:1,xp:0}; saveProfile();
-        renderStats(); renderCollection();
-        document.getElementById('results').innerHTML='';
-        document.getElementById('special-banner').style.display='none';
-      }
-    });
+   document.getElementById('btn-reset').textContent = 'Réinitialiser la collection (cloud)';
+document.getElementById('btn-reset').addEventListener('click', async () => {
+  if (!isCloud()) { alert('Connecte-toi pour réinitialiser (cloud).'); return; }
+  if (!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
 
-    async function gainXpAndMaybeLevelUp(amount){
-      profile.xp=(profile.xp||0)+amount; let need=xpForLevel(profile.level||1); let leveled=false;
-      while(profile.xp>=need){ profile.xp-=need; profile.level=(profile.level||1)+1; need=xpForLevel(profile.level); leveled=true; }
-      saveProfile(); renderStats();
-      if(leveled && currentUser && playerDocRef){
-        await updateDoc(playerDocRef,{ level:profile.level, xp:profile.xp, updatedAt:serverTimestamp() }).catch(()=>{});
-      }
+  const base = {
+    stats: { packsOpened: 0 },
+    collection: {},
+    level: 1,
+    xp: 0,
+    rewardsInbox: [],
+    updatedAt: serverTimestamp()
+  };
+  try {
+    await updateDoc(playerDocRef, base);
+    updateLocalFromCloud(base);
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('special-banner').style.display = 'none';
+    toast('Progression réinitialisée (cloud).');
+  } catch(e) {
+    alert('Échec de réinitialisation: ' + (e?.message || e));
+  }
+});
+
+
+   async function gainXpAndMaybeLevelUp(amount){
+  if (!isCloud()) return; // en mode cloud-only, on n'utilise plus cette voie hors transaction
+  await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }).catch(()=>{});
+}
+
     }
 
     // --- Init
