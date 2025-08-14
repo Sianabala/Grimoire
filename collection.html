@@ -210,11 +210,15 @@
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-// Images des cartes
-// 👉 mets ici tes vrais chemins/fichiers
-const CARD_BACK_IMAGE = 'https://postimg.cc/xNVNpTxf'; // ton verso unique
+// Images des cartes (à adapter à ton projet)
+const CARD_IMAGE_BASE = '/images/cards/front/'; // dossier des faces avant
+const CARD_IMAGE_EXT  = 'webp';                 // 'png' ou 'jpg' si besoin
+
+// 👉 URL DIRECTE du verso (fichier image, pas une page HTML)
+const CARD_BACK_IMAGE = 'https://postimg.cc/xNVNpTxf'; // remplace par ton vrai lien *.png/*.jpg
 
 function cardFrontUrl(c){ return `${CARD_IMAGE_BASE}${c.id}.${CARD_IMAGE_EXT}`; }
+
 
     
     // Chargement dynamique du set
