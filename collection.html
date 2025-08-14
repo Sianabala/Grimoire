@@ -68,6 +68,16 @@
     .footerbar{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
 
+/* Vignette d'image de carte */
+.thumb{
+  width:100%; aspect-ratio:2/3; border-radius:12px; overflow:hidden;
+  background:#0e1423; border:1px solid rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.thumb.is-back{ filter: grayscale(.06) contrast(1.02); }
+
+   
     /* Skeletons */
     .skel{ position:relative; overflow:hidden; background:#0e1423; border-radius:12px; min-height:64px; border:1px solid rgba(255,255,255,.06); }
     .skel::after{
@@ -200,6 +210,15 @@
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
+// Images des cartes
+// 👉 mets ici tes vrais chemins/fichiers
+const CARD_IMAGE_BASE = '/images/cards/front/';   // dossier des fronts
+const CARD_IMAGE_EXT  = 'webp';                   // 'png' ou 'jpg' si besoin
+const CARD_BACK_IMAGE = '/images/cards/back/verso.png'; // ton verso unique
+
+function cardFrontUrl(c){ return `${CARD_IMAGE_BASE}${c.id}.${CARD_IMAGE_EXT}`; }
+
+    
     // Chargement dynamique du set
     let CARD_POOLS = [];
     const FALLBACK_CARDS = [
@@ -359,19 +378,31 @@
       elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
 
       // Cards
-      elCards.innerHTML='';
-      for(const c of list){
-        const div=document.createElement('div'); div.className='mini-card';
-        div.innerHTML = `
-          <span class="qty">x${c.qty||0}</span>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
-            <strong>${c.name}</strong>
-            <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
-          </div>
-          <div class="muted">${c.set} — ${c.id}</div>
-        `;
-        elCards.appendChild(div);
-      }
+     for (const c of list) {
+  const has = (c.qty || 0) > 0;
+  const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
+
+  const div = document.createElement('div');
+  div.className = 'mini-card';
+  div.innerHTML = `
+    <span class="qty">x${c.qty || 0}</span>
+
+    <div class="thumb ${has ? '' : 'is-back'}" title="${has ? c.name : 'Carte non obtenue'}">
+      <img src="${imgSrc}"
+           alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
+           loading="lazy"
+           onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
+      <strong>${c.name}</strong>
+      <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
+    </div>
+    <div class="muted">${c.set} — ${c.id}</div>
+  `;
+  elCards.appendChild(div);
+}
+
       elCount.textContent = `${list.length} éléments`;
     }
 
