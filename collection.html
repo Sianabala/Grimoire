@@ -107,6 +107,20 @@
       .tag .dot{ animation: pulse 1.6s ease-in-out infinite; }
       @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
     }
+   .thumb.is-locked {
+  position: relative;
+}
+.thumb.is-locked img {
+  opacity: 0.35; /* verso plus transparent */
+}
+.thumb.is-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4); /* voile sombre */
+  border-radius: inherit;
+}
+
   </style>
 </head>
 <body>
@@ -401,27 +415,27 @@ if (cbOnlyOwned?.checked) {
     elCards.innerHTML = ''; 
    for (const c of list) {
   const has = (c.qty || 0) > 0;
-  const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
+  const has = (c.qty || 0) > 0;
+const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
 
-  const div = document.createElement('div');
-  div.className = 'mini-card';
-  div.innerHTML = `
-    <span class="qty">x${c.qty || 0}</span>
+const div = document.createElement('div');
+div.className = 'mini-card';
+div.innerHTML = `
+  <span class="qty">x${c.qty || 0}</span>
+  <div class="thumb ${has ? '' : 'is-locked'}" title="${has ? c.name : 'Carte non obtenue'}">
+    <img src="${imgSrc}"
+         alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
+         loading="lazy"
+         onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
+    <strong>${c.name}</strong>
+    <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
+  </div>
+  <div class="muted">${c.set} — ${c.id}</div>
+`;
+elCards.appendChild(div);
 
-    <div class="thumb ${has ? '' : 'is-back'}" title="${has ? c.name : 'Carte non obtenue'}">
-      <img src="${imgSrc}"
-           alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
-           loading="lazy"
-           onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
-    </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
-      <strong>${c.name}</strong>
-      <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
-    </div>
-    <div class="muted">${c.set} — ${c.id}</div>
-  `;
-  elCards.appendChild(div);
 }
 
       elCount.textContent = `${list.length} éléments`;
