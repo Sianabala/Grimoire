@@ -665,7 +665,7 @@
     let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
   }
 
-/* === Helpers animation pack === */
+/* === Helpers animation pack (version sans ?. ) === */
 const overlay = document.getElementById('pack-overlay');
 const poPack  = document.getElementById('po-pack');
 const poSlit  = document.getElementById('po-slit');
@@ -675,7 +675,9 @@ const poFx    = document.getElementById('po-confetti');
 const ctxFx   = poFx.getContext('2d');
 
 let skipRequested = false;
-poSkip?.addEventListener('click', ()=>{ skipRequested = true; });
+if (poSkip) {
+  poSkip.addEventListener('click', ()=>{ skipRequested = true; });
+}
 
 function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
 function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
@@ -705,7 +707,9 @@ function burst(x, y, strong=false){
   }
   const start = performance.now();
   function step(t){
-    const dt = Math.min(32, t - (step._lt||t)); step._lt = t;
+    // (dt non utilisé, on peut le garder ou le retirer)
+    // const dt = Math.min(32, t - (step._lt||t));
+    step._lt = t;
     ctxFx.clearRect(0,0,poFx.width,poFx.height);
     parts.forEach(p=>{
       p.vy += p.g;
@@ -725,11 +729,9 @@ function burst(x, y, strong=false){
 
 /* Animation principale */
 async function playPackAnimation(cards){
-  // Accessibilité : réduit = skip auto
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   skipRequested = reduce ? true : false;
 
-  // Dimensionne le canvas
   poFx.width = Math.min(1280, innerWidth);
   poFx.height = Math.min(720, innerHeight);
 
@@ -743,15 +745,17 @@ async function playPackAnimation(cards){
   const shine = poPack.querySelector('.po-pack-shine');
   overlay.onpointermove = (e)=> {
     const r = poPack.getBoundingClientRect();
-    shine?.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
-    shine?.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
+    if (shine) {
+      shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
+      shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
+    }
   };
 
   // 1) Secousse
   poPack.style.animation = 'poShake .5s linear';
   await wait(skipRequested ? 0 : 520);
 
-  // 2) Déchirure (trait lumineux)
+  // 2) Déchirure
   const r = poPack.getBoundingClientRect();
   poSlit.style.left = (r.left + r.width/2) + 'px';
   poSlit.style.top  = (r.top  + 40) + 'px';
@@ -759,7 +763,7 @@ async function playPackAnimation(cards){
   poSlit.style.height  = (r.height - 80) + 'px';
   await wait(skipRequested ? 0 : 260);
 
-  // 3) Disparition du pack + burst léger
+  // 3) Disparition du pack + burst
   poPack.style.opacity = 0;
   burst(poFx.width/2, poFx.height/2, false);
   await wait(skipRequested ? 0 : 160);
@@ -772,12 +776,10 @@ async function playPackAnimation(cards){
     el.style.setProperty('--rot', ANG[i]+'deg');
     el.setAttribute('data-idx', String(i));
     el.innerHTML = `
-  <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
-  <div class="shine"></div>
-  <div class="tagbar">${c.name || 'Carte'}</div>
-  <div class="veil">Clique pour révéler</div>
-`;
-
+      <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+      <div class="shine"></div>
+      <div class="tagbar">${c.name || 'Carte'}</div>
+    `;
     poFan.appendChild(el);
   });
   poFan.style.opacity = 1;
@@ -787,85 +789,24 @@ async function playPackAnimation(cards){
   });
   await wait(skipRequested ? 0 : 420);
 
-  // 5) Révélation interactive (clic par clic)
-function announce(label){
-  // petite annonce visuelle optionnelle via aria-live (déjà sur po-fan)
-  poFan.setAttribute('data-last', label);
-}
-
-function setRevealHandlers(){
-  let remaining = new Set(cards.map((_,i)=> i));
-  let resolveAll;
-  const allRevealed = new Promise(r=> resolveAll = r);
-
-  // Skip = tout révéler d'un coup
-  function revealAllFast(){
-    remaining.forEach(i => doReveal(i, true));
-    remaining.clear();
-    resolveAll();
-  }
-  const onSkip = ()=> revealAllFast();
-  poSkip?.addEventListener('click', onSkip, { once:true });
-
-  // Gestion clavier : Enter/Espace déclenchent le clic
-  function keyHandler(e){
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      e.currentTarget.click();
-    }
-  }
-
-  function doReveal(i, fast=false){
+  // 5) Révélation séquentielle
+  for(let i=0;i<cards.length;i++){
     const c = cards[i];
     const el = poFan.querySelector(`.po-card[data-idx="${i}"]`);
-    if(!el || el.getAttribute('aria-pressed') === 'true') return;
-
-    // Marquer révélé
-    el.setAttribute('aria-pressed','true');
+    if(!el) continue;
     el.classList.add(rarityGlowClass(c.rarity));
-    el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
+    el.style.transform += ' translateY(-8px) scale(1.02)';
 
     const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
     if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
 
-    announce(`${c.name} révélée (${c.rarity})`);
+    await wait(skipRequested ? 0 : (isBig ? 520 : 260));
   }
 
-  // Attache les handlers sur chaque carte
-  Array.from(poFan.children).forEach((el, i)=>{
-    // Voile “Clique pour révéler”
-    const veil = document.createElement('div');
-    veil.className = 'veil';
-    veil.textContent = 'Clique pour révéler';
-    el.appendChild(veil);
-
-    el.setAttribute('role','button');
-    el.setAttribute('tabindex','0');
-    el.setAttribute('aria-pressed','false');
-    el.addEventListener('keydown', keyHandler);
-
-    el.addEventListener('click', ()=>{
-      if(el.getAttribute('aria-pressed') === 'true') return;
-      doReveal(i, false);
-      remaining.delete(i);
-      if(remaining.size === 0){
-        // Toutes révélées -> fin
-        resolveAll();
-      }
-    }, { passive:true });
-  });
-
-  // Si l’utilisateur avait activé “réduire les animations”, on révèle tout d’emblée
-  if(skipRequested) revealAllFast();
-
-  return allRevealed;
+  await wait(skipRequested ? 0 : 380);
+  hideOverlay();
 }
 
-await setRevealHandlers();
-
-// petite pause finale puis fermeture
-await wait(skipRequested ? 0 : 280);
-hideOverlay();
 
 
     
