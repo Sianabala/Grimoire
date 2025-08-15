@@ -806,22 +806,71 @@ async function playPackAnimation(cards){
   });
   await wait(skipRequested ? 0 : 420);
 
-  // 5) Révélation séquentielle
-  for(let i=0;i<cards.length;i++){
+ // 5) Révélation interactive (clic par clic)
+function setupClickReveal(){
+  let remaining = new Set(cards.map((_,i)=> i));
+  let resolveAll;
+  const done = new Promise(r=> resolveAll = r);
+
+  // accessibilité clavier
+  function onKey(e){
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      e.currentTarget.click();
+    }
+  }
+
+  // révèle une carte (avec effets selon rareté)
+  function revealIndex(i, fast=false){
     const c = cards[i];
-    const el = poFan.querySelector(`.po-card[data-idx="${i}"]`);
-    if(!el) continue;
+    const el = poFan.querySelector('.po-card[data-idx="'+i+'"]');
+    if(!el || el.getAttribute('aria-pressed') === 'true') return;
+
+    el.setAttribute('aria-pressed','true');
     el.classList.add(rarityGlowClass(c.rarity));
-    el.style.transform += ' translateY(-8px) scale(1.02)';
+    el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
 
     const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
     if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
-
-    await wait(skipRequested ? 0 : (isBig ? 520 : 260));
   }
 
-  await wait(skipRequested ? 0 : 380);
-  hideOverlay();
+  // attache les handlers sur chaque carte
+  Array.from(poFan.children).forEach((el, i)=>{
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-pressed','false');
+    el.addEventListener('keydown', onKey);
+    el.addEventListener('click', ()=>{
+      if(el.getAttribute('aria-pressed') === 'true') return;
+      revealIndex(i, false);
+      remaining.delete(i);
+      if(remaining.size === 0){
+        resolveAll();
+      }
+    }, { passive:true });
+  });
+
+  // Skip = tout révéler instantanément
+  function revealAllFast(){
+    remaining.forEach(idx => revealIndex(idx, true));
+    remaining.clear();
+    resolveAll();
+  }
+  if (poSkip){
+    // “once:true” pour éviter de multiples appels
+    poSkip.addEventListener('click', revealAllFast, { once:true });
+  }
+  if (skipRequested){
+    revealAllFast();
+  }
+
+  return done;
+}
+
+await setupClickReveal();       // attend que les 5 clics soient faits (ou skip)
+await wait(skipRequested ? 0 : 280);
+hideOverlay();
+
 }
 
 
