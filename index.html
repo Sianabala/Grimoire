@@ -221,7 +221,23 @@
   .po-pack{ animation:none }
   .po-card, .po-card.revealed{ transition:none }
 }
+/* Click-to-reveal */
+.po-card{ cursor: pointer; }
+.po-card[aria-pressed="true"]{ cursor: default; }
+.po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
 
+/* Voile côté dos */
+.po-card .veil{
+  position:absolute; inset:0; display:grid; place-items:center;
+  background:
+    radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
+  color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase;
+  border-radius:20px;
+}
+.po-card[aria-pressed="true"] .veil{ display:none; }
+
+    
   </style>
 </head>
 <body>
@@ -756,10 +772,12 @@ async function playPackAnimation(cards){
     el.style.setProperty('--rot', ANG[i]+'deg');
     el.setAttribute('data-idx', String(i));
     el.innerHTML = `
-      <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
-      <div class="shine"></div>
-      <div class="tagbar">${c.name || 'Carte'}</div>
-    `;
+  <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+  <div class="shine"></div>
+  <div class="tagbar">${c.name || 'Carte'}</div>
+  <div class="veil">Clique pour révéler</div>
+`;
+
     poFan.appendChild(el);
   });
   poFan.style.opacity = 1;
@@ -769,23 +787,86 @@ async function playPackAnimation(cards){
   });
   await wait(skipRequested ? 0 : 420);
 
-  // 5) Révélation 1→5 (glow selon rareté + confetti si gros pull)
-  for(let i=0;i<cards.length;i++){
+  // 5) Révélation interactive (clic par clic)
+function announce(label){
+  // petite annonce visuelle optionnelle via aria-live (déjà sur po-fan)
+  poFan.setAttribute('data-last', label);
+}
+
+function setRevealHandlers(){
+  let remaining = new Set(cards.map((_,i)=> i));
+  let resolveAll;
+  const allRevealed = new Promise(r=> resolveAll = r);
+
+  // Skip = tout révéler d'un coup
+  function revealAllFast(){
+    remaining.forEach(i => doReveal(i, true));
+    remaining.clear();
+    resolveAll();
+  }
+  const onSkip = ()=> revealAllFast();
+  poSkip?.addEventListener('click', onSkip, { once:true });
+
+  // Gestion clavier : Enter/Espace déclenchent le clic
+  function keyHandler(e){
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      e.currentTarget.click();
+    }
+  }
+
+  function doReveal(i, fast=false){
     const c = cards[i];
     const el = poFan.querySelector(`.po-card[data-idx="${i}"]`);
-    if(!el) continue;
+    if(!el || el.getAttribute('aria-pressed') === 'true') return;
+
+    // Marquer révélé
+    el.setAttribute('aria-pressed','true');
     el.classList.add(rarityGlowClass(c.rarity));
-    el.style.transform += ' translateY(-8px) scale(1.02)';
+    el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
 
     const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
     if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
 
-    await wait(skipRequested ? 0 : (isBig ? 520 : 260));
+    announce(`${c.name} révélée (${c.rarity})`);
   }
 
-  await wait(skipRequested ? 0 : 380);
-  hideOverlay();
+  // Attache les handlers sur chaque carte
+  Array.from(poFan.children).forEach((el, i)=>{
+    // Voile “Clique pour révéler”
+    const veil = document.createElement('div');
+    veil.className = 'veil';
+    veil.textContent = 'Clique pour révéler';
+    el.appendChild(veil);
+
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-pressed','false');
+    el.addEventListener('keydown', keyHandler);
+
+    el.addEventListener('click', ()=>{
+      if(el.getAttribute('aria-pressed') === 'true') return;
+      doReveal(i, false);
+      remaining.delete(i);
+      if(remaining.size === 0){
+        // Toutes révélées -> fin
+        resolveAll();
+      }
+    }, { passive:true });
+  });
+
+  // Si l’utilisateur avait activé “réduire les animations”, on révèle tout d’emblée
+  if(skipRequested) revealAllFast();
+
+  return allRevealed;
 }
+
+await setRevealHandlers();
+
+// petite pause finale puis fermeture
+await wait(skipRequested ? 0 : 280);
+hideOverlay();
+
 
     
   // --- Ouverture de pack 100% cloud
