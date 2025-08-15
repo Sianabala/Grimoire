@@ -237,7 +237,22 @@
 }
 .po-card[aria-pressed="true"] .veil{ display:none; }
 
-    
+    /* Click-to-reveal */
+.po-card{ cursor: pointer; }
+.po-card[aria-pressed="true"]{ cursor: default; }
+.po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
+
+/* Voile côté "dos" */
+.po-card .veil{
+  position:absolute; inset:0; display:grid; place-items:center;
+  background:
+    radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
+  color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase;
+  border-radius:20px;
+}
+.po-card[aria-pressed="true"] .veil{ display:none; }
+
   </style>
 </head>
 <body>
@@ -776,10 +791,12 @@ async function playPackAnimation(cards){
     el.style.setProperty('--rot', ANG[i]+'deg');
     el.setAttribute('data-idx', String(i));
     el.innerHTML = `
-      <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
-      <div class="shine"></div>
-      <div class="tagbar">${c.name || 'Carte'}</div>
-    `;
+  <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+  <div class="shine"></div>
+  <div class="tagbar">${c.name || 'Carte'}</div>
+  <div class="veil">Clique pour révéler</div>
+`;
+
     poFan.appendChild(el);
   });
   poFan.style.opacity = 1;
