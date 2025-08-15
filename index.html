@@ -934,18 +934,7 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
   }
 
   // --- Auth state
-  function setPacksButtonsEnabled(enabled){
-    const openStd = document.getElementById('btn-open-standard');
-    const openPrem = document.getElementById('btn-open-premium');
-    [openStd, openPrem].forEach(b => {
-      if (!b) return;
-      b.disabled = !enabled;
-      b.style.opacity = enabled ? '' : '.6';
-      b.style.cursor  = enabled ? 'pointer' : 'not-allowed';
-      b.setAttribute('aria-disabled', String(!enabled));
-    });
-  }
-
+ 
   onAuthStateChanged(auth, async (user) => {
     currentUser = user || null;
     console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
@@ -954,9 +943,7 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
     logoutBtn.style.display = currentUser ? '' : 'none';
     adminBtn.style.display  = 'none';
 
-    setPacksButtonsEnabled(!!currentUser);
-
-    if (!currentUser) return;
+ if (!currentUser) return;
 
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
