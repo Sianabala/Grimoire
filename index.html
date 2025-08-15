@@ -136,6 +136,92 @@
     @media (prefers-reduced-motion: no-preference){ .tag .dot{ animation: pulse 1.6s ease-in-out infinite }
       @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
     }
+
+    /* --- Pack Opening Overlay --- */
+#pack-overlay[hidden]{ display:none !important }
+#pack-overlay{ position:fixed; inset:0; z-index:60 }
+#pack-overlay .po-backdrop{
+  position:absolute; inset:0;
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.20), transparent 60%),
+              radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),
+              radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+              rgba(6,8,15,.85);
+  backdrop-filter: blur(6px);
+}
+.po-stage{ position:absolute; inset:0; display:grid; place-items:center; padding:20px }
+.po-actions{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); }
+
+.po-pack{
+  width:240px; height:360px; perspective:1000px; position:relative;
+  filter: drop-shadow(0 30px 50px rgba(0,0,0,.65));
+  animation: poFloat 2.8s ease-in-out infinite;
+}
+.po-pack-body{
+  position:absolute; inset:0; border-radius:18px;
+  background:
+    radial-gradient(120px 60px at 20% 20%, rgba(124,92,255,.35), transparent 60%),
+    radial-gradient(100px 50px at 80% 25%, rgba(184,107,255,.30), transparent 60%),
+    linear-gradient(180deg,#0f1324,#0a0f1e);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow: 0 12px 40px rgba(0,0,0,.45) inset, 0 2px 0 rgba(255,255,255,.06) inset;
+  transform: rotateY(-8deg) rotateX(6deg);
+}
+.po-pack-gloss{
+  position:absolute; inset:0; border-radius:inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,.32), rgba(255,255,255,0) 30%,
+                              rgba(255,255,255,.18) 60%, transparent 70%);
+  mix-blend-mode: overlay; opacity:.25;
+}
+.po-pack-logo{
+  position:absolute; left:0; right:0; bottom:26px; text-align:center;
+  letter-spacing:.4em; font-weight:900; font-size:14px; color:#e8ecf3; opacity:.8;
+}
+.po-pack-shine{
+  position:absolute; inset:-10%; border-radius:22px; pointer-events:none;
+  background: radial-gradient(400px 400px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.20), transparent 40%);
+  mix-blend-mode: screen;
+}
+.po-pack:hover .po-pack-body{ transform: rotateY(-5deg) rotateX(4deg); transition: transform .25s ease }
+
+@keyframes poFloat{ 0%,100%{ transform: translateY(-6px) } 50%{ transform: translateY(6px) } }
+@keyframes poShake{ 10%, 90%{ transform: translateX(-1px) } 20%, 80%{ transform: translateX(2px) } 30%, 50%, 70%{ transform: translateX(-4px) } 40%, 60%{ transform: translateX(4px) } }
+
+.po-slit{
+  position:absolute; width:2px; height:0; background: linear-gradient(180deg,#fff,rgba(255,255,255,.2));
+  box-shadow: 0 0 24px rgba(255,255,255,.7), 0 0 80px rgba(124,92,255,.45);
+  border-radius:999px; opacity:0; pointer-events:none;
+}
+.po-fan{
+  position:relative; width:min(900px,90vw); height:420px; display:flex; align-items:flex-end; justify-content:center; gap:12px;
+  transform: translateY(10px); opacity:0;
+}
+.po-card{
+  width: var(--card-w,220px); aspect-ratio:2/3; border-radius:20px; position:relative; overflow:hidden;
+  background: linear-gradient(180deg,#141b33,#0b0f1a);
+  border:1px solid rgba(255,255,255,.08);
+  transform-origin: bottom center; transform: translateY(40px) scale(.9) rotate(var(--rot,0deg));
+  opacity:0; will-change: transform, opacity, box-shadow;
+  box-shadow: 0 12px 34px rgba(0,0,0,.45);
+}
+.po-card .img{ position:absolute; inset:0; background: linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%) , var(--bg) center/cover no-repeat; mix-blend:screen; opacity:.85 }
+.po-card .shine{ position:absolute; inset:0; background: radial-gradient(900px 900px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.14), transparent 40%); mix-blend:overlay; pointer-events:none }
+.po-card .tagbar{ position:absolute; left:0; right:0; bottom:0; padding:10px 12px; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75)); font-weight:800 }
+
+/* Révélation */
+.po-card.revealed{ transform: translateY(0) scale(1) rotate(var(--rot,0deg)); opacity:1; transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease }
+.po-card.flip{ transform: rotateY(180deg) }
+.po-card.glow-common{ box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 0 28px rgba(156,163,175,.25) }
+.po-card.glow-uncommon{ box-shadow: 0 0 0 1px rgba(124,92,255,.35) inset, 0 0 42px rgba(124,92,255,.32) }
+.po-card.glow-rare{ box-shadow: 0 0 0 1px rgba(59,130,246,.45) inset, 0 0 48px rgba(59,130,246,.35) }
+.po-card.glow-legendary{ box-shadow: 0 0 0 1px rgba(214,161,122,.55) inset, 0 0 60px rgba(214,161,122,.45) }
+.po-card.glow-exotic{ box-shadow: 0 0 0 1px rgba(255,241,118,.65) inset, 0 0 75px rgba(255,241,118,.55) }
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce){
+  .po-pack{ animation:none }
+  .po-card, .po-card.revealed{ transition:none }
+}
+
   </style>
 </head>
 <body>
@@ -233,6 +319,36 @@
       </section>
 
     </div>
+    <!-- Overlay d'animation d'ouverture de pack -->
+<div id="pack-overlay" aria-hidden="true" hidden>
+  <div class="po-backdrop"></div>
+
+  <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
+    <!-- Booster -->
+    <div class="po-pack" id="po-pack" aria-hidden="true">
+      <div class="po-pack-body">
+        <div class="po-pack-gloss"></div>
+        <div class="po-pack-logo">GRIMOIRE</div>
+      </div>
+      <div class="po-pack-shine"></div>
+    </div>
+
+    <!-- Fente lumineuse -->
+    <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+
+    <!-- Éventail + cartes -->
+    <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Particules -->
+    <canvas id="po-confetti" width="1280" height="720"></canvas>
+
+    <!-- Actions -->
+    <div class="po-actions">
+      <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+    </div>
+  </div>
+</div>
+
   </main>
 
   <script type="module">
@@ -533,6 +649,145 @@
     let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
   }
 
+/* === Helpers animation pack === */
+const overlay = document.getElementById('pack-overlay');
+const poPack  = document.getElementById('po-pack');
+const poSlit  = document.getElementById('po-slit');
+const poFan   = document.getElementById('po-fan');
+const poSkip  = document.getElementById('po-skip');
+const poFx    = document.getElementById('po-confetti');
+const ctxFx   = poFx.getContext('2d');
+
+let skipRequested = false;
+poSkip?.addEventListener('click', ()=>{ skipRequested = true; });
+
+function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
+function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
+function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
+
+function rarityGlowClass(r){
+  if(r===RARITY.EXOTIC) return 'glow-exotic';
+  if(r===RARITY.LEGENDARY) return 'glow-legendary';
+  if(r===RARITY.RARE) return 'glow-rare';
+  if(r===RARITY.UNCOMMON) return 'glow-uncommon';
+  return 'glow-common';
+}
+
+/* Confetti/eclats canvas */
+function burst(x, y, strong=false){
+  const parts = [];
+  const n = strong ? 140 : 80;
+  for(let i=0;i<n;i++){
+    parts.push({
+      x, y,
+      vx: (Math.random()*2-1)*(strong?6:4),
+      vy: (Math.random()*-2-2)*(strong?2:1.6),
+      g:  0.18,
+      a:  1,
+      s:  Math.random()*2+1
+    });
+  }
+  const start = performance.now();
+  function step(t){
+    const dt = Math.min(32, t - (step._lt||t)); step._lt = t;
+    ctxFx.clearRect(0,0,poFx.width,poFx.height);
+    parts.forEach(p=>{
+      p.vy += p.g;
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.a  -= 0.012;
+      ctxFx.globalAlpha = Math.max(0,p.a);
+      ctxFx.fillStyle = '#fff';
+      ctxFx.fillRect(p.x, p.y, p.s, p.s);
+    });
+    ctxFx.globalAlpha = 1;
+    if(performance.now()-start < 1800) requestAnimationFrame(step);
+    else ctxFx.clearRect(0,0,poFx.width,poFx.height);
+  }
+  requestAnimationFrame(step);
+}
+
+/* Animation principale */
+async function playPackAnimation(cards){
+  // Accessibilité : réduit = skip auto
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  skipRequested = reduce ? true : false;
+
+  // Dimensionne le canvas
+  poFx.width = Math.min(1280, innerWidth);
+  poFx.height = Math.min(720, innerHeight);
+
+  // Reset
+  poFan.innerHTML = '';
+  poSlit.style.opacity = 0; poSlit.style.height = '0px';
+  poPack.style.opacity = 1; poPack.style.transform = '';
+  showOverlay();
+
+  // Shine follow
+  const shine = poPack.querySelector('.po-pack-shine');
+  overlay.onpointermove = (e)=> {
+    const r = poPack.getBoundingClientRect();
+    shine?.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
+    shine?.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
+  };
+
+  // 1) Secousse
+  poPack.style.animation = 'poShake .5s linear';
+  await wait(skipRequested ? 0 : 520);
+
+  // 2) Déchirure (trait lumineux)
+  const r = poPack.getBoundingClientRect();
+  poSlit.style.left = (r.left + r.width/2) + 'px';
+  poSlit.style.top  = (r.top  + 40) + 'px';
+  poSlit.style.opacity = 1;
+  poSlit.style.height  = (r.height - 80) + 'px';
+  await wait(skipRequested ? 0 : 260);
+
+  // 3) Disparition du pack + burst léger
+  poPack.style.opacity = 0;
+  burst(poFx.width/2, poFx.height/2, false);
+  await wait(skipRequested ? 0 : 160);
+
+  // 4) Éventail des cartes
+  const ANG = [-18,-9,0,9,18];
+  cards.forEach((c, i)=>{
+    const el = document.createElement('div');
+    el.className = 'po-card';
+    el.style.setProperty('--rot', ANG[i]+'deg');
+    el.setAttribute('data-idx', String(i));
+    el.innerHTML = `
+      <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+      <div class="shine"></div>
+      <div class="tagbar">${c.name || 'Carte'}</div>
+    `;
+    poFan.appendChild(el);
+  });
+  poFan.style.opacity = 1;
+
+  Array.from(poFan.children).forEach((el, i)=>{
+    setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
+  });
+  await wait(skipRequested ? 0 : 420);
+
+  // 5) Révélation 1→5 (glow selon rareté + confetti si gros pull)
+  for(let i=0;i<cards.length;i++){
+    const c = cards[i];
+    const el = poFan.querySelector(`.po-card[data-idx="${i}"]`);
+    if(!el) continue;
+    el.classList.add(rarityGlowClass(c.rarity));
+    el.style.transform += ' translateY(-8px) scale(1.02)';
+
+    const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
+    if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
+
+    await wait(skipRequested ? 0 : (isBig ? 520 : 260));
+  }
+
+  await wait(skipRequested ? 0 : 380);
+  hideOverlay();
+}
+
+    
   // --- Ouverture de pack 100% cloud
   async function openPack({type='standard'} = {}){
     if(!CARD_POOLS.length){ alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
@@ -580,10 +835,11 @@
       return newDoc;
     });
 
-    // UI depuis l'état cloud
-    updateLocalFromCloud(result);
-    renderResults(cards);
-    toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
+   // UI depuis l'état cloud
+updateLocalFromCloud(result);
+await playPackAnimation(cards); // ← AJOUT : lance la cinématique
+renderResults(cards);
+toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
   }
 
   // --- (Option) gain XP ailleurs : neutre en cloud-first, déjà géré lors de l’ouverture
