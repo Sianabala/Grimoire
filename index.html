@@ -316,6 +316,13 @@
 </head>
 <body>
   <div class="aura" aria-hidden="true"></div>
+  <!-- Barre utilisateur -->
+<div id="user-bar" style="display:none; position:fixed; top:12px; right:12px; background:rgba(11,15,26,0.85); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:8px 14px; display:flex; align-items:center; gap:10px; z-index:100; box-shadow:0 4px 14px rgba(0,0,0,.45)">
+  <img id="user-avatar" src="" alt="Avatar Twitch" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
+  <span id="user-name" style="font-weight:700; color:#e8ecf3;"></span>
+  <button id="user-logout" class="btn ghost pill" style="margin-left:auto; padding:4px 10px; font-size:12px">Déconnexion</button>
+</div>
+
  <header class="hero-header">
   <div class="container">
     <div class="hero-center">
@@ -1002,32 +1009,39 @@ onAuthStateChanged(auth, async (user) => {
   adminBtn.style.display = 'none';
 
   const nameBox = document.getElementById('user-display-name');
+  const userBar = document.getElementById('user-bar');
+  const userName = document.getElementById('user-name');
+  const userAvatar = document.getElementById('user-avatar');
 
   if (!currentUser) {
     if (nameBox) nameBox.style.display = 'none';
+    if (userBar) userBar.style.display = 'none';
     return;
   }
 
-  // Chargement ou création du joueur
+  // Charger les données du joueur depuis Firestore
   const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-
   let pseudo = data?.displayName || currentUser.displayName || '';
   if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
 
-  // Affichage
+  // Afficher le pseudo dans le header central
   if (nameBox) {
     nameBox.style.display = '';
     nameBox.textContent = `Connecté en tant que ${pseudo}`;
   }
 
+  // Remplir la barre utilisateur en haut à droite
+  if (userBar && userName && userAvatar) {
+    userName.textContent = pseudo;
+    userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png';
+    userBar.style.display = 'flex';
+  }
+
+  // Gérer le bouton Admin si admin
   const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
   const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
   if (allowByUid || allowByRole) adminBtn.style.display = '';
 });
-
-
-
-
 
   // --- Cloud bootstrap
   async function loadOrCreatePlayerDoc(user){
@@ -1214,6 +1228,18 @@ onAuthStateChanged(auth, async (user) => {
     console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
   }
   init();
+
+    const userLogoutBtn = document.getElementById('user-logout');
+if (userLogoutBtn) {
+  userLogoutBtn.addEventListener('click', async () => {
+    try {
+      console.log('[DEBUG] Logout (barre utilisateur)');
+      await signOut(auth);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
 
 </script>
 
