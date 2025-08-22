@@ -993,7 +993,7 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
 
   // --- Auth state
  
- onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
@@ -1008,36 +1008,23 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
     return;
   }
 
-  let pseudo = '';
+  // Chargement ou création du joueur
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
-  // Étape 1 : test affichage direct
-  console.log('[DEBUG] displayName:', currentUser.displayName);
-  if (currentUser.displayName) pseudo = currentUser.displayName;
-
-  // Étape 2 : lecture du token (en cas de displayName vide)
-  if (!pseudo) {
-    try {
-      const token = await currentUser.getIdToken();
-      const decoded = decodeJwtPayload(token);
-      console.log('[DEBUG] decodedToken:', decoded);
-
-      pseudo = decoded.preferred_username || decoded.nickname || decoded.name || '';
-    } catch (e) {
-      console.warn('[DEBUG] Erreur lecture du token', e);
-    }
-  }
-
-  // Fallback ultime
-  if (!pseudo && currentUser.uid) {
-    pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
-  }
+  let pseudo = data?.displayName || currentUser.displayName || '';
+  if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
 
   // Affichage
   if (nameBox) {
     nameBox.style.display = '';
     nameBox.textContent = `Connecté en tant que ${pseudo}`;
   }
+
+  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+  if (allowByUid || allowByRole) adminBtn.style.display = '';
 });
+
 
 
 
