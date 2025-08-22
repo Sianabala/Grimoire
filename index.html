@@ -320,8 +320,12 @@
 <div id="user-bar" style="display:none; position:fixed; top:12px; right:12px; background:rgba(11,15,26,0.85); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:8px 14px; display:flex; align-items:center; gap:10px; z-index:100; box-shadow:0 4px 14px rgba(0,0,0,.45)">
   <img id="user-avatar" src="" alt="Avatar Twitch" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
   <span id="user-name" style="font-weight:700; color:#e8ecf3;"></span>
-  <button id="user-logout" class="btn ghost pill" style="margin-left:auto; padding:4px 10px; font-size:12px">Déconnexion</button>
+
+  <a href="/collection.html" class="btn ghost pill" style="font-size:12px; padding:4px 10px">📚 Collection</a>
+  <a href="/admin.html" id="user-admin-link" class="btn ghost pill" style="font-size:12px; padding:4px 10px; display:none">⚙️ Admin</a>
+  <button id="user-logout" class="btn ghost pill" style="font-size:12px; padding:4px 10px">Déconnexion</button>
 </div>
+
 
  <header class="hero-header">
   <div class="container">
@@ -329,13 +333,10 @@
       <div class="hero-logo" aria-hidden="true"></div>
       <h1 class="hero-title">Grimoire</h1>
       <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
-      <div id="user-display-name" class="subtitle" style="display:none"></div>
       <div class="hero-actions">
-        <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
-        <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
-        <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
-        <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
-      </div>
+  <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
+</div>
+
     </div>
   </div>
 </header>
