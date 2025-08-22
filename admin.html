@@ -123,28 +123,27 @@
   </main>
 
   <script type="module">
-    // Firebase
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
-    const functions = getFunctions(app, 'europe-west1');
+  // Firebase
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
 
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
-      authDomain: 'legends-collection.firebaseapp.com',
-      projectId: 'legends-collection',
-      storageBucket: 'legends-collection.firebasestorage.app',
-      messagingSenderId: '133783086150',
-      appId: '1:133783086150:web:762f209f7f778ef83a1647'
-    };
+  const firebaseConfig = {
+    apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+    authDomain: 'legends-collection.firebaseapp.com',
+    projectId: 'legends-collection',
+    storageBucket: 'legends-collection.firebasestorage.app',
+    messagingSenderId: '133783086150',
+    appId: '1:133783086150:web:762f209f7f778ef83a1647'
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const functions = getFunctions(app, 'europe-west1'); // même région que la CF
-    try { await setPersistence(auth, browserLocalPersistence); } catch {}
-
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const functions = getFunctions(app, 'europe-west1'); // ✅ unique et après app
+  try { await setPersistence(auth, browserLocalPersistence); } catch {}
+ 
     // Access control
     const gate = document.getElementById('gate');
     const gateMsg = document.getElementById('gate-msg');
