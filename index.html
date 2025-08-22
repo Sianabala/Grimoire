@@ -997,9 +997,9 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
-  loginBtn.style.display  = currentUser ? 'none' : '';
+  loginBtn.style.display = currentUser ? 'none' : '';
   logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display  = 'none';
+  adminBtn.style.display = 'none';
 
   const nameBox = document.getElementById('user-display-name');
 
@@ -1008,32 +1008,37 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
     return;
   }
 
-  // Essayons d'obtenir un pseudo depuis le token
-  let pseudo = currentUser.displayName || '';
+  let pseudo = '';
 
-  try {
-    const token = await currentUser.getIdToken();
-    const decoded = decodeJwtPayload(token);
-    console.log('[DEBUG] decodedToken:', decoded);
-    pseudo = decoded.preferred_username || decoded.nickname || decoded.name || pseudo;
-  } catch (e) {
-    console.warn('[DEBUG] Impossible de décoder le token', e);
+  // Étape 1 : test affichage direct
+  console.log('[DEBUG] displayName:', currentUser.displayName);
+  if (currentUser.displayName) pseudo = currentUser.displayName;
+
+  // Étape 2 : lecture du token (en cas de displayName vide)
+  if (!pseudo) {
+    try {
+      const token = await currentUser.getIdToken();
+      const decoded = decodeJwtPayload(token);
+      console.log('[DEBUG] decodedToken:', decoded);
+
+      pseudo = decoded.preferred_username || decoded.nickname || decoded.name || '';
+    } catch (e) {
+      console.warn('[DEBUG] Erreur lecture du token', e);
+    }
   }
 
-  if (!pseudo) pseudo = '(sans pseudo)';
+  // Fallback ultime
+  if (!pseudo && currentUser.uid) {
+    pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
+  }
 
+  // Affichage
   if (nameBox) {
     nameBox.style.display = '';
     nameBox.textContent = `Connecté en tant que ${pseudo}`;
   }
-
-  // Chargement des données du joueur
-  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-
-  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-  if (allowByUid || allowByRole) adminBtn.style.display = '';
 });
+
 
 
 
