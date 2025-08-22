@@ -127,6 +127,7 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
@@ -140,6 +141,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const functions = getFunctions(app, 'europe-west1'); // même région que la CF
     try { await setPersistence(auth, browserLocalPersistence); } catch {}
 
     // Access control
@@ -230,12 +232,14 @@
               <button class="btn warn pill" data-act="add-std">+ Pack Standard</button>
               <button class="btn success pill" data-act="add-prem">+ Pack Premium</button>
               <button class="btn danger pill" data-act="reset">Réinitialiser</button>
+              <button class="btn danger pill" data-act="delete">Supprimer</button>
             </div>
           </div>`;
         el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
         el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
         el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard'));
         el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium'));
+        el.querySelector('[data-act="delete"]').addEventListener('click', ()=> deleteAccount(p.uid, p.displayName));
         playersWrap.appendChild(el);
       }
     }
@@ -258,6 +262,7 @@
               <button class="btn warn pill" id="btn-std">+ Pack Standard</button>
               <button class="btn success pill" id="btn-prem">+ Pack Premium</button>
               <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
+              <button class="btn danger pill" id="btn-delete">Supprimer</button>
             </div>
           </div>
           <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs <span class="v">${p.stats?.packsOpened||0}</span></div>
@@ -270,6 +275,7 @@
         document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
         document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard'));
         document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium'));
+        document.getElementById('btn-delete').addEventListener('click', ()=> deleteAccount(uid, p.displayName));
       }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
     }
 
@@ -306,6 +312,25 @@
         const uidShown = (detailWrap.querySelector('.k span.v')||{}).textContent;
         if(uidShown === uid){ viewPlayer(uid); }
       }catch(e){ toast('Erreur: '+(e?.message||e)); }
+    }
+
+    // === NOUVEAU : suppression de compte (admin) ===
+    async function deleteAccount(uid, displayName){
+      const name = displayName || '(sans pseudo)';
+      if(!confirm(`⚠️ Suppression définitive du compte "${name}"\nUID: ${uid}\nAction irréversible. Continuer ?`)) return;
+      const check = prompt(`Pour confirmer, tape exactement l'UID du joueur: ${uid}`);
+      if(check !== uid){ toast('UID incorrect. Abandon.'); return; }
+      try{
+        const callDelete = httpsCallable(functions, 'adminDeleteUser');
+        await callDelete({ targetUid: uid });
+        toast('Compte supprimé');
+        // UI refresh
+        detailWrap.innerHTML = '<div class="subtitle">Sélectionne un joueur dans la liste.</div>';
+        await loadPlayers();
+      }catch(e){
+        toast('Erreur suppression: '+(e?.message||e));
+        diag.textContent = 'deleteAccount: '+(e?.stack || e?.message || e);
+      }
     }
 
     function filterCards(){ renderPlayers(lastPlayers); }
