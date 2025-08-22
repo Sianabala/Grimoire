@@ -1004,11 +1004,23 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
   const nameBox = document.getElementById('user-display-name');
 
   if (currentUser) {
-    // Afficher le pseudo
-    if (nameBox) {
-      nameBox.style.display = '';
-      nameBox.textContent = `Connecté en tant que ${currentUser.displayName || '(sans pseudo)'}`;
-    }
+  let displayName = currentUser.displayName;
+
+  // Si displayName vide, essayer d'extraire depuis le idToken
+  try {
+    const token = await currentUser.getIdToken();
+    const claims = decodeJwtPayload(token);
+    displayName = claims.preferred_username || claims.nickname || '(sans pseudo)';
+  } catch (e) {
+    console.warn('Impossible de lire le token pour récupérer le pseudo', e);
+  }
+
+  // Mise à jour de l'affichage
+  if (nameBox) {
+    nameBox.style.display = '';
+    nameBox.textContent = `Connecté en tant que ${displayName}`;
+  }
+
 
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
