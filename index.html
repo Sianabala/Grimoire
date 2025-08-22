@@ -322,6 +322,7 @@
       <div class="hero-logo" aria-hidden="true"></div>
       <h1 class="hero-title">Grimoire</h1>
       <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
+      <div id="user-display-name" class="subtitle" style="display:none"></div>
       <div class="hero-actions">
         <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
         <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
@@ -993,21 +994,33 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
   // --- Auth state
  
   onAuthStateChanged(auth, async (user) => {
-    currentUser = user || null;
-    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+  currentUser = user || null;
+  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
-    loginBtn.style.display  = currentUser ? 'none' : '';
-    logoutBtn.style.display = currentUser ? '' : 'none';
-    adminBtn.style.display  = 'none';
+  loginBtn.style.display  = currentUser ? 'none' : '';
+  logoutBtn.style.display = currentUser ? '' : 'none';
+  adminBtn.style.display  = 'none';
 
- if (!currentUser) return;
+  const nameBox = document.getElementById('user-display-name');
+
+  if (currentUser) {
+    // Afficher le pseudo
+    if (nameBox) {
+      nameBox.style.display = '';
+      nameBox.textContent = `Connecté en tant que ${currentUser.displayName || '(sans pseudo)'}`;
+    }
 
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
     const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
     const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
     if (allowByUid || allowByRole) adminBtn.style.display = '';
-  });
+  } else {
+    // Si déconnecté, cacher l'affichage
+    if (nameBox) nameBox.style.display = 'none';
+  }
+});
+
 
   // --- Cloud bootstrap
   async function loadOrCreatePlayerDoc(user){
