@@ -128,6 +128,7 @@
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
+    const functions = getFunctions(app, 'europe-west1');
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
