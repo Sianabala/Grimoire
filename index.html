@@ -993,7 +993,7 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
 
   // --- Auth state
  
-  onAuthStateChanged(auth, async (user) => {
+ onAuthStateChanged(auth, async (user) => {
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
@@ -1003,35 +1003,38 @@ toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouve
 
   const nameBox = document.getElementById('user-display-name');
 
-  if (currentUser) {
-  let displayName = currentUser.displayName;
+  if (!currentUser) {
+    if (nameBox) nameBox.style.display = 'none';
+    return;
+  }
 
-  // Si displayName vide, essayer d'extraire depuis le idToken
+  // Essayons d'obtenir un pseudo depuis le token
+  let pseudo = currentUser.displayName || '';
+
   try {
     const token = await currentUser.getIdToken();
-    const claims = decodeJwtPayload(token);
-    displayName = claims.preferred_username || claims.nickname || '(sans pseudo)';
+    const decoded = decodeJwtPayload(token);
+    console.log('[DEBUG] decodedToken:', decoded);
+    pseudo = decoded.preferred_username || decoded.nickname || decoded.name || pseudo;
   } catch (e) {
-    console.warn('Impossible de lire le token pour récupérer le pseudo', e);
+    console.warn('[DEBUG] Impossible de décoder le token', e);
   }
 
-  // Mise à jour de l'affichage
+  if (!pseudo) pseudo = '(sans pseudo)';
+
   if (nameBox) {
     nameBox.style.display = '';
-    nameBox.textContent = `Connecté en tant que ${displayName}`;
+    nameBox.textContent = `Connecté en tant que ${pseudo}`;
   }
 
+  // Chargement des données du joueur
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
 
-    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-
-    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-    if (allowByUid || allowByRole) adminBtn.style.display = '';
-  } else {
-    // Si déconnecté, cacher l'affichage
-    if (nameBox) nameBox.style.display = 'none';
-  }
+  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+  if (allowByUid || allowByRole) adminBtn.style.display = '';
 });
+
 
 
   // --- Cloud bootstrap
