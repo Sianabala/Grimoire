@@ -1,4 +1,4 @@
-import { onCall } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -6,36 +6,59 @@ import { getFirestore } from "firebase-admin/firestore";
 initializeApp();
 
 async function isAdmin(uid){
-  if(!uid) return false;
-  const snap = await getFirestore().doc(`players/${uid}`).get();
-  const data = snap.exists ? (snap.data()||{}) : {};
-  return data.isAdmin === true || data.role === 'admin';
+  try{
+    const snap = await getFirestore().doc(`players/${uid}`).get();
+    if(!snap.exists) return false;
+    const data = snap.data() || {};
+    return data.isAdmin === true || data.role === 'admin';
+  }catch(err){
+    console.error("[isAdmin] Firestore error:", err);
+    // on ne bloque pas sur une lecture ratée, mais on est prudent
+    return false;
+  }
 }
 
-async function deletePlayerData(uid){
+async function deletePlayerDoc(uid){
   const db = getFirestore();
-  // TODO: supprimer ici les sous-collections si tu en as
-  await db.doc(`players/${uid}`).delete().catch(()=>{});
+  // TODO: si tu as des sous-collections (logs, inventory...), supprime-les ici
+  try{
+    await db.doc(`players/${uid}`).delete();
+  }catch(err){
+    console.error("[deletePlayerDoc] delete players doc failed:", err);
+    // Si le doc n'existe pas, ce n'est pas bloquant
+    if (!(err && (err.code === 5 || err.code === "not-found"))) { // Firestore gRPC: 5
+      throw err;
+    }
+  }
 }
 
 export const adminDeleteUser = onCall({
   region: "europe-west1",
-  // Autorise UNIQUEMENT tes origines (Vercel + localhost)
-  cors: ["https://grimoire-dusky.vercel.app", /^https?:\/\/localhost(:\d+)?$/]
+  cors: ["https://grimoire-dusky.vercel.app", /^https?:\/\/localhost(:\\d+)?$/]
 }, async (req) => {
-  const requester = req.auth?.uid;
-  if(!requester) throw new Error("Non authentifié");
-  if(!(await isAdmin(requester))) throw new Error("Accès refusé (admin requis)");
+  console.log("[adminDeleteUser] start", { origin: req.rawRequest?.headers?.origin, caller: req.auth?.uid });
 
+  // 1) Auth requise
+  const requesterUid = req.auth?.uid;
+  if(!requesterUid){
+    throw new HttpsError("unauthenticated", "Non authentifié");
+  }
+
+  // 2) Vérif admin
+  const allowed = await isAdmin(requesterUid);
+  if(!allowed){
+    throw new HttpsError("permission-denied", "Accès refusé: admin requis");
+  }
+
+  // 3) Paramètre cible
   const targetUid = req.data?.targetUid;
-  if(!targetUid) throw new Error("UID manquant");
+  if(!targetUid){
+    throw new HttpsError("invalid-argument", "Paramètre 'targetUid' manquant");
+  }
 
-  // Ne pas supprimer un admin
-  const tSnap = await getFirestore().doc(`players/${targetUid}`).get();
-  const tData = tSnap.exists ? (tSnap.data()||{}) : {};
-  if(tData.isAdmin===true || tData.role==='admin') throw new Error("Impossible de supprimer un compte admin");
-
-  try{ await getAuth().deleteUser(targetUid); }catch(e){ if(e?.code!=='auth/user-not-found') throw e; }
-  await deletePlayerData(targetUid);
-  return { ok:true };
-});
+  // 4) Ne pas supprimer un admin
+  try{
+    const tSnap = await getFirestore().doc(`players/${targetUid}`).get();
+    const tData = tSnap.exists ? (tSnap.data()||{}) : {};
+    if(tData.isAdmin === true || tData.role === "admin"){
+      throw new HttpsError("failed-precondition", "Impossible de sup
