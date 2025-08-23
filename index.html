@@ -713,7 +713,7 @@
   pcCancel.addEventListener('click', closeChooser);
   chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
-  function renderSets(){
+ function renderSets(){
   setsWrap.innerHTML='';
   for(const s of SETS){
     const count = (CARD_SETS[s.id]||[]).length || 0;
@@ -721,24 +721,17 @@
     const el = document.createElement('div');
     el.className='set';
     el.innerHTML = `
-  <div class="flip">
-    <!-- FACE (recto) -->
-    <div class="face front">
-      <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
-      <div class="shine"></div>
-      <div class="tagbar">${c.name || 'Carte'}</div>
-    </div>
-    <!-- DOS (verso) -->
-    <div class="face back">
-      <div class="backmark">
-        <div class="logo" aria-hidden="true"></div>
-        <div class="t1">GRIMOIRE</div>
-        <div class="t2">Clique pour révéler</div>
+      <div class="cover">
+        <img src="${s.img}" alt="Visuel du set ${s.name}">
+        <div class="overlay">
+          <div>
+            <div class="name">${s.name}</div>
+            <div class="meta">${count} cartes disponibles</div>
+          </div>
+          <button class="btn pill" aria-label="Ouvrir ${s.name}">Ouvrir</button>
+        </div>
       </div>
-    </div>
-  </div>
-`;
-
+    `;
 
     const openBtn = el.querySelector('button');
     openBtn.addEventListener('click', ()=> openChooser(s.id));
@@ -747,6 +740,7 @@
     setsWrap.appendChild(el);
   }
 }
+
 
 
   // --- Toast helper
