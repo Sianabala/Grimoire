@@ -492,9 +492,20 @@
   function maybeSaveLocal(){ if (!isCloud()) { localStorage.setItem(LS_KEY, JSON.stringify(collection)); localStorage.setItem(LS_STATS, JSON.stringify(stats)); localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } }
   function saveCollection(){ maybeSaveLocal(); } function saveStats(){ maybeSaveLocal(); } function saveProfile(){ maybeSaveLocal(); }
 
-  // --- XP / Levels
-  const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100; function xpForLevel(level){ return LEVEL_XP_BASE; }
-  function nextRewardForLevel(level){ if(level===1) return {type:'pack_standard', label:'Pack Standard'}; if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'}; return {type:'pack_standard', label:'Pack Standard'}; }
+    // --- XP / Levels
+function xpForLevel(level){
+  // Courbe progressive : niveau N coûte 50 * N XP (1→50, 2→100, 3→150, etc.)
+  return 50 * Math.max(1, level);
+}
+function xpGainForPack(type){
+  // Standard = +5 XP, Premium = +10 XP
+  return (type === 'premium') ? 10 : 5;
+}
+function nextRewardForLevel(level){
+  if(level===1) return {type:'pack_standard', label:'Pack Standard'};
+  if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
+  return {type:'pack_standard', label:'Pack Standard'};
+}
 
   // --- Rendering
   function renderStats(){ const uniqueOwned = Object.keys(collection).length; const totalUnique = new Set(ALL_CARDS.map(c=>c.id)).size; const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0; document.getElementById('stat-packs').textContent = stats.packsOpened||0; document.getElementById('stat-uniques').textContent = uniqueOwned; document.getElementById('stat-completion').textContent = completion+"%"; document.getElementById('stat-rank').textContent = rankFromCompletion(completion); const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100))); document.getElementById('stat-level').textContent = level; document.getElementById('stat-xp').textContent = xp; document.getElementById('stat-xp-next').textContent = need; document.getElementById('xp-fill').style.width = pct + '%'; document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label; }
@@ -556,7 +567,11 @@
       const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
       const newCollection = { ...(cur.collection||{}) };
       for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
-      let level = cur.level || 1; let xp = (cur.xp || 0) + XP_PER_PACK; let rewards = cur.rewardsInbox || []; let need = xpForLevel(level);
+     let level = cur.level || 1;
+let xp = (cur.xp || 0) + xpGainForPack(type);   // +5 si Standard, +10 si Premium
+let rewards = cur.rewardsInbox || [];
+let need = xpForLevel(level);
+
       while(xp >= need){ xp -= need; level += 1; need = xpForLevel(level); const rw = nextRewardForLevel(level - 1); rewards = [...rewards, { id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() }]; }
       const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt: serverTimestamp() };
       trx.set(playerDocRef, newDoc, { merge:true });
