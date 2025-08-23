@@ -411,7 +411,7 @@
   // --- Firebase imports
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
@@ -500,7 +500,7 @@
   let collection = loadCollection();
   let stats = loadStats();
   let profile = loadProfile();
-  let currentUser = null; let playerDocRef = null;
+  let currentUser = null; let playerDocRef = null;let unsubPlayer = null;
   let packInventory = { standard: 0, premium: 0 };
   function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
   function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
@@ -687,26 +687,33 @@ async function openPack({type='standard', setId, bypassInventory=false} = {}){
 }
 
   // --- Auth state
-  onAuthStateChanged(auth, async (user) => {
-    currentUser = user || null;
-    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-    loginBtn.style.display = currentUser ? 'none' : '';
-    logoutBtn.style.display = currentUser ? '' : 'none';
-    adminBtn.style.display = 'none';
-    const nameBox = document.getElementById('user-display-name');
-    const userBar = document.getElementById('user-bar');
-    const userName = document.getElementById('user-name');
-    const userAvatar = document.getElementById('user-avatar');
-    if (!currentUser) { if (nameBox) nameBox.style.display = 'none'; if (userBar) userBar.style.display = 'none'; return; }
-    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-    let pseudo = data?.displayName || currentUser.displayName || '';
-    if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
-    if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
-    if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
-    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-    if (allowByUid || allowByRole) adminBtn.style.display = '';
-  });
+ onAuthStateChanged(auth, async (user) => {
+  currentUser = user || null;
+  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+
++ // coupe l'écouteur si on change d'utilisateur
++ if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
+
+  loginBtn.style.display = currentUser ? 'none' : '';
+  logoutBtn.style.display = currentUser ? '' : 'none';
+  adminBtn.style.display = 'none';
+  ...
+  if (!currentUser) {
+    ...
+    return;
+  }
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+  ...
+  if (allowByUid || allowByRole) adminBtn.style.display = '';
+
++ // 🔴 écoute temps réel du doc joueur : met à jour packInventory, stats, etc.
++ unsubPlayer = onSnapshot(playerDocRef, (snap)=>{
++   if (snap.exists()) {
++     updateLocalFromCloud(snap.data());
++   }
++ });
+});
+
 
   // --- Cloud bootstrap
   async function loadOrCreatePlayerDoc(user){
