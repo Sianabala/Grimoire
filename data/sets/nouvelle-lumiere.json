@@ -1,4 +1,4 @@
-{
+a Ve{
   "set": { "code": "NL", "name": "Nouvelle Lumière", "total": 76, "version": 1 },
   "cards": [
     { "id": "NL-001", "name": "Titan", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "https://i.goopics.net/lkr14v.png" },
@@ -19,12 +19,12 @@
     { "id": "NL-016", "name": "Le Corbeau", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "map", "image": "" },
     { "id": "NL-017", "name": "Eris Morn", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "object", "image": "" },
 
-    { "id": "NL-018", "name": "Cayde-6", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "https://i.goopics.net/211625.png" },
-    { "id": "NL-019", "name": "Le Colonel", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "https://i.goopics.net/ico96e.png" },
-    { "id": "NL-020", "name": "Coffre de région", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "bonus", "image": "https://i.goopics.net/j1apo9.png" },
+    { "id": "NL-018", "name": "Petra Venj", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/211625.png" },
+    { "id": "NL-019", "name": "Mara Sov", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/ico96e.png" },
+    { "id": "NL-020", "name": "Raspoutine", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/j1apo9.png" },
 
-    { "id": "NL-021", "name": "Commandant Zavala", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/yda7ke.png" },
-    { "id": "NL-022", "name": "Ikora Rey", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/x6f6kt.png" },
+    { "id": "NL-021", "name": "Clovis Bray", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/yda7ke.png" },
+    { "id": "NL-022", "name": "Shaw Han", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "https://i.goopics.net/x6f6kt.png" },
     { "id": "NL-023", "name": "Saint-14", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/xm56ug.png" },
     { "id": "NL-024", "name": "Osiris", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/yi9mut.png" },
     { "id": "NL-025", "name": "Seigneur Shaxx", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/f24m75.png" },
