@@ -1,4 +1,4 @@
-a Ve{
+{
   "set": { "code": "NL", "name": "Nouvelle Lumière", "total": 76, "version": 1 },
   "cards": [
     { "id": "NL-001", "name": "Titan", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "https://i.goopics.net/lkr14v.png" },
