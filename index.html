@@ -239,7 +239,10 @@
     .po-card.revealed{ transform: translateY(0) scale(1) rotate(var(--rot,0deg)); opacity:1; transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease }
     .po-card[aria-pressed="true"]{ cursor: default; }
     .po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
-      .po-card[aria-pressed="true"] .veil{ display:none; }
+    .po-card .veil{ position:absolute; inset:0; display:grid; place-items:center; background:
+      radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase; border-radius:20px; }
+    .po-card[aria-pressed="true"] .veil{ display:none; }
 
     /* --- Choix niveau de pack (modal) --- */
     #pack-chooser[hidden]{ display:none }
@@ -248,66 +251,6 @@
     #pack-chooser .modal{ position:relative; width:min(420px,92vw); border-radius:18px; background: linear-gradient(180deg,#0f172a,#0b1120); border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); padding:18px }
     #pack-chooser h4{ margin:0 0 6px; font-size:18px }
     #pack-chooser .row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
- 
-  /* --- Flip 3D carte: dos -> face --- */
-.po-card{ perspective:1000px }                     /* outer déjà stylé, on ajoute la perspective */
-.po-card .flip{
-  position:relative; inset:0;
-  width:100%; height:100%;
-  transform-style:preserve-3d;
-  transition: transform .45s ease;
-  /* par défaut on montre le DOS */
-  --flip: 180deg;
-  transform: rotateY(var(--flip));
-}
-.po-card.is-front .flip{           /* quand révélée -> montre la face */
-  --flip: 0deg;
-}
-
-/* Faces */
-.po-card .face{
-  position:absolute; inset:0;
-  border-radius:20px;
-  backface-visibility:hidden;
-  overflow:hidden;
-}
-
-/* Recto (face) : reprend ton visuel existant */
-.po-card .face.front .img{ position:absolute; inset:0;
-  background: linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%) , var(--bg) center/cover no-repeat;
-  mix-blend:screen; opacity:.85;
-}
-.po-card .face.front .shine{ position:absolute; inset:0;
-  background: radial-gradient(900px 900px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.14), transparent 40%);
-  mix-blend:overlay; pointer-events:none;
-}
-.po-card .face.front .tagbar{
-  position:absolute; left:0; right:0; bottom:0; padding:10px 12px;
-  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75)); font-weight:800;
-}
-
-/* Verso (dos) */
-.po-card .face.back{
-  transform: rotateY(180deg);
-  background:
-    radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
-    linear-gradient(180deg, #0f1324, #0a0f1e);
-  border:1px solid rgba(255,255,255,.08);
-  display:grid; place-items:center;
-}
-.po-card .face.back .backmark{
-  text-align:center; letter-spacing:.02em; text-transform:uppercase; color:#e8ecf3;
-  text-shadow:0 2px 12px rgba(124,92,255,.35);
-}
-.po-card .face.back .logo{
-  width:56px; height:56px; border-radius:16px;
-  margin:0 auto 10px;
-  background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--copper), var(--accent));
-  box-shadow: 0 0 26px rgba(124,92,255,.35), inset 0 0 10px rgba(255,255,255,.10);
-}
-.po-card .face.back .t1{ font-weight:900; font-size:18px; }
-.po-card .face.back .t2{ font-size:12px; color:var(--muted); opacity:.9 }
-
   </style>
 </head>
 <body>
@@ -432,12 +375,12 @@
       <div class="backdrop"></div>
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pc-title">
         <h4 id="pc-title">Choisis le niveau du pack</h4>
-        <div class="subtitle" id="pc-sub">Set sélectionné : <span id="pc-set-name">—</span></div>
+        <div class="subtitle" id="pc-sub">Set sélectionné : <span id="pc-set-name">—</span></div>
         <div class="row">
           <button id="pc-standard" class="btn pill">🎴 Standard</button>
           <button id="pc-premium" class="btn pill ghost">💎 Premium</button>
         </div>
-        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs)</div>
+        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs)</div>
         <div class="row" style="justify-content:flex-end">
           <button id="pc-cancel" class="btn ghost pill">Annuler</button>
         </div>
@@ -587,26 +530,7 @@
   <div class="shine"></div>
   <div class="tagbar">${c.name || 'Carte'}</div>
   <div class="veil">Clique pour révéler</div>`; poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
-    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } 
-                               function revealIndex(i, fast=false){
-  const c  = cards[i];
-  const el = poFan.querySelector('.po-card[data-idx="'+i+'"]');
-  if(!el || el.getAttribute('aria-pressed') === 'true') return;
-
-  // flip vers la face
-  el.classList.add('is-front');                 // ← déclenche le rotateY(0)
-  el.setAttribute('aria-pressed','true');
-
-  // glow/relief selon rareté (inchangé)
-  el.classList.add(rarityGlowClass(c.rarity));
-  el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
-
-  // confetti pour grosses raretés
-  const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
-  if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
-}
-
-                                
+    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; el.setAttribute('aria-pressed','true'); el.classList.add(rarityGlowClass(c.rarity)); el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)'; const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC); if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
@@ -713,7 +637,7 @@
   pcCancel.addEventListener('click', closeChooser);
   chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
- function renderSets(){
+  function renderSets(){
   setsWrap.innerHTML='';
   for(const s of SETS){
     const count = (CARD_SETS[s.id]||[]).length || 0;
@@ -726,10 +650,14 @@
         <div class="overlay">
           <div>
             <div class="name">${s.name}</div>
-            <div class="meta">${count} cartes disponibles</div>
+            <div class="meta">${count} cartes · Commune 60% · Peu co. 25% · Rare 10% · Lég. 4% · Exo. 1%</div>
           </div>
           <button class="btn pill" aria-label="Ouvrir ${s.name}">Ouvrir</button>
         </div>
+      </div>
+      <div class="stats-row">
+        <span class="tag"><span class="dot"></span>Set disponible</span>
+        <span class="subtitle">Clique sur Ouvrir pour choisir Standard/Premium</span>
       </div>
     `;
 
@@ -740,7 +668,6 @@
     setsWrap.appendChild(el);
   }
 }
-
 
 
   // --- Toast helper
