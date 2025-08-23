@@ -79,10 +79,10 @@
     { "id": "NL-070", "name": "Cité des rêves", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "map", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-071", "name": "Titan", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "map", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-072", "name": "Cabal", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-073", "name": "filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-074", "name": "filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-075", "name": "filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-076", "name": "filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" }
+    { "id": "NL-073", "name": "Vex", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-074", "name": "Déchus", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-075", "name": "Ruche", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-076", "name": "Infâmes", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" }
 
   ]
 }
