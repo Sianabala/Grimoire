@@ -325,7 +325,7 @@
 
           <div class="footerbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
             <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
-            <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (local)</button>
+            <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (cloud)</button>
           </div>
         </div>
       </section>
@@ -598,46 +598,62 @@ function updateRewardButton(inbox){
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
   // --- Ouverture de pack 100% cloud, par set sélectionné
-  async function openPack({type='standard', setId} = {}){
-    const pool = CARD_SETS[setId] || ALL_CARDS;
-    if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
-    if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
+ // --- Ouverture de pack 100% cloud, par set sélectionné
+async function openPack({type='standard', setId} = {}){
+  const pool = CARD_SETS[setId] || ALL_CARDS;
+  if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
+  if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
 
-    // Tirage affichage depuis le pool du set
-    const cards=[];
-    if(type==='premium'){
-      const idx=Math.floor(Math.random()*5);
-      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity, pool)); }
-    } else {
-      for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity, pool)); }
+  // Tirage affichage depuis le pool du set
+  const cards=[];
+  if(type==='premium'){
+    const idx=Math.floor(Math.random()*5);
+    for(let i=0;i<5;i++){
+      const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity();
+      cards.push(pickCardByRarity(rarity, pool));
+    }
+  } else {
+    for(let i=0;i<5;i++){
+      const rarity=weightedRandomRarity();
+      cards.push(pickCardByRarity(rarity, pool));
+    }
+  }
+
+  // Transaction Firestore = source de vérité
+  const result = await runTransaction(db, async (trx)=>{
+    const docSnap = await trx.get(playerDocRef);
+    const cur = docSnap.exists() ? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
+
+    const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
+    const newCollection = { ...(cur.collection||{}) };
+    for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
+
+    let level = cur.level || 1;
+    let xp = (cur.xp || 0) + xpGainForPack(type);  // +5 si Standard, +10 si Premium
+    let rewards = cur.rewardsInbox || [];
+    let need = xpForLevel(level);
+
+    while(xp >= need){
+      xp -= need; level += 1; need = xpForLevel(level);
+      const rw = nextRewardForLevel(level - 1);
+      rewards = [...rewards, {
+        id:'rw_'+Date.now()+Math.random().toString(36).slice(2),
+        type:rw.type, label:rw.label, t:Date.now()
+      }];
     }
 
-    // Transaction Firestore = source de vérité
-    const result = await runTransaction(db, async (trx)=>{
-      const docSnap = await trx.get(playerDocRef);
-      const cur = docSnap.exists() ? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
-      const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
-      const newCollection = { ...(cur.collection||{}) };
-      for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
-     let level = cur.level || 1;
-let xp = (cur.xp || 0) + xpGainForPack(type);   // +5 si Standard, +10 si Premium
-let rewards = cur.rewardsInbox || [];
-let need = xpForLevel(level);
+    const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt: serverTimestamp() };
+    trx.set(playerDocRef, newDoc, { merge:true });
+    return newDoc;
+  });
 
-      while(xp >= need){ xp -= need; level += 1; need = xpForLevel(level); const rw = nextRewardForLevel(level - 1); rewards = [...rewards, { id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() }]; }
-      const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt: serverTimestamp() };
-      trx.set(playerDocRef, newDoc, { merge:true });
-      return newDoc;
-    });
-
-    function updateLocalFromCloud(data){
-  collection = { ...(data.collection || {}) };
-  stats = { packsOpened: data?.stats?.packsOpened || 0 };
-  profile = { level: data?.level || 1, xp: data?.xp || 0 };
-  renderStats();
-  renderCollection();
-  updateRewardButton(data?.rewardsInbox || []); // ✅ synchro du bouton
+  // ⬇️ Tu avais perdu ces lignes
+  updateLocalFromCloud(result);
+  await playPackAnimation(cards);
+  renderResults(cards);
+  toast((type==='premium' ? '💎 Premium' : '🎴 Standard')+' — '+(SETS.find(s=>s.id===setId)?.name||'Set')+' ouvert !');
 }
+
 
 
   // --- Auth state
@@ -688,8 +704,6 @@ let need = xpForLevel(level);
   document.getElementById('btn-test-premium').addEventListener('click',()=>{ clearDiag(); const P=1000; let ok=0,fail=0; for(let p=0;p<P;p++){ const cards=[]; let idx=Math.floor(Math.random()*5); for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); } if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++; } printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail); printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.'); });
   document.getElementById('btn-test-firestore').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; } try{ const now=Date.now(); await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()}); const back=await getDoc(doc(db,'players',currentUser.uid)); printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest); } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); } });
   document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; } try{ const snap=await getDoc(doc(db,'players',currentUser.uid)); if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; } const data=snap.data(); updateLocalFromCloud(data); printDiag('✅ Priorité cloud appliquée.'); } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); } });
-
-  document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{ if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; } try{ await runTransaction(db, async (trx)=>{ const snap=await trx.get(playerDocRef); if(!snap.exists()) throw new Error('Profil introuvable'); const data=snap.data(); const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[]; if(inbox.length===0) throw new Error('Aucune récompense à réclamer'); const reward=inbox.shift(); trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()}); setTimeout(()=>{ if(reward.type==='pack_standard') choosePackOpen(currentSetId||'NL','standard'); else if(reward.type==='pack_premium') choosePackOpen(currentSetId||'NL','premium'); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100); }); } catch(e){ alert(e.message||String(e)); } });
 
   // --- UI Sets + Chooser
   const setsWrap = document.getElementById('sets');
