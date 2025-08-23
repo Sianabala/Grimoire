@@ -52,6 +52,37 @@
     { "id": "NL-045", "name": "Doctrine abyssale", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/fxaqhe.png" },
 
     { "id": "NL-046", "name": "Doctrine stasique", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-047", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" }
+    { "id": "NL-047", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    
+    { "id": "NL-048", "name": "Lumen", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "object", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-049", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-050", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-051", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-052", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-053", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-054", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-055", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-056", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-057", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-058", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-059", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-060", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-061", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-062", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-063", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-064", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-065", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-066", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-067", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-068", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-069", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-070", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-071", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-072", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-073", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-074", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-075", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-076", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+
   ]
 }
