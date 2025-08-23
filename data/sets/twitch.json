@@ -18,7 +18,7 @@
     { "id": "TW-015", "name": "15", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "" },
     { "id": "TW-016", "name": "16", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "" },
     { "id": "TW-017", "name": "17", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "object", "image": "" },
-    { "id": "TW-018", "name": "18, "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "https://i.goopics.net/211625.png" },
+    { "id": "TW-018", "name": "18", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "https://i.goopics.net/211625.png" },
     { "id": "TW-019", "name": "19", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "gardian", "image": "https://i.goopics.net/ico96e.png" },
     { "id": "TW-020", "name": "20", "set": "Nouvelle Lumière", "rarity": "exotique", "cardType": "bonus", "image": "https://i.goopics.net/j1apo9.png" },
     { "id": "TW-021", "name": "21", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.goopics.net/yda7ke.png" },
