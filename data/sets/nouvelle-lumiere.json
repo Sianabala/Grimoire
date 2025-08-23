@@ -55,8 +55,8 @@
     { "id": "NL-047", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     
     { "id": "NL-048", "name": "Lumen", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "object", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-049", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-050", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-049", "name": "Bannière", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "object", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-050", "name": "Clan", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-051", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-052", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-053", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
