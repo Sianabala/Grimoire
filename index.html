@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire · Prototype V4</title>
+  <title>Grimoire · Prototype V4.1</title>
   <link rel="prefetch" href="/collection.html" as="document">
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
@@ -39,83 +39,16 @@
     }
     .aura::after{background: radial-gradient(closest-side, rgba(184,107,255,.28), transparent 60%); width:560px; height:560px; right:-180px; left:auto; top:20vh}
 
-    .hero-header {
-  position: relative;
-  background: linear-gradient(180deg, rgba(11,15,26,.95), rgba(11,15,26,.65));
-  padding: 60px 0 40px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.hero-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 1.2s ease forwards;
-  animation-delay: 0.3s;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
-  background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--copper), var(--accent));
-  box-shadow: 0 0 30px rgba(124,92,255,.3), inset 0 0 14px rgba(255,255,255,.1);
-  animation: rotateGlow 6s linear infinite;
-}
-
-@keyframes rotateGlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.hero-title {
-  font-size: 42px;
-  font-weight: 900;
-  letter-spacing: .5px;
-  color: var(--text);
-  text-shadow: 0 2px 10px rgba(124,92,255,.2);
-}
-
-.hero-subtitle {
-  font-size: 16px;
-  color: var(--muted);
-  max-width: 480px;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
-  justify-content: center;
-}
+    .hero-header { position: relative; background: linear-gradient(180deg, rgba(11,15,26,.95), rgba(11,15,26,.65)); padding: 60px 0 40px; text-align: center; border-bottom: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .hero-center { display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; transform: translateY(20px); animation: fadeInUp 1.2s ease forwards; animation-delay: 0.3s; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    .hero-logo { width: 72px; height: 72px; border-radius: 20px; background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--copper), var(--accent)); box-shadow: 0 0 30px rgba(124,92,255,.3), inset 0 0 14px rgba(255,255,255,.1); animation: rotateGlow 6s linear infinite; }
+    @keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hero-title { font-size: 42px; font-weight: 900; letter-spacing: .5px; color: var(--text); text-shadow: 0 2px 10px rgba(124,92,255,.2); }
+    .hero-subtitle { font-size: 16px; color: var(--muted); max-width: 480px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; justify-content: center; }
 
     .container{max-width:1200px;margin:0 auto;padding:22px}
-    .row{display:flex;gap:14px;flex-wrap:wrap}
-
-    /* Brand bar */
-    .brand{display:flex;align-items:center;gap:14px}
-    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm); position:relative}
-    .logo::after{content:""; position:absolute; inset:2px; border-radius:12px; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.2), transparent 40%) }
-    .title{font-size:22px;font-weight:800;letter-spacing:.2px}
-    .subtitle{font-size:12px;color:var(--muted)}
-    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
-
-    .hero{display:flex; align-items:center; justify-content:space-between; gap:12px}
-    .hero-text{display:flex; flex-direction:column}
-
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
     @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
     @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
@@ -124,7 +57,6 @@
     .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
     .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
     .panel .bd{padding:18px 20px}
-
     .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
       background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -142,21 +74,16 @@
     .btn:active{ transform: translateY(0) }
     .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.16)}
     .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
-
     .btn.pill{ border-radius:999px }
 
-    .footerbar{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+    .subtitle{font-size:12px;color:var(--muted)}
+    .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
 
-    /* Packs */
-    .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
-    .pack{display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px; perspective:1000px; box-shadow: var(--ring); position:relative}
-    .pack:hover{ transform: translateY(-2px) }
-    .pack .cover{ height:120px; border-radius:14px; background:
-      radial-gradient(120px 60px at 10% 10%, rgba(124,92,255,.35), transparent 60%),
-      radial-gradient(120px 60px at 90% 20%, rgba(184,107,255,.28), transparent 60%),
-      linear-gradient(180deg,#0e1423,#0b0f1a);
-      border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.04)
-    }
+    /* Sets */
+    .sets{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .set{display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px; box-shadow: var(--ring); position:relative}
+    .set .cover{ height:140px; border-radius:14px; background: var(--bgimg, linear-gradient(180deg,#0e1423,#0b0f1a)); border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.04) }
+    .set .name{ font-size:18px; font-weight:900 }
 
     /* Résultats */
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
@@ -168,14 +95,11 @@
     .card .footer{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
     .card .footer .name{ font-weight:800; text-shadow: 0 1px 0 rgba(0,0,0,.35) }
 
-    /* Tags (couleurs par rareté via /rarities.css) */
+    /* Tags */
     .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
     .tag .dot{ width:8px;height:8px;border-radius:999px;background:currentColor;opacity:.9 }
-    .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset }
 
     .banner{margin:12px 0;padding:12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px)}
-    .banner .close{ margin-left:auto; appearance:none; border:0; background:transparent; color:var(--text); opacity:.8; cursor:pointer; font-weight:900; font-size:16px; line-height:1 }
-    .banner .close:hover{ opacity:1 }
 
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
 
@@ -197,148 +121,80 @@
     }
 
     /* --- Pack Opening Overlay --- */
-#pack-overlay[hidden]{ display:none !important }
-#pack-overlay{ position:fixed; inset:0; z-index:60 }
-#pack-overlay .po-backdrop{
-  position:absolute; inset:0;
-  background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.20), transparent 60%),
-              radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),
-              radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
-              rgba(6,8,15,.85);
-  backdrop-filter: blur(6px);
-}
-.po-stage{ position:absolute; inset:0; display:grid; place-items:center; padding:20px }
-.po-actions{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); }
+    #pack-overlay[hidden]{ display:none !important }
+    #pack-overlay{ position:fixed; inset:0; z-index:60 }
+    #pack-overlay .po-backdrop{
+      position:absolute; inset:0;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.20), transparent 60%),
+                  radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.18), transparent 60%),
+                  radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+                  rgba(6,8,15,.85);
+      backdrop-filter: blur(6px);
+    }
+    .po-stage{ position:absolute; inset:0; display:grid; place-items:center; padding:20px }
+    .po-actions{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); }
 
-.po-pack{
-  width:240px; height:360px; perspective:1000px; position:relative;
-  filter: drop-shadow(0 30px 50px rgba(0,0,0,.65));
-  animation: poFloat 2.8s ease-in-out infinite;
-}
-.po-pack-body{
-  position:absolute; inset:0; border-radius:18px;
-  background:
-    radial-gradient(120px 60px at 20% 20%, rgba(124,92,255,.35), transparent 60%),
-    radial-gradient(100px 50px at 80% 25%, rgba(184,107,255,.30), transparent 60%),
-    linear-gradient(180deg,#0f1324,#0a0f1e);
-  border:1px solid rgba(255,255,255,.10);
-  box-shadow: 0 12px 40px rgba(0,0,0,.45) inset, 0 2px 0 rgba(255,255,255,.06) inset;
-  transform: rotateY(-8deg) rotateX(6deg);
-}
-.po-pack-gloss{
-  position:absolute; inset:0; border-radius:inherit;
-  background: linear-gradient(120deg, rgba(255,255,255,.32), rgba(255,255,255,0) 30%,
-                              rgba(255,255,255,.18) 60%, transparent 70%);
-  mix-blend-mode: overlay; opacity:.25;
-}
-.po-pack-logo{
-  position:absolute; left:0; right:0; bottom:26px; text-align:center;
-  letter-spacing:.4em; font-weight:900; font-size:14px; color:#e8ecf3; opacity:.8;
-}
-.po-pack-shine{
-  position:absolute; inset:-10%; border-radius:22px; pointer-events:none;
-  background: radial-gradient(400px 400px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.20), transparent 40%);
-  mix-blend-mode: screen;
-}
-.po-pack:hover .po-pack-body{ transform: rotateY(-5deg) rotateX(4deg); transition: transform .25s ease }
+    .po-pack{ width:240px; height:360px; perspective:1000px; position:relative; filter: drop-shadow(0 30px 50px rgba(0,0,0,.65)); animation: poFloat 2.8s ease-in-out infinite; }
+    .po-pack-body{ position:absolute; inset:0; border-radius:18px; background:
+      radial-gradient(120px 60px at 20% 20%, rgba(124,92,255,.35), transparent 60%),
+      radial-gradient(100px 50px at 80% 25%, rgba(184,107,255,.30), transparent 60%),
+      linear-gradient(180deg,#0f1324,#0a0f1e); border:1px solid rgba(255,255,255,.10); box-shadow: 0 12px 40px rgba(0,0,0,.45) inset, 0 2px 0 rgba(255,255,255,.06) inset; transform: rotateY(-8deg) rotateX(6deg); }
+    .po-pack-gloss{ position:absolute; inset:0; border-radius:inherit; background: linear-gradient(120deg, rgba(255,255,255,.32), rgba(255,255,255,0) 30%, rgba(255,255,255,.18) 60%, transparent 70%); mix-blend-mode: overlay; opacity:.25; }
+    .po-pack-logo{ position:absolute; left:0; right:0; bottom:26px; text-align:center; letter-spacing:.4em; font-weight:900; font-size:14px; color:#e8ecf3; opacity:.8; }
+    .po-pack-shine{ position:absolute; inset:-10%; border-radius:22px; pointer-events:none; background: radial-gradient(400px 400px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.20), transparent 40%); mix-blend-mode: screen; }
+    .po-pack:hover .po-pack-body{ transform: rotateY(-5deg) rotateX(4deg); transition: transform .25s ease }
+    @keyframes poFloat{ 0%,100%{ transform: translateY(-6px) } 50%{ transform: translateY(6px) } }
+    @keyframes poShake{ 10%, 90%{ transform: translateX(-1px) } 20%, 80%{ transform: translateX(2px) } 30%, 50%, 70%{ transform: translateX(-4px) } 40%, 60%{ transform: translateX(4px) } }
 
-@keyframes poFloat{ 0%,100%{ transform: translateY(-6px) } 50%{ transform: translateY(6px) } }
-@keyframes poShake{ 10%, 90%{ transform: translateX(-1px) } 20%, 80%{ transform: translateX(2px) } 30%, 50%, 70%{ transform: translateX(-4px) } 40%, 60%{ transform: translateX(4px) } }
+    .po-slit{ position:absolute; width:2px; height:0; background: linear-gradient(180deg,#fff,rgba(255,255,255,.2)); box-shadow: 0 0 24px rgba(255,255,255,.7), 0 0 80px rgba(124,92,255,.45); border-radius:999px; opacity:0; pointer-events:none; }
+    .po-fan{ position:relative; width:min(900px,90vw); height:420px; display:flex; align-items:flex-end; justify-content:center; gap:12px; transform: translateY(10px); opacity:0; }
+    .po-card{ width: var(--card-w,220px); aspect-ratio:2/3; border-radius:20px; position:relative; overflow:hidden; background: linear-gradient(180deg,#141b33,#0b0f1a); border:1px solid rgba(255,255,255,.08); transform-origin: bottom center; transform: translateY(40px) scale(.9) rotate(var(--rot,0deg)); opacity:0; will-change: transform, opacity, box-shadow; box-shadow: 0 12px 34px rgba(0,0,0,.45); cursor:pointer }
+    .po-card .img{ position:absolute; inset:0; background: linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%) , var(--bg) center/cover no-repeat; mix-blend:screen; opacity:.85 }
+    .po-card .shine{ position:absolute; inset:0; background: radial-gradient(900px 900px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.14), transparent 40%); mix-blend:overlay; pointer-events:none }
+    .po-card .tagbar{ position:absolute; left:0; right:0; bottom:0; padding:10px 12px; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75)); font-weight:800 }
+    .po-card.revealed{ transform: translateY(0) scale(1) rotate(var(--rot,0deg)); opacity:1; transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease }
+    .po-card[aria-pressed="true"]{ cursor: default; }
+    .po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
+    .po-card .veil{ position:absolute; inset:0; display:grid; place-items:center; background:
+      radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase; border-radius:20px; }
+    .po-card[aria-pressed="true"] .veil{ display:none; }
 
-.po-slit{
-  position:absolute; width:2px; height:0; background: linear-gradient(180deg,#fff,rgba(255,255,255,.2));
-  box-shadow: 0 0 24px rgba(255,255,255,.7), 0 0 80px rgba(124,92,255,.45);
-  border-radius:999px; opacity:0; pointer-events:none;
-}
-.po-fan{
-  position:relative; width:min(900px,90vw); height:420px; display:flex; align-items:flex-end; justify-content:center; gap:12px;
-  transform: translateY(10px); opacity:0;
-}
-.po-card{
-  width: var(--card-w,220px); aspect-ratio:2/3; border-radius:20px; position:relative; overflow:hidden;
-  background: linear-gradient(180deg,#141b33,#0b0f1a);
-  border:1px solid rgba(255,255,255,.08);
-  transform-origin: bottom center; transform: translateY(40px) scale(.9) rotate(var(--rot,0deg));
-  opacity:0; will-change: transform, opacity, box-shadow;
-  box-shadow: 0 12px 34px rgba(0,0,0,.45);
-}
-.po-card .img{ position:absolute; inset:0; background: linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%) , var(--bg) center/cover no-repeat; mix-blend:screen; opacity:.85 }
-.po-card .shine{ position:absolute; inset:0; background: radial-gradient(900px 900px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.14), transparent 40%); mix-blend:overlay; pointer-events:none }
-.po-card .tagbar{ position:absolute; left:0; right:0; bottom:0; padding:10px 12px; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75)); font-weight:800 }
-
-/* Révélation */
-.po-card.revealed{ transform: translateY(0) scale(1) rotate(var(--rot,0deg)); opacity:1; transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease }
-.po-card.flip{ transform: rotateY(180deg) }
-.po-card.glow-common{ box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 0 28px rgba(156,163,175,.25) }
-.po-card.glow-uncommon{ box-shadow: 0 0 0 1px rgba(124,92,255,.35) inset, 0 0 42px rgba(124,92,255,.32) }
-.po-card.glow-rare{ box-shadow: 0 0 0 1px rgba(59,130,246,.45) inset, 0 0 48px rgba(59,130,246,.35) }
-.po-card.glow-legendary{ box-shadow: 0 0 0 1px rgba(214,161,122,.55) inset, 0 0 60px rgba(214,161,122,.45) }
-.po-card.glow-exotic{ box-shadow: 0 0 0 1px rgba(255,241,118,.65) inset, 0 0 75px rgba(255,241,118,.55) }
-
-/* Accessibilité */
-@media (prefers-reduced-motion: reduce){
-  .po-pack{ animation:none }
-  .po-card, .po-card.revealed{ transition:none }
-}
-/* Click-to-reveal */
-.po-card{ cursor: pointer; }
-.po-card[aria-pressed="true"]{ cursor: default; }
-.po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
-
-/* Voile côté dos */
-.po-card .veil{
-  position:absolute; inset:0; display:grid; place-items:center;
-  background:
-    radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
-    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
-  color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase;
-  border-radius:20px;
-}
-.po-card[aria-pressed="true"] .veil{ display:none; }
-
-    /* Click-to-reveal */
-.po-card{ cursor: pointer; }
-.po-card[aria-pressed="true"]{ cursor: default; }
-.po-card:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 14px; }
-
-/* Voile côté "dos" */
-.po-card .veil{
-  position:absolute; inset:0; display:grid; place-items:center;
-  background:
-    radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
-    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
-  color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase;
-  border-radius:20px;
-}
-.po-card[aria-pressed="true"] .veil{ display:none; }
-
+    /* --- Choix niveau de pack (modal) --- */
+    #pack-chooser[hidden]{ display:none }
+    #pack-chooser{ position:fixed; inset:0; z-index:70; display:grid; place-items:center }
+    #pack-chooser .backdrop{ position:absolute; inset:0; background: rgba(4,6,12,.72); backdrop-filter: blur(4px) }
+    #pack-chooser .modal{ position:relative; width:min(420px,92vw); border-radius:18px; background: linear-gradient(180deg,#0f172a,#0b1120); border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); padding:18px }
+    #pack-chooser h4{ margin:0 0 6px; font-size:18px }
+    #pack-chooser .row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
   </style>
 </head>
 <body>
   <div class="aura" aria-hidden="true"></div>
-  <!-- Barre utilisateur -->
-<div id="user-bar" style="display:none; position:fixed; top:12px; right:12px; background:rgba(11,15,26,0.85); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:8px 14px; display:flex; align-items:center; gap:10px; z-index:100; box-shadow:0 4px 14px rgba(0,0,0,.45)">
-  <img id="user-avatar" src="" alt="Avatar Twitch" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
-  <span id="user-name" style="font-weight:700; color:#e8ecf3;"></span>
-  <button id="user-logout" class="btn ghost pill" style="margin-left:auto; padding:4px 10px; font-size:12px">Déconnexion</button>
-</div>
 
- <header class="hero-header">
-  <div class="container">
-    <div class="hero-center">
-      <div class="hero-logo" aria-hidden="true"></div>
-      <h1 class="hero-title">Grimoire</h1>
-      <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
-      <div id="user-display-name" class="subtitle" style="display:none"></div>
-      <div class="hero-actions">
-        <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
-        <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
-        <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
-        <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
+  <!-- Barre utilisateur -->
+  <div id="user-bar" style="display:none; position:fixed; top:12px; right:12px; background:rgba(11,15,26,0.85); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:8px 14px; display:flex; align-items:center; gap:10px; z-index:100; box-shadow:0 4px 14px rgba(0,0,0,.45)">
+    <img id="user-avatar" src="" alt="Avatar Twitch" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
+    <span id="user-name" style="font-weight:700; color:#e8ecf3;"></span>
+    <button id="user-logout" class="btn ghost pill" style="margin-left:auto; padding:4px 10px; font-size:12px">Déconnexion</button>
+  </div>
+
+  <header class="hero-header">
+    <div class="container">
+      <div class="hero-center">
+        <div class="hero-logo" aria-hidden="true"></div>
+        <h1 class="hero-title">Grimoire</h1>
+        <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
+        <div id="user-display-name" class="subtitle" style="display:none"></div>
+        <div class="hero-actions">
+          <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
+          <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
+          <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
+          <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
   <main class="container">
     <div class="grid">
@@ -347,7 +203,7 @@
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
-          <span class="badge">Alpha — Firebase V4</span>
+          <span class="badge">Alpha — Firebase V4.1</span>
         </div>
         <div class="bd">
           <div class="stats">
@@ -365,41 +221,38 @@
             <div class="xpbar"><div id="xp-fill" class="fill"></div></div>
           </div>
 
-          <div class="footerbar">
+          <div class="footerbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
             <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
             <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (local)</button>
           </div>
         </div>
       </section>
 
-      <!-- Packs disponibles -->
+      <!-- Sets disponibles (NOUVEAU) -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd">
-          <h3>Packs disponibles</h3>
-          <small class="subtitle">Les probabilités s'appliquent par carte</small>
+          <h3>Sets disponibles</h3>
+          <small class="subtitle">Clique sur un set puis choisis le niveau du pack</small>
         </div>
         <div class="bd">
-          <div class="packs" id="packs"></div>
+          <div class="sets" id="sets"></div>
         </div>
       </section>
 
       <!-- Résultats d'ouverture -->
-<section class="panel" style="grid-column:span 12">
-  <div class="hd">
-    <h3>Résultats d'ouverture</h3>
-  </div>
-  <div class="bd">
-    <div id="special-banner" class="banner" style="display:none"></div>
-    <div class="results" id="results"></div>
-  </div>
-</section>
-
+      <section class="panel" style="grid-column:span 12">
+        <div class="hd"><h3>Résultats d'ouverture</h3></div>
+        <div class="bd">
+          <div id="special-banner" class="banner" style="display:none"></div>
+          <div class="results" id="results"></div>
+        </div>
+      </section>
 
       <!-- Debug & Diagnostics -->
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
         <div class="bd">
-          <div class="footerbar">
+          <div class="footerbar" style="display:flex;gap:10px;flex-wrap:wrap">
             <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
             <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
             <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
@@ -412,60 +265,54 @@
       </section>
 
     </div>
+
     <!-- Overlay d'animation d'ouverture de pack -->
-<div id="pack-overlay" aria-hidden="true" hidden>
-  <div class="po-backdrop"></div>
-
-  <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
-    <!-- Booster -->
-    <div class="po-pack" id="po-pack" aria-hidden="true">
-      <div class="po-pack-body">
-        <div class="po-pack-gloss"></div>
-        <div class="po-pack-logo">GRIMOIRE</div>
+    <div id="pack-overlay" aria-hidden="true" hidden>
+      <div class="po-backdrop"></div>
+      <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
+        <div class="po-pack" id="po-pack" aria-hidden="true">
+          <div class="po-pack-body">
+            <div class="po-pack-gloss"></div>
+            <div class="po-pack-logo">GRIMOIRE</div>
+          </div>
+          <div class="po-pack-shine"></div>
+        </div>
+        <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+        <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
+        <canvas id="po-confetti" width="1280" height="720"></canvas>
+        <div class="po-actions">
+          <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+        </div>
       </div>
-      <div class="po-pack-shine"></div>
     </div>
 
-    <!-- Fente lumineuse -->
-    <div class="po-slit" id="po-slit" aria-hidden="true"></div>
-
-    <!-- Éventail + cartes -->
-    <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Particules -->
-    <canvas id="po-confetti" width="1280" height="720"></canvas>
-
-    <!-- Actions -->
-    <div class="po-actions">
-      <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+    <!-- Choix du niveau de pack (modal) -->
+    <div id="pack-chooser" hidden>
+      <div class="backdrop"></div>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pc-title">
+        <h4 id="pc-title">Choisis le niveau du pack</h4>
+        <div class="subtitle" id="pc-sub">Set sélectionné : <span id="pc-set-name">—</span></div>
+        <div class="row">
+          <button id="pc-standard" class="btn pill">🎴 Standard</button>
+          <button id="pc-premium" class="btn pill ghost">💎 Premium</button>
+        </div>
+        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs)</div>
+        <div class="row" style="justify-content:flex-end">
+          <button id="pc-cancel" class="btn ghost pill">Annuler</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
   </main>
 
   <script type="module">
   // --- Firebase imports
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import {
-    getAuth, onAuthStateChanged, OAuthProvider,
-    signInWithPopup, signInWithRedirect, getRedirectResult,
-    signOut, setPersistence, browserLocalPersistence
-  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import {
-    getFirestore, doc, getDoc, setDoc, updateDoc,
-    runTransaction, serverTimestamp
-  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   // --- Firebase config
-  const firebaseConfig = {
-    apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
-    authDomain: 'legends-collection.firebaseapp.com',
-    projectId: 'legends-collection',
-    storageBucket: 'legends-collection.firebasestorage.app',
-    messagingSenderId: '133783086150',
-    appId: '1:133783086150:web:762f209f7f778ef83a1647'
-  };
+  const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
 
   console.log('[DEBUG] Initialisation Firebase');
   const app = initializeApp(firebaseConfig);
@@ -475,590 +322,196 @@
 
   // --- Auth provider (Twitch via OIDC)
   const twitchProvider = new OAuthProvider('oidc.twitch');
-  try {
-    twitchProvider.addScope('openid');
-    twitchProvider.addScope('user:read:email');
-    twitchProvider.setCustomParameters({ prompt: 'consent' });
-  } catch {}
+  try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); twitchProvider.setCustomParameters({ prompt: 'consent' }); } catch {}
 
   // --- Helpers pour enregistrer le pseudo Twitch ---
-  function decodeJwtPayload(jwt){
-    try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return {}; }
-  }
-
-  async function saveDisplayNameIfAny(user, nick){
-    if(!user || !nick) return;
-    playerDocRef = playerDocRef || doc(db,'players',user.uid);
-    try{
-      await setDoc(playerDocRef, {
-        displayName: nick,
-        displayNameLower: nick.toLowerCase(),
-        updatedAt: serverTimestamp()
-      }, { merge:true });
-      console.log('[DEBUG] Pseudo enregistré:', nick);
-    }catch(e){ console.warn('saveDisplayNameIfAny failed', e); }
-  }
-
-  async function trySavePseudonymFromCredential(cred, user){
-    if(!user) return;
-    let nick = user.displayName || '';
-    if(!nick && cred?.idToken){
-      const claims = decodeJwtPayload(cred.idToken);
-      nick = claims.preferred_username || claims.nickname || '';
-    }
-    await saveDisplayNameIfAny(user, nick);
-  }
+  function decodeJwtPayload(jwt){ try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return {}; } }
+  async function saveDisplayNameIfAny(user, nick){ if(!user || !nick) return; playerDocRef = playerDocRef || doc(db,'players',user.uid); try{ await setDoc(playerDocRef, { displayName: nick, displayNameLower: nick.toLowerCase(), updatedAt: serverTimestamp() }, { merge:true }); console.log('[DEBUG] Pseudo enregistré:', nick); }catch(e){ console.warn('saveDisplayNameIfAny failed', e); } }
+  async function trySavePseudonymFromCredential(cred, user){ if(!user) return; let nick = user.displayName || ''; if(!nick && cred?.idToken){ const claims = decodeJwtPayload(cred.idToken); nick = claims.preferred_username || claims.nickname || ''; } await saveDisplayNameIfAny(user, nick); }
 
   // --- UI buttons
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
   const adminBtn  = document.getElementById('btn-admin');
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
-
-  loginBtn.addEventListener('click', async ()=>{
-    try {
-      console.log('[DEBUG] Click login -> POPUP');
-      const result = await signInWithPopup(auth, twitchProvider);
-      const cred = OAuthProvider.credentialFromResult(result);
-      await trySavePseudonymFromCredential(cred, result.user);
-    } catch(e){
-      console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e);
-      if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){
-        try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); }
-        catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); }
-      } else {
-        alert('Erreur de connexion Twitch: '+(e?.message||e));
-      }
-    }
-  });
-
+  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
-
   console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
-  try{
-    const redirRes = await getRedirectResult(auth);
-    if(redirRes){
-      const cred = OAuthProvider.credentialFromResult(redirRes);
-      await trySavePseudonymFromCredential(cred, redirRes.user);
-    }
-  }catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
+  try{ const redirRes = await getRedirectResult(auth); if(redirRes){ const cred = OAuthProvider.credentialFromResult(redirRes); await trySavePseudonymFromCredential(cred, redirRes.user); } }catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
 
   // --- Rarity constants
   const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
   const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
   const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-  // --- Dynamic card set (loaded from JSON)
-  let CARD_POOLS = []; // will be filled by loadCardSet()
-  const FALLBACK_CARDS = [
-    { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
-    { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
-    { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
-    { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
-    { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
-    { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' }
+  // --- Sets (2 sets visibles au lancement)
+  const SETS = [
+    { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', cover:"url('https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?q=80&w=1400&auto=format&fit=crop') center/cover" },
+    { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            cover:"url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop') center/cover" }
   ];
 
-  async function loadCardSet(){
-    const url = '/data/sets/nouvelle-lumiere.json';
-    try{
-      console.log('[DEBUG] Chargement du set JSON:', url);
-      const res = await fetch(url, {cache:'no-store'});
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const data = await res.json();
-      if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
-      const mapRarity = (r) => {
-        const x = (r||'').toLowerCase();
-        if(x === 'common' || x === 'commune') return RARITY.COMMON;
-        if(x === 'uncommon' || x === 'peu commune') return RARITY.UNCOMMON;
-        if(x === 'rare') return RARITY.RARE;
-        if(x === 'legendary' || x === 'légendaire' || x === 'legendaire') return RARITY.LEGENDARY;
-        if(x === 'exotic' || x === 'exotique') return RARITY.EXOTIC;
-        return RARITY.COMMON;
-      };
-      CARD_POOLS = data.cards
-        .filter(c => !!c.id && !!c.name)
-        .map(c => ({ id:c.id, name:c.name, set:(c.set||'Nouvelle Lumière'), rarity: mapRarity(c.rarity), image:(c.image||'') }));
-      console.log('[DEBUG] Set chargé:', CARD_POOLS.length, 'cartes.');
-    }catch(e){
-      console.warn('[DEBUG] Échec du chargement JSON, fallback local.', e);
-      CARD_POOLS = FALLBACK_CARDS.slice();
+  // --- Pools par set + pool combiné
+  const CARD_SETS = {}; // { setId: Card[] }
+  let ALL_CARDS = [];   // pour stats/collection
+
+  // Fallbacks minimalistes par set
+  const FALLBACK = {
+    NL: [
+      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
+      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
+      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
+      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
+      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' },
+    ],
+    TW: [
+      { id:'LT-001', name:'Sentinelle de la Place', set:'Twitch', rarity: RARITY.COMMON, image:'' },
+      { id:'LT-012', name:'Couteau du Guetteur', set:'Twitch', rarity: RARITY.UNCOMMON, image:'' },
+      { id:'LT-025', name:'Canon — Défenseur', set:'Twitch', rarity: RARITY.RARE, image:'' },
+      { id:'LT-070', name:'Shaxx — Rugissement', set:'Twitch', rarity: RARITY.LEGENDARY, image:'' },
+      { id:'LT-099', name:'Spectre Doré', set:'Twitch', rarity: RARITY.EXOTIC, image:'' },
+    ]
+  };
+
+  function mapRarity(r){ const x=(r||'').toLowerCase(); if(x==='common'||x==='commune') return RARITY.COMMON; if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON; if(x==='rare') return RARITY.RARE; if(x==='legendary'||x==='légendaire'||x==='legendaire') return RARITY.LEGENDARY; if(x==='exotic'||x==='exotique') return RARITY.EXOTIC; return RARITY.COMMON; }
+
+  async function loadCardSets(){
+    ALL_CARDS = []; Object.keys(CARD_SETS).forEach(k=> delete CARD_SETS[k]);
+    for(const s of SETS){
+      try{
+        console.log('[DEBUG] Load set JSON:', s.json);
+        const res = await fetch(s.json, {cache:'no-store'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        const arr = (data.cards||[]).filter(c=>c.id&&c.name).map(c=>({ id:c.id, name:c.name, set:(c.set||s.name), rarity: mapRarity(c.rarity), image:(c.image||'') }));
+        CARD_SETS[s.id] = arr.length? arr : FALLBACK[s.id] || [];
+      }catch(e){ console.warn('[DEBUG] Set fallback for', s.id, e); CARD_SETS[s.id] = FALLBACK[s.id] || []; }
+      ALL_CARDS = ALL_CARDS.concat(CARD_SETS[s.id]);
     }
+    console.log('[DEBUG] Sets chargés ->', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
   }
 
-  // --- Local/state (utilisé uniquement en mode déconnecté)
-  const LS_KEY = 'grimoire.alpha.collection.v2_5';
-  const LS_STATS = 'grimoire.alpha.stats.v2_5';
-  const LS_PROFILE = 'grimoire.alpha.profile.v2_5';
-
+  // --- Local/state (mode déconnecté uniquement)
+  const LS_KEY = 'grimoire.alpha.collection.v2_6';
+  const LS_STATS = 'grimoire.alpha.stats.v2_6';
+  const LS_PROFILE = 'grimoire.alpha.profile.v2_6';
   let collection = loadCollection();
   let stats = loadStats();
   let profile = loadProfile();
-  let currentUser = null;
-  let playerDocRef = null;
-
+  let currentUser = null; let playerDocRef = null;
   function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
   function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
   function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
 
-  // --- Cloud-first helpers
   const isCloud = () => !!currentUser && !!playerDocRef;
-
-  function updateLocalFromCloud(data){
-    collection = { ...(data.collection || {}) };
-    stats = { packsOpened: data?.stats?.packsOpened || 0 };
-    profile = { level: data?.level || 1, xp: data?.xp || 0 };
-    renderStats();
-    renderCollection();
-  }
-
-  function maybeSaveLocal(){
-    if (!isCloud()) {
-      localStorage.setItem(LS_KEY, JSON.stringify(collection));
-      localStorage.setItem(LS_STATS, JSON.stringify(stats));
-      localStorage.setItem(LS_PROFILE, JSON.stringify(profile));
-    }
-  }
-  // Sauvegardes neutralisées en mode cloud
-  function saveCollection(){ maybeSaveLocal(); }
-  function saveStats(){ maybeSaveLocal(); }
-  function saveProfile(){ maybeSaveLocal(); }
+  function updateLocalFromCloud(data){ collection = { ...(data.collection || {}) }; stats = { packsOpened: data?.stats?.packsOpened || 0 }; profile = { level: data?.level || 1, xp: data?.xp || 0 }; renderStats(); renderCollection(); }
+  function maybeSaveLocal(){ if (!isCloud()) { localStorage.setItem(LS_KEY, JSON.stringify(collection)); localStorage.setItem(LS_STATS, JSON.stringify(stats)); localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } }
+  function saveCollection(){ maybeSaveLocal(); } function saveStats(){ maybeSaveLocal(); } function saveProfile(){ maybeSaveLocal(); }
 
   // --- XP / Levels
-  const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100;
-  function xpForLevel(level){ return LEVEL_XP_BASE; }
-  function nextRewardForLevel(level){
-    if(level===1) return {type:'pack_standard', label:'Pack Standard'};
-    if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'};
-    return {type:'pack_standard', label:'Pack Standard'};
-  }
+  const XP_PER_PACK = 5; const LEVEL_XP_BASE = 100; function xpForLevel(level){ return LEVEL_XP_BASE; }
+  function nextRewardForLevel(level){ if(level===1) return {type:'pack_standard', label:'Pack Standard'}; if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'}; return {type:'pack_standard', label:'Pack Standard'}; }
 
   // --- Rendering
-  function renderStats(){
-    const uniqueOwned = Object.keys(collection).length;
-    const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
-    const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0;
-    document.getElementById('stat-packs').textContent = stats.packsOpened||0;
-    document.getElementById('stat-uniques').textContent = uniqueOwned;
-    document.getElementById('stat-completion').textContent = completion+"%";
-    document.getElementById('stat-rank').textContent = rankFromCompletion(completion);
-    const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100)));
-    document.getElementById('stat-level').textContent = level;
-    document.getElementById('stat-xp').textContent = xp;
-    document.getElementById('stat-xp-next').textContent = need;
-    document.getElementById('xp-fill').style.width = pct + '%';
-    document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
-  }
-  function rankFromCompletion(p){
-    if(p >= 100) return 'Parangon';
-    if(p >= 90) return 'Exemplaire';
-    if(p >= 80) return 'Vainqueur';
-    if(p >= 70) return 'Justicier';
-    if(p >= 60) return 'Elite';
-    if(p >= 50) return 'Vétéran';
-    if(p >= 40) return 'Aventurier';
-    if(p >= 30) return 'Éclaireur';
-    if(p >= 20) return 'Initié';
-    if(p >= 10) return 'Explorateur';
-    return 'Nouvelle lumière';
-  }
+  function renderStats(){ const uniqueOwned = Object.keys(collection).length; const totalUnique = new Set(ALL_CARDS.map(c=>c.id)).size; const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0; document.getElementById('stat-packs').textContent = stats.packsOpened||0; document.getElementById('stat-uniques').textContent = uniqueOwned; document.getElementById('stat-completion').textContent = completion+"%"; document.getElementById('stat-rank').textContent = rankFromCompletion(completion); const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100))); document.getElementById('stat-level').textContent = level; document.getElementById('stat-xp').textContent = xp; document.getElementById('stat-xp-next').textContent = need; document.getElementById('xp-fill').style.width = pct + '%'; document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label; }
+  function rankFromCompletion(p){ if(p >= 100) return 'Parangon'; if(p >= 90) return 'Exemplaire'; if(p >= 80) return 'Vainqueur'; if(p >= 70) return 'Justicier'; if(p >= 60) return 'Elite'; if(p >= 50) return 'Vétéran'; if(p >= 40) return 'Aventurier'; if(p >= 30) return 'Éclaireur'; if(p >= 20) return 'Initié'; if(p >= 10) return 'Explorateur'; return 'Nouvelle lumière'; }
   function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
-  function renderResults(cards){
-    const wrap = document.getElementById('results'); wrap.innerHTML='';
-    let hasLegendary=false, hasExotic=false;
-    for(const card of cards){
-      const div=document.createElement('div'); div.className='card';
-      const img=document.createElement('div'); img.className='img';
-      if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; }
-      const shine=document.createElement('div'); shine.className='shine';
-      div.appendChild(img); div.appendChild(shine);
-      div.addEventListener('pointermove', (e)=>{
-        const r=e.currentTarget.getBoundingClientRect();
-        const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100;
-        shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%');
-      });
-      const footer=document.createElement('div'); footer.className='footer';
-      footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
-      div.appendChild(footer);
-      wrap.appendChild(div);
-      if(card.rarity===RARITY.LEGENDARY) hasLegendary=true;
-      if(card.rarity===RARITY.EXOTIC) hasExotic=true;
-    }
-    const banner=document.getElementById('special-banner');
-    if(hasExotic || hasLegendary){
-      banner.style.display='flex';
-      banner.innerHTML=(hasExotic
-        ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
-        : '⭐ <strong>LÉGENDAIRE !</strong>')
-        + '<button class="close" aria-label="Fermer">×</button>';
-      banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
-    } else {
-      banner.style.display='none';
-    }
-  }
+  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
+    const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); } else { banner.style.display='none'; } }
 
-  // Safe-no-op si l’élément #collection n’existe pas (collection sur collection.html)
-  function renderCollection(){
-    const wrap=document.getElementById('collection');
-    if(!wrap) return;
-    wrap.innerHTML='';
-    const byRarityIdx=c=>rarityOrder.indexOf(c.rarity);
-    const all=CARD_POOLS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id));
-    for(const card of all){
-      const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card';
-      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
-        + '<div style="font-weight:700">'+card.name+'</div>'
-        + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>'
-        + '</div><div class="qty">'+card.set+' — '+card.id+'</div>'
-        + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>';
-      wrap.appendChild(div);
-    }
-  }
+  function renderCollection(){ const wrap=document.getElementById('collection'); if(!wrap) return; wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=ALL_CARDS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id)); for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + '<div style="font-weight:700">'+card.name+'</div>' + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>' + '</div><div class="qty">'+card.set+' — '+card.id+'</div>' + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>'; wrap.appendChild(div); } }
 
   // --- Tirage helpers
-  function weightedRandomRarity(){
-    const entries=Object.entries(RARITY_WEIGHTS);
-    const total=entries.reduce((s,[,w])=>s+w,0);
-    let r=Math.random()*total;
-    for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight; }
-    return RARITY.COMMON;
-  }
-  function pickCardByRarity(rarity){
-    const pool=CARD_POOLS.filter(c=>c.rarity===rarity);
-    if(pool.length===0){
-      const idx=rarityOrder.indexOf(rarity);
-      for(let j=idx-1;j>=0;j--){
-        const p=CARD_POOLS.filter(c=>c.rarity===rarityOrder[j]);
-        if(p.length) return p[Math.floor(Math.random()*p.length)];
-      }
-      return CARD_POOLS[Math.floor(Math.random()*CARD_POOLS.length)];
-    }
-    return pool[Math.floor(Math.random()*pool.length)];
-  }
-  function ensureAtLeastRare(){
-    const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]);
-    const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]];
-    let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE;
-  }
+  function weightedRandomRarity(){ const entries=Object.entries(RARITY_WEIGHTS); const total=entries.reduce((s,[,w])=>s+w,0); let r=Math.random()*total; for(const [rarity,weight] of entries){ if(r<weight) return rarity; r-=weight; } return RARITY.COMMON; }
+  function pickCardByRarity(rarity, pool){ const p = (pool||[]).filter(c=>c.rarity===rarity); if(p.length===0){ const idx=rarityOrder.indexOf(rarity); for(let j=idx-1;j>=0;j--){ const q=(pool||[]).filter(c=>c.rarity===rarityOrder[j]); if(q.length) return q[Math.floor(Math.random()*q.length)]; } return (pool||ALL_CARDS)[Math.floor(Math.random()*Math.max(1,(pool||ALL_CARDS).length))]; } return p[Math.floor(Math.random()*p.length)]; }
+  function ensureAtLeastRare(){ const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]); const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]]; let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE; }
 
-/* === Helpers animation pack (version sans ?. ) === */
-const overlay = document.getElementById('pack-overlay');
-const poPack  = document.getElementById('po-pack');
-const poSlit  = document.getElementById('po-slit');
-const poFan   = document.getElementById('po-fan');
-const poSkip  = document.getElementById('po-skip');
-const poFx    = document.getElementById('po-confetti');
-const ctxFx   = poFx.getContext('2d');
-
-let skipRequested = false;
-if (poSkip) {
-  poSkip.addEventListener('click', ()=>{ skipRequested = true; });
-}
-
-function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
-function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
-function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
-
-function rarityGlowClass(r){
-  if(r===RARITY.EXOTIC) return 'glow-exotic';
-  if(r===RARITY.LEGENDARY) return 'glow-legendary';
-  if(r===RARITY.RARE) return 'glow-rare';
-  if(r===RARITY.UNCOMMON) return 'glow-uncommon';
-  return 'glow-common';
-}
-
-/* Confetti/eclats canvas */
-function burst(x, y, strong=false){
-  const parts = [];
-  const n = strong ? 140 : 80;
-  for(let i=0;i<n;i++){
-    parts.push({
-      x, y,
-      vx: (Math.random()*2-1)*(strong?6:4),
-      vy: (Math.random()*-2-2)*(strong?2:1.6),
-      g:  0.18,
-      a:  1,
-      s:  Math.random()*2+1
-    });
-  }
-  const start = performance.now();
-  function step(t){
-    // (dt non utilisé, on peut le garder ou le retirer)
-    // const dt = Math.min(32, t - (step._lt||t));
-    step._lt = t;
-    ctxFx.clearRect(0,0,poFx.width,poFx.height);
-    parts.forEach(p=>{
-      p.vy += p.g;
-      p.x  += p.vx;
-      p.y  += p.vy;
-      p.a  -= 0.012;
-      ctxFx.globalAlpha = Math.max(0,p.a);
-      ctxFx.fillStyle = '#fff';
-      ctxFx.fillRect(p.x, p.y, p.s, p.s);
-    });
-    ctxFx.globalAlpha = 1;
-    if(performance.now()-start < 1800) requestAnimationFrame(step);
-    else ctxFx.clearRect(0,0,poFx.width,poFx.height);
-  }
-  requestAnimationFrame(step);
-}
-
-/* Animation principale */
-async function playPackAnimation(cards){
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  skipRequested = reduce ? true : false;
-
-  poFx.width = Math.min(1280, innerWidth);
-  poFx.height = Math.min(720, innerHeight);
-
-  // Reset
-  poFan.innerHTML = '';
-  poSlit.style.opacity = 0; poSlit.style.height = '0px';
-  poPack.style.opacity = 1; poPack.style.transform = '';
-  showOverlay();
-
-  // Shine follow
-  const shine = poPack.querySelector('.po-pack-shine');
-  overlay.onpointermove = (e)=> {
-    const r = poPack.getBoundingClientRect();
-    if (shine) {
-      shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
-      shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
-    }
-  };
-
-  // 1) Secousse
-  poPack.style.animation = 'poShake .5s linear';
-  await wait(skipRequested ? 0 : 520);
-
-  // 2) Déchirure
-  const r = poPack.getBoundingClientRect();
-  poSlit.style.left = (r.left + r.width/2) + 'px';
-  poSlit.style.top  = (r.top  + 40) + 'px';
-  poSlit.style.opacity = 1;
-  poSlit.style.height  = (r.height - 80) + 'px';
-  await wait(skipRequested ? 0 : 260);
-
-  // 3) Disparition du pack + burst
-  poPack.style.opacity = 0;
-  burst(poFx.width/2, poFx.height/2, false);
-  await wait(skipRequested ? 0 : 160);
-
-  // 4) Éventail des cartes
-  const ANG = [-18,-9,0,9,18];
-  cards.forEach((c, i)=>{
-    const el = document.createElement('div');
-    el.className = 'po-card';
-    el.style.setProperty('--rot', ANG[i]+'deg');
-    el.setAttribute('data-idx', String(i));
-    el.innerHTML = `
+  // --- Overlay animation (inchangé sauf factorisation)
+  const overlay = document.getElementById('pack-overlay');
+  const poPack  = document.getElementById('po-pack');
+  const poSlit  = document.getElementById('po-slit');
+  const poFan   = document.getElementById('po-fan');
+  const poSkip  = document.getElementById('po-skip');
+  const poFx    = document.getElementById('po-confetti');
+  const ctxFx   = poFx.getContext('2d');
+  let skipRequested = false; if (poSkip) { poSkip.addEventListener('click', ()=>{ skipRequested = true; }); }
+  function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
+  function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
+  function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
+  function rarityGlowClass(r){ if(r===RARITY.EXOTIC) return 'glow-exotic'; if(r===RARITY.LEGENDARY) return 'glow-legendary'; if(r===RARITY.RARE) return 'glow-rare'; if(r===RARITY.UNCOMMON) return 'glow-uncommon'; return 'glow-common'; }
+  function burst(x, y, strong=false){ const parts = []; const n = strong ? 140 : 80; for(let i=0;i<n;i++){ parts.push({ x, y, vx: (Math.random()*2-1)*(strong?6:4), vy: (Math.random()*-2-2)*(strong?2:1.6), g:  0.18, a:  1, s:  Math.random()*2+1 }); } const start = performance.now(); function step(t){ step._lt = t; ctxFx.clearRect(0,0,poFx.width,poFx.height); parts.forEach(p=>{ p.vy += p.g; p.x  += p.vx; p.y  += p.vy; p.a  -= 0.012; ctxFx.globalAlpha = Math.max(0,p.a); ctxFx.fillStyle = '#fff'; ctxFx.fillRect(p.x, p.y, p.s, p.s); }); ctxFx.globalAlpha = 1; if(performance.now()-start < 1800) requestAnimationFrame(step); else ctxFx.clearRect(0,0,poFx.width,poFx.height); } requestAnimationFrame(step); }
+  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); poFan.innerHTML = ''; poSlit.style.opacity = 0; poSlit.style.height = '0px'; poPack.style.opacity = 1; poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); el.innerHTML = `
   <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
   <div class="shine"></div>
   <div class="tagbar">${c.name || 'Carte'}</div>
-  <div class="veil">Clique pour révéler</div>
-`;
+  <div class="veil">Clique pour révéler</div>`; poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
+    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; el.setAttribute('aria-pressed','true'); el.classList.add(rarityGlowClass(c.rarity)); el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)'; const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC); if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
+      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
+    await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
-    poFan.appendChild(el);
-  });
-  poFan.style.opacity = 1;
-
-  Array.from(poFan.children).forEach((el, i)=>{
-    setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
-  });
-  await wait(skipRequested ? 0 : 420);
-
- // 5) Révélation interactive (clic par clic)
-function setupClickReveal(){
-  let remaining = new Set(cards.map((_,i)=> i));
-  let resolveAll;
-  const done = new Promise(r=> resolveAll = r);
-
-  // accessibilité clavier
-  function onKey(e){
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      e.currentTarget.click();
-    }
-  }
-
-  // révèle une carte (avec effets selon rareté)
-  function revealIndex(i, fast=false){
-    const c = cards[i];
-    const el = poFan.querySelector('.po-card[data-idx="'+i+'"]');
-    if(!el || el.getAttribute('aria-pressed') === 'true') return;
-
-    el.setAttribute('aria-pressed','true');
-    el.classList.add(rarityGlowClass(c.rarity));
-    el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
-
-    const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
-    if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
-  }
-
-  // attache les handlers sur chaque carte
-  Array.from(poFan.children).forEach((el, i)=>{
-    el.setAttribute('role','button');
-    el.setAttribute('tabindex','0');
-    el.setAttribute('aria-pressed','false');
-    el.addEventListener('keydown', onKey);
-    el.addEventListener('click', ()=>{
-      if(el.getAttribute('aria-pressed') === 'true') return;
-      revealIndex(i, false);
-      remaining.delete(i);
-      if(remaining.size === 0){
-        resolveAll();
-      }
-    }, { passive:true });
-  });
-
-  // Skip = tout révéler instantanément
-  function revealAllFast(){
-    remaining.forEach(idx => revealIndex(idx, true));
-    remaining.clear();
-    resolveAll();
-  }
-  if (poSkip){
-    // “once:true” pour éviter de multiples appels
-    poSkip.addEventListener('click', revealAllFast, { once:true });
-  }
-  if (skipRequested){
-    revealAllFast();
-  }
-
-  return done;
-}
-
-await setupClickReveal();       // attend que les 5 clics soient faits (ou skip)
-await wait(skipRequested ? 0 : 280);
-hideOverlay();
-
-}
-
-
-
-    
-  // --- Ouverture de pack 100% cloud
-  async function openPack({type='standard'} = {}){
-    if(!CARD_POOLS.length){ alert('Cartes non chargées. Réessaie dans une seconde.'); return; }
+  // --- Ouverture de pack 100% cloud, par set sélectionné
+  async function openPack({type='standard', setId} = {}){
+    const pool = CARD_SETS[setId] || ALL_CARDS;
+    if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
     if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
 
-    // Tirage pour l’affichage
+    // Tirage affichage depuis le pool du set
     const cards=[];
     if(type==='premium'){
       const idx=Math.floor(Math.random()*5);
-      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(pickCardByRarity(rarity, pool)); }
     } else {
-      for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity)); }
+      for(let i=0;i<5;i++){ const rarity=weightedRandomRarity(); cards.push(pickCardByRarity(rarity, pool)); }
     }
 
     // Transaction Firestore = source de vérité
     const result = await runTransaction(db, async (trx)=>{
       const docSnap = await trx.get(playerDocRef);
-      const cur = docSnap.exists() ? docSnap.data() : {
-        stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[]
-      };
-
+      const cur = docSnap.exists() ? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
       const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
       const newCollection = { ...(cur.collection||{}) };
       for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
-
-      let level = cur.level || 1;
-      let xp = (cur.xp || 0) + XP_PER_PACK;
-      let rewards = cur.rewardsInbox || [];
-      let need = xpForLevel(level);
-
-      while(xp >= need){
-        xp -= need; level += 1; need = xpForLevel(level);
-        const rw = nextRewardForLevel(level - 1);
-        rewards = [...rewards, { id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() }];
-      }
-
-      const newDoc = {
-        stats:newStats,
-        collection:newCollection,
-        level, xp,
-        rewardsInbox:rewards,
-        updatedAt: serverTimestamp()
-      };
+      let level = cur.level || 1; let xp = (cur.xp || 0) + XP_PER_PACK; let rewards = cur.rewardsInbox || []; let need = xpForLevel(level);
+      while(xp >= need){ xp -= need; level += 1; need = xpForLevel(level); const rw = nextRewardForLevel(level - 1); rewards = [...rewards, { id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() }]; }
+      const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt: serverTimestamp() };
       trx.set(playerDocRef, newDoc, { merge:true });
       return newDoc;
     });
 
-   // UI depuis l'état cloud
-updateLocalFromCloud(result);
-await playPackAnimation(cards); // ← AJOUT : lance la cinématique
-renderResults(cards);
-toast(type==='premium' ? '💎 Pack Premium ouvert !' : '🎴 Pack Standard ouvert !');
-  }
-
-  // --- (Option) gain XP ailleurs : neutre en cloud-first, déjà géré lors de l’ouverture
-  async function gainXpAndMaybeLevelUp(amount){
-    if(!isCloud()) return;
-    await updateDoc(playerDocRef,{ updatedAt: serverTimestamp() }).catch(()=>{});
+    updateLocalFromCloud(result);
+    await playPackAnimation(cards);
+    renderResults(cards);
+    toast((type==='premium' ? '💎 Premium' : '🎴 Standard')+' — '+(SETS.find(s=>s.id===setId)?.name||'Set')+' ouvert !');
   }
 
   // --- Auth state
- 
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user || null;
-  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-
-  loginBtn.style.display = currentUser ? 'none' : '';
-  logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display = 'none';
-
-  const nameBox = document.getElementById('user-display-name');
-  const userBar = document.getElementById('user-bar');
-  const userName = document.getElementById('user-name');
-  const userAvatar = document.getElementById('user-avatar');
-
-  if (!currentUser) {
-    if (nameBox) nameBox.style.display = 'none';
-    if (userBar) userBar.style.display = 'none';
-    return;
-  }
-
-  // Charger les données du joueur depuis Firestore
-  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-  let pseudo = data?.displayName || currentUser.displayName || '';
-  if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
-
-  // Afficher le pseudo dans le header central
-  if (nameBox) {
-    nameBox.style.display = '';
-    nameBox.textContent = `Connecté en tant que ${pseudo}`;
-  }
-
-  // Remplir la barre utilisateur en haut à droite
-  if (userBar && userName && userAvatar) {
-    userName.textContent = pseudo;
-    userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png';
-    userBar.style.display = 'flex';
-  }
-
-  // Gérer le bouton Admin si admin
-  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-  if (allowByUid || allowByRole) adminBtn.style.display = '';
-});
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user || null;
+    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+    loginBtn.style.display = currentUser ? 'none' : '';
+    logoutBtn.style.display = currentUser ? '' : 'none';
+    adminBtn.style.display = 'none';
+    const nameBox = document.getElementById('user-display-name');
+    const userBar = document.getElementById('user-bar');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    if (!currentUser) { if (nameBox) nameBox.style.display = 'none'; if (userBar) userBar.style.display = 'none'; return; }
+    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+    let pseudo = data?.displayName || currentUser.displayName || '';
+    if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
+    if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
+    if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
+    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+    if (allowByUid || allowByRole) adminBtn.style.display = '';
+  });
 
   // --- Cloud bootstrap
   async function loadOrCreatePlayerDoc(user){
     playerDocRef = doc(db,'players',user.uid);
     const snap = await getDoc(playerDocRef);
     if(!snap.exists()){
-      const base = {
-        displayName:user.displayName||'',
-        photoURL:user.photoURL||'',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        stats:{packsOpened:0},
-        collection:{},
-        level:1,
-        xp:0,
-        rewardsInbox:[]
-      };
+      const base = { displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
       await setDoc(playerDocRef, base);
       updateLocalFromCloud(base);
       return base;
@@ -1069,128 +522,53 @@ onAuthStateChanged(auth, async (user) => {
     return data;
   }
 
-  // --- Diagnostic helpers
+  // --- Diagnostic helpers (inchangés)
   const diag=document.getElementById('diag-log');
   function printDiag(line){ diag.textContent += (line + '\n'); }
   function clearDiag(){ diag.textContent=''; }
+  document.getElementById('btn-test-config').addEventListener('click',()=>{ clearDiag(); const checks=[]; checks.push(['apiKey ok',!!firebaseConfig.apiKey]); checks.push(['authDomain ok',!!firebaseConfig.authDomain]); checks.push(['projectId ok',!!firebaseConfig.projectId]); checks.push(['appId ok',!!firebaseConfig.appId]); for(const [name,ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); } printDiag('\nConfig OK si toutes les coches sont vertes.'); printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.'); });
+  document.getElementById('btn-test-auth').addEventListener('click',()=>{ clearDiag(); if(currentUser){ printDiag('Connecté ✅'); printDiag('uid: '+currentUser.uid); printDiag('displayName: '+(currentUser.displayName||'(—)')); printDiag('email: '+(currentUser.email||'(—)')); printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)')); } else { printDiag('Non connecté ❌'); printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.'); } });
+  document.getElementById('btn-test-draws').addEventListener('click',()=>{ clearDiag(); const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0}; for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; } const pct=x=>(100*x/N).toFixed(2)+'%'; printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:'); for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){ printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')'); } });
+  document.getElementById('btn-test-premium').addEventListener('click',()=>{ clearDiag(); const P=1000; let ok=0,fail=0; for(let p=0;p<P;p++){ const cards=[]; let idx=Math.floor(Math.random()*5); for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); } if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++; } printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail); printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.'); });
+  document.getElementById('btn-test-firestore').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; } try{ const now=Date.now(); await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()}); const back=await getDoc(doc(db,'players',currentUser.uid)); printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest); } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); } });
+  document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; } try{ const snap=await getDoc(doc(db,'players',currentUser.uid)); if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; } const data=snap.data(); updateLocalFromCloud(data); printDiag('✅ Priorité cloud appliquée.'); } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); } });
 
-  document.getElementById('btn-test-config').addEventListener('click',()=>{
-    clearDiag();
-    const checks=[];
-    checks.push(['apiKey ok',!!firebaseConfig.apiKey]);
-    checks.push(['authDomain ok',!!firebaseConfig.authDomain]);
-    checks.push(['projectId ok',!!firebaseConfig.projectId]);
-    checks.push(['appId ok',!!firebaseConfig.appId]);
-    for(const [name,ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
-    printDiag('\nConfig OK si toutes les coches sont vertes.');
-    printDiag('Astuce: si rien ne se passe au login, vérifie que les popups ne sont pas bloquées.');
-  });
+  document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{ if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; } try{ await runTransaction(db, async (trx)=>{ const snap=await trx.get(playerDocRef); if(!snap.exists()) throw new Error('Profil introuvable'); const data=snap.data(); const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[]; if(inbox.length===0) throw new Error('Aucune récompense à réclamer'); const reward=inbox.shift(); trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()}); setTimeout(()=>{ if(reward.type==='pack_standard') choosePackOpen(currentSetId||'NL','standard'); else if(reward.type==='pack_premium') choosePackOpen(currentSetId||'NL','premium'); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100); }); } catch(e){ alert(e.message||String(e)); } });
 
-  document.getElementById('btn-test-auth').addEventListener('click',()=>{
-    clearDiag();
-    if(currentUser){
-      printDiag('Connecté ✅');
-      printDiag('uid: '+currentUser.uid);
-      printDiag('displayName: '+(currentUser.displayName||'(—)'));
-      printDiag('email: '+(currentUser.email||'(—)'));
-      printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
-    } else {
-      printDiag('Non connecté ❌');
-      printDiag('Astuce: active les popups / ajoute le domaine Vercel dans Firebase → Auth → Domaines autorisés.');
-    }
-  });
+  // --- UI Sets + Chooser
+  const setsWrap = document.getElementById('sets');
+  const chooser = document.getElementById('pack-chooser');
+  const pcSetName = document.getElementById('pc-set-name');
+  const pcStandard = document.getElementById('pc-standard');
+  const pcPremium = document.getElementById('pc-premium');
+  const pcCancel = document.getElementById('pc-cancel');
+  let currentSetId = null;
 
-  document.getElementById('btn-test-draws').addEventListener('click',()=>{
-    clearDiag();
-    const N=10000; const counts={commune:0,'peu commune':0,rare:0,'légendaire':0,'exotique':0};
-    for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
-    const pct=x=>(100*x/N).toFixed(2)+'%';
-    printDiag('Distribution (~60/25/10/4/1) sur '+N+' tirages:');
-    for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
-      printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
-    }
-  });
+  function openChooser(setId){ currentSetId = setId; const s = SETS.find(x=>x.id===setId); pcSetName.textContent = s?.name || '—'; chooser.hidden = false; }
+  function closeChooser(){ chooser.hidden = true; }
+  function choosePackOpen(setId, type){ closeChooser(); openPack({ setId, type }); }
+  pcStandard.addEventListener('click', ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'standard'); });
+  pcPremium.addEventListener('click',  ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'premium');  });
+  pcCancel.addEventListener('click', closeChooser);
+  chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
-  document.getElementById('btn-test-premium').addEventListener('click',()=>{
-    clearDiag();
-    const P=1000; let ok=0,fail=0;
-    for(let p=0;p<P;p++){
-      const cards=[]; let idx=Math.floor(Math.random()*5);
-      for(let i=0;i<5;i++){ const rarity=(i===idx)? ensureAtLeastRare(): weightedRandomRarity(); cards.push(rarity); }
-      if(cards.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
-    }
-    printDiag('Test Premium garanti sur '+P+' packs -> OK: '+ok+'  FAIL: '+fail);
-    printDiag(fail===0? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Des packs Premium n\'ont pas respecté la garantie.');
-  });
-
-  document.getElementById('btn-test-firestore').addEventListener('click',async()=>{
-    clearDiag();
-    if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
-    try{
-      const now=Date.now();
-      await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()});
-      const back=await getDoc(doc(db,'players',currentUser.uid));
-      printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest);
-    } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); }
-  });
-
-  document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{
-    clearDiag();
-    if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; }
-    try{
-      const snap=await getDoc(doc(db,'players',currentUser.uid));
-      if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
-      const data=snap.data();
-      updateLocalFromCloud(data);
-      printDiag('✅ Priorité cloud appliquée.');
-    } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); }
-  });
-
-  document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
-    if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
-    try{
-      await runTransaction(db, async (trx)=>{
-        const snap=await trx.get(playerDocRef);
-        if(!snap.exists()) throw new Error('Profil introuvable');
-        const data=snap.data();
-        const inbox=Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice():[];
-        if(inbox.length===0) throw new Error('Aucune récompense à réclamer');
-        const reward=inbox.shift();
-        trx.update(playerDocRef,{rewardsInbox:inbox,updatedAt:serverTimestamp()});
-        setTimeout(()=>{ if(reward.type==='pack_standard') openPack({type:'standard'}); else if(reward.type==='pack_premium') openPack({type:'premium'}); else alert('Récompense appliquée: '+(reward.label||reward.type)); },100);
-      });
-    } catch(e){ alert(e.message||String(e)); }
-  });
-
-  // --- Packs UI
-  function renderPacks(){
-    const wrap=document.getElementById('packs'); wrap.innerHTML='';
-    const packs=[
-      { id:'standard', name:'🎴 Standard', desc:'5 cartes aléatoires', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], action:{ label:'Ouvrir', click: ()=>openPack({type:'standard'}) } },
-      { id:'premium',  name:'💎 Premium',  desc:'5 cartes dont 1 rare minimum (débloqué avec 5 subs)', loot:["Set inclus : Nouvelle Lumière"], odds:[ ['Commune','60%'], ['Peu commune','25%'], ['Rare','10%'], ['Légendaire','4%'], ['Exotique','1%'] ], locked:true, action:{ label:'Débloquer', click: ()=>alert('Débloquez en stream (placeholder)') } }
-    ];
-    for(const p of packs){
-      const card=document.createElement('div'); card.className='pack';
-      card.innerHTML =
-        '<div class="cover" aria-hidden="true"></div>'+
-        '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
-        + '<div><div style="font-size:18px;font-weight:900">'+p.name+'</div><div class="subtitle">'+p.desc+'</div></div>'
-        + (p.locked? '<span class="tag"><span class="dot" style="background:#ef4444"></span>Verrouillé</span>':'' )
-        + '</div>'
-        + '<div class="loot">'+p.loot.map(x=>'• '+x).join('<br/>')+'</div>'
-        + '<div class="odds">'+p.odds.map(([k,v])=>k+': '+v).join(' · ')+'</div>'
-        + '<div style="margin-top:10px"><button class="btn '+(p.locked?'ghost':'')+' pill" aria-label="'+p.action.label+'">'+p.action.label+'</button></div>';
-      const btn=card.querySelector('button'); btn.addEventListener('click', p.action.click);
-      wrap.appendChild(card);
-    }
-  }
+  function renderSets(){ setsWrap.innerHTML=''; for(const s of SETS){ const el = document.createElement('div'); el.className='set'; el.innerHTML = `
+      <div class="cover" style="--bgimg:${s.cover}; background: ${s.cover}"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div>
+          <div class="name">${s.name}</div>
+          <div class="subtitle">Set disponible au lancement</div>
+        </div>
+        <span class="tag"><span class="dot"></span>${(CARD_SETS[s.id]||[]).length || 0} cartes</span>
+      </div>
+      <div class="subtitle">Probabilités par carte : Commune 60% · Peu commune 25% · Rare 10% · Légendaire 4% · Exotique 1%</div>
+      <div style="margin-top:10px"><button class="btn pill">Ouvrir</button></div>`;
+      el.querySelector('button').addEventListener('click', ()=> openChooser(s.id));
+      setsWrap.appendChild(el);
+    } }
 
   // --- Toast helper
-  function toast(msg,ms=1800){
-    let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
-    requestAnimationFrame(()=> t.classList.add('show'));
-    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
-  }
+  function toast(msg,ms=1800){ let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=> t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms); }
 
   // --- Reset -> cloud
   const resetBtn = document.getElementById('btn-reset');
@@ -1198,50 +576,28 @@ onAuthStateChanged(auth, async (user) => {
   resetBtn.addEventListener('click', async ()=>{
     if(!isCloud()){ alert('Connecte-toi pour réinitialiser (cloud).'); return; }
     if(!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
-    const base = {
-      stats: { packsOpened: 0 },
-      collection: {},
-      level: 1,
-      xp: 0,
-      rewardsInbox: [],
-      updatedAt: serverTimestamp()
-    };
-    try{
-      await updateDoc(playerDocRef, base);
-      updateLocalFromCloud(base);
-      document.getElementById('results').innerHTML='';
-      document.getElementById('special-banner').style.display='none';
-      toast('Progression réinitialisée (cloud).');
-    }catch(e){ alert('Échec de réinitialisation: ' + (e?.message||e)); }
+    const base = { stats: { packsOpened: 0 }, collection: {}, level: 1, xp: 0, rewardsInbox: [], updatedAt: serverTimestamp() };
+    try{ await updateDoc(playerDocRef, base); updateLocalFromCloud(base); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none'; toast('Progression réinitialisée (cloud).'); }catch(e){ alert('Échec de réinitialisation: ' + (e?.message||e)); }
   });
 
   // --- Init
   async function init(){
-    const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px">\
-<div class="card"></div><div class="card"></div><div class="card"></div></div>';
+    const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px"><div class="card"></div><div class="card"></div><div class="card"></div></div>';
     document.getElementById('results').innerHTML = skel;
-    await loadCardSet();
+    await loadCardSets();
     renderStats();
     renderCollection();
-    renderPacks();
+    renderSets();
     document.getElementById('results').innerHTML = '';
-    console.log('[DEBUG] App prête. Cartes disponibles:', CARD_POOLS.length);
+    console.log('[DEBUG] App prête. Cartes disponibles par set:', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
   }
   init();
 
-    const userLogoutBtn = document.getElementById('user-logout');
-if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', async () => {
-    try {
-      console.log('[DEBUG] Logout (barre utilisateur)');
-      await signOut(auth);
-    } catch (e) {
-      console.error(e);
-    }
-  });
-}
+  // Barre utilisateur logout
+  const userLogoutBtn = document.getElementById('user-logout');
+  if (userLogoutBtn) { userLogoutBtn.addEventListener('click', async () => { try { console.log('[DEBUG] Logout (barre utilisateur)'); await signOut(auth); } catch (e) { console.error(e); } }); }
 
-</script>
+  </script>
 
 </body>
 </html>
