@@ -107,16 +107,25 @@
 /* Cover plein cadre + overlay */
 .set .cover{
   position:relative;
-  height: 340px;                /* ← plus grand */
+  height: 340px;
   border-radius:16px;
   overflow:hidden;
   border:1px solid rgba(255,255,255,.10);
-  background: var(--bgimg, radial-gradient(80px 40px at 20% 20%, rgba(124,92,255,.25), transparent 60%)),
-              linear-gradient(180deg,#0e1423,#0b0f1a);
-  background-size: cover !important;
-  background-position: center !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  background: #0b0f1a; /* couleur de fond si bandes */
+  display:flex; align-items:center; justify-content:center;
 }
+
+.set .cover img{
+  max-width:100%;
+  max-height:100%;
+  object-fit: contain;
+  border-radius:12px;
+  transition: transform .3s ease;
+}
+.set:hover .cover img{
+  transform: scale(1.04);
+}
+
 .set .cover::before{           /* vignette/contraste */
   content:"";
   position:absolute; inset:0;
@@ -421,9 +430,10 @@
 
   // --- Sets (2 sets visibles au lancement)
   const SETS = [
-    { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', cover:"url('https://i.goopics.net/ilm7lk.png') center/cover" },
-    { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            cover:"url('https://i.goopics.net/wnhrl2.png') center/cover" }
-  ];
+  { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:"https://i.goopics.net/ilm7lk.png" },
+  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:"https://i.goopics.net/wnhrl2.png" }
+];
+
 
   // --- Pools par set + pool combiné
   const CARD_SETS = {}; // { setId: Card[] }
@@ -635,7 +645,8 @@
     const el = document.createElement('div');
     el.className='set';
     el.innerHTML = `
-      <div class="cover" style="--bgimg:${s.cover}; background:${s.cover}">
+      <div class="cover">
+        <img src="${s.img}" alt="Visuel du set ${s.name}">
         <div class="overlay">
           <div>
             <div class="name">${s.name}</div>
@@ -650,23 +661,9 @@
       </div>
     `;
 
-    // Hover shine qui suit la souris
-    const cover = el.querySelector('.cover');
-    cover.addEventListener('pointermove', (e)=>{
-      const r = cover.getBoundingClientRect();
-      cover.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
-      cover.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
-    });
-
-    // Clic sur le bouton OU sur l'image
     const openBtn = el.querySelector('button');
     openBtn.addEventListener('click', ()=> openChooser(s.id));
-    cover.addEventListener('click', ()=> openChooser(s.id));
-    cover.setAttribute('role','button');
-    cover.setAttribute('tabindex','0');
-    cover.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter' || e.key===' ') { e.preventDefault(); openChooser(s.id); }
-    });
+    el.querySelector('.cover').addEventListener('click', ()=> openChooser(s.id));
 
     setsWrap.appendChild(el);
   }
