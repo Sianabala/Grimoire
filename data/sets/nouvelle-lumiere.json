@@ -34,24 +34,24 @@
     { "id": "NL-029", "name": "Elisabeth Bray", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "object", "image": "https://i.goopics.net/pw46jv.png" },
     { "id": "NL-030", "name": "Amanda Holliday", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "image": "https://i.goopics.net/hlxs5r.png" },
 
-    { "id": "NL-031", "name": "Le Vagabond", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/mm62an.png" },
-    { "id": "NL-032", "name": "Eris Morn", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/bgc6m8.png" },
-    { "id": "NL-033", "name": "Clovis Bray", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/zgqnpr.png" },
-    { "id": "NL-034", "name": "Nimbus", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/9nm6u7.png" },
-    { "id": "NL-035", "name": "Saladin", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/g94a1y.png" },
-    { "id": "NL-036", "name": "Sloan", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/jccy45.png" },
-    { "id": "NL-037", "name": "Bannière de ralliement", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "object", "image": "https://i.goopics.net/yx5p2j.png" },
-    { "id": "NL-038", "name": "Avant-Garde", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "bonus", "image": "https://i.goopics.net/ybe555.png" },
+    { "id": "NL-031", "name": "Asher Mir", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/mm62an.png" },
+    { "id": "NL-032", "name": "Darbi 55-30", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "gardian", "image": "https://i.goopics.net/bgc6m8.png" },
+    { "id": "NL-033", "name": "La Tour", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "https://i.goopics.net/zgqnpr.png" },
+    { "id": "NL-034", "name": "Le Domaine", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "map", "image": "https://i.goopics.net/9nm6u7.png" },
+    { "id": "NL-035", "name": "Eclat de lumière", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "object", "image": "https://i.goopics.net/g94a1y.png" },
+    { "id": "NL-036", "name": "Spectre", "set": "Nouvelle Lumière", "rarity": "légendaire", "cardType": "bonus", "image": "https://i.goopics.net/jccy45.png" },
+    { "id": "NL-037", "name": "Avant-Garde", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "bonus", "image": "https://i.goopics.net/yx5p2j.png" },
+    { "id": "NL-038", "name": "Coffre", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/ybe555.png" },
 
-    { "id": "NL-039", "name": "Anastasia Bray", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/dqgrqh.png" },
-    { "id": "NL-040", "name": "Banshee-44", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/ykxs8t.png" },
-    { "id": "NL-041", "name": "Petra Venj", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/j3f1qq.png" },
-    { "id": "NL-042", "name": "Ada-1", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/qn2qm7.png" },
-    { "id": "NL-043", "name": "L'araignée", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/pm909c.png" },
-    { "id": "NL-044", "name": "Amanda Holliday", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/b4g43x.png" },
-    { "id": "NL-045", "name": "Asher Mir", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "gardian", "image": "https://i.goopics.net/fxaqhe.png" },
+    { "id": "NL-039", "name": "Coffre de région", "set": "Nouvelle Lumière", "rarity": "exotic", "cardType": "bonus", "image": "https://i.goopics.net/dqgrqh.png" },
+    { "id": "NL-040", "name": "Résurrection", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "bonus", "image": "https://i.goopics.net/ykxs8t.png" },
+    { "id": "NL-041", "name": "Sacrifice", "set": "Nouvelle Lumière", "rarity": "rare", "cardType": "bonus", "image": "https://i.goopics.net/j3f1qq.png" },
+    { "id": "NL-042", "name": "Spicy Ramen", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "object", "image": "https://i.goopics.net/qn2qm7.png" },
+    { "id": "NL-043", "name": "Doctrine solaire", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/pm909c.png" },
+    { "id": "NL-044", "name": "Doctrine cryo électrique", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/b4g43x.png" },
+    { "id": "NL-045", "name": "Doctrine abyssale", "set": "Nouvelle Lumière", "rarity": "commune", "cardType": "bonus", "image": "https://i.goopics.net/fxaqhe.png" },
 
-    { "id": "NL-046", "name": "Coffre", "set": "Nouvelle Lumière", "rarity": "", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
-    { "id": "NL-047", "name": "Sacrifice", "set": "Nouvelle Lumière", "rarity": "", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" }
+    { "id": "NL-046", "name": "Doctrine stasique", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" },
+    { "id": "NL-047", "name": "Doctrine filobscure", "set": "Nouvelle Lumière", "rarity": "peu commune", "cardType": "bonus", "needsReview": true, "image": "https://i.goopics.net/pw46jv.png" }
   ]
 }
