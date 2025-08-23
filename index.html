@@ -76,6 +76,23 @@
     .btn.ghost:hover{ border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06) }
     .btn.pill{ border-radius:999px }
 
+/* --- Rewards button states --- */
+.btn[disabled]{
+  opacity:.55; cursor:not-allowed; filter:grayscale(.1);
+  box-shadow:none; transform:none !important;
+}
+
+/* Glow/pulse quand une récompense est dispo */
+@keyframes pulseGlow {
+  0%   { box-shadow: 0 0 0 rgba(124,92,255,0.0), var(--shadow-sm); transform: translateY(-1px); }
+  50%  { box-shadow: 0 0 22px rgba(124,92,255,0.35), var(--shadow-sm); transform: translateY(-2px); }
+  100% { box-shadow: 0 0 0 rgba(124,92,255,0.0), var(--shadow-sm); transform: translateY(-1px); }
+}
+.pulse-glow{
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+
+    
     .subtitle{font-size:12px;color:var(--muted)}
     .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
 
@@ -488,7 +505,15 @@
   function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
 
   const isCloud = () => !!currentUser && !!playerDocRef;
-  function updateLocalFromCloud(data){ collection = { ...(data.collection || {}) }; stats = { packsOpened: data?.stats?.packsOpened || 0 }; profile = { level: data?.level || 1, xp: data?.xp || 0 }; renderStats(); renderCollection(); }
+  function updateLocalFromCloud(data){
+  collection = { ...(data.collection || {}) };
+  stats = { packsOpened: data?.stats?.packsOpened || 0 };
+  profile = { level: data?.level || 1, xp: data?.xp || 0 };
+  renderStats();
+  renderCollection();
+  updateRewardButton(data?.rewardsInbox || []); // ✅ synchro du bouton
+}
+
   function maybeSaveLocal(){ if (!isCloud()) { localStorage.setItem(LS_KEY, JSON.stringify(collection)); localStorage.setItem(LS_STATS, JSON.stringify(stats)); localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } }
   function saveCollection(){ maybeSaveLocal(); } function saveStats(){ maybeSaveLocal(); } function saveProfile(){ maybeSaveLocal(); }
 
@@ -711,6 +736,49 @@ let need = xpForLevel(level);
   }
   init();
 
+// --- Rewards button UI ---
+document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
+  if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
+
+  try{
+    const result = await runTransaction(db, async (trx)=>{
+      const snap = await trx.get(playerDocRef);
+      if(!snap.exists()) throw new Error('Profil introuvable');
+
+      const data = snap.data();
+      const inbox = Array.isArray(data.rewardsInbox) ? data.rewardsInbox.slice() : [];
+      if(inbox.length === 0) throw new Error('Aucune récompense à réclamer');
+
+      // Retire la 1re récompense (FIFO)
+      const reward = inbox.shift();
+
+      // Sauvegarde cloud
+      trx.update(playerDocRef, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
+
+      // On renvoie ce qu'il reste pour mettre l'UI à jour tout de suite
+      return { remainingInbox: inbox, claimed: reward };
+    });
+
+    // 🔁 Met à jour l'UI du bouton immédiatement
+    updateRewardButton(result.remainingInbox);
+
+    // Applique la récompense (ouvre un pack…)
+    setTimeout(()=>{
+      const r = result.claimed;
+      if(r?.type === 'pack_standard')       choosePackOpen(currentSetId || 'NL', 'standard');
+      else if(r?.type === 'pack_premium')   choosePackOpen(currentSetId || 'NL', 'premium');
+      else alert('Récompense appliquée: ' + (r?.label || r?.type || 'inconnue'));
+    }, 80);
+
+    toast('Récompense récupérée ✨');
+
+  } catch(e){
+    alert(e.message || String(e));
+  }
+});
+
+
+    
   // Barre utilisateur logout
   const userLogoutBtn = document.getElementById('user-logout');
   if (userLogoutBtn) { userLogoutBtn.addEventListener('click', async () => { try { console.log('[DEBUG] Logout (barre utilisateur)'); await signOut(auth); } catch (e) { console.error(e); } }); }
