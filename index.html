@@ -692,8 +692,8 @@ async function openPack({type='standard', setId, bypassInventory=false} = {}){
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
-+ // coupe l'écouteur si on change d'utilisateur
-+ if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
+// coupe l'écouteur si on change d'utilisateur
+if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
 
   loginBtn.style.display = currentUser ? 'none' : '';
   logoutBtn.style.display = currentUser ? '' : 'none';
