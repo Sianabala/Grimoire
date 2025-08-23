@@ -688,31 +688,47 @@ async function openPack({type='standard', setId, bypassInventory=false} = {}){
 }
 
   // --- Auth state
- onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user || null;
   console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
 
-// coupe l'écouteur si on change d'utilisateur
-if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
+  // coupe l'écouteur si on change d'utilisateur
+  if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
 
-  loginBtn.style.display = currentUser ? 'none' : '';
+  // UI header
+  loginBtn.style.display  = currentUser ? 'none' : '';
   logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display = 'none';
-  ...
+  adminBtn.style.display  = 'none';
+
+  // Déconnecté → reset affichage local
   if (!currentUser) {
-    ...
+    updateLocalFromCloud({
+      collection:{}, stats:{packsOpened:0}, level:1, xp:0,
+      rewardsInbox:[], packInventory:{standard:0, premium:0}
+    });
     return;
   }
-  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-  ...
+
+  // Charge (ou crée) le doc joueur
+  const data = await loadOrCreatePlayerDoc(currentUser).catch((e)=>{ console.error(e); return null; });
+
+  // Droits admin : par UID whitelist OU par rôle dans le doc
+  let allowByUid = ADMIN_UIDS.includes(currentUser.uid);
+  let allowByRole = false;
+  try{
+    const snap = await getDoc(doc(db,'players', currentUser.uid));
+    if (snap.exists()){
+      const d = snap.data();
+      allowByRole = !!(d.isAdmin === true || d.role === 'admin');
+    }
+  }catch(e){ console.warn('admin role check failed', e); }
+
   if (allowByUid || allowByRole) adminBtn.style.display = '';
 
-+ // 🔴 écoute temps réel du doc joueur : met à jour packInventory, stats, etc.
-+ unsubPlayer = onSnapshot(playerDocRef, (snap)=>{
-+   if (snap.exists()) {
-+     updateLocalFromCloud(snap.data());
-+   }
-+ });
+  // Écoute temps réel du doc joueur → met à jour packInventory, stats, bouton récompenses, etc.
+  unsubPlayer = onSnapshot(doc(db,'players', currentUser.uid), (snap)=>{
+    if (snap.exists()) updateLocalFromCloud(snap.data());
+  });
 });
 
 
@@ -765,12 +781,13 @@ let currentSetId = null;
 
 // 🔁 met à jour les libellés/disabled de la modale selon le stock
 function refreshPackUI(){
-  if (chooser.hidden) return; // si la modale est fermée, inutile
+  if (chooser.hidden) return; // si la modale est fermée, on ne fait rien
   pcStandard.textContent = `🎴 Standard (${packInventory.standard||0})`;
   pcPremium.textContent  = `💎 Premium (${packInventory.premium||0})`;
   pcStandard.disabled = (packInventory.standard||0) <= 0;
   pcPremium.disabled  = (packInventory.premium||0)  <= 0;
 }
+
 
 function closeChooser(){ chooser.hidden = true; }
 
