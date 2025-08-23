@@ -79,11 +79,86 @@
     .subtitle{font-size:12px;color:var(--muted)}
     .badge{font-size:12px;color:#0b0f1a;background:var(--copper);padding:4px 8px;border-radius:999px;font-weight:800; box-shadow: 0 4px 14px rgba(214,161,122,.25)}
 
-    /* Sets */
-    .sets{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .set{display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0f1324,#0a0f1e);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px; box-shadow: var(--ring); position:relative}
-    .set .cover{ height:140px; border-radius:14px; background: var(--bgimg, linear-gradient(180deg,#0e1423,#0b0f1a)); border:1px solid rgba(255,255,255,.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.04) }
-    .set .name{ font-size:18px; font-weight:900 }
+    /* Sets (visuels XL) */
+.sets{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:18px;
+}
+.set{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  background:linear-gradient(180deg,#0f1324,#0a0f1e);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+  padding:14px;
+  box-shadow: var(--ring);
+  overflow:hidden;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.set:hover{
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(124,92,255,.35);
+  box-shadow: 0 18px 60px rgba(124,92,255,.25);
+}
+
+/* Cover plein cadre + overlay */
+.set .cover{
+  position:relative;
+  height: 340px;                /* ← plus grand */
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  background: var(--bgimg, radial-gradient(80px 40px at 20% 20%, rgba(124,92,255,.25), transparent 60%)),
+              linear-gradient(180deg,#0e1423,#0b0f1a);
+  background-size: cover !important;
+  background-position: center !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.set .cover::before{           /* vignette/contraste */
+  content:"";
+  position:absolute; inset:0;
+  background: radial-gradient(100% 60% at 50% 10%, rgba(0,0,0,.05), transparent 40%),
+              linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.55));
+  pointer-events:none;
+}
+.set .cover::after{            /* gloss léger */
+  content:"";
+  position:absolute; inset:-20%;
+  background: radial-gradient(600px 400px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.18), transparent 40%);
+  mix-blend-mode:screen; opacity:.55; pointer-events:none;
+}
+.set:hover .cover::after{ opacity:.75 }
+
+/* Titre + bouton en overlay bas */
+.set .overlay{
+  position:absolute; left:12px; right:12px; bottom:12px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));
+  backdrop-filter: blur(4px);
+  border:1px solid rgba(255,255,255,.10);
+}
+.set .name{ font-size:18px; font-weight:900 }
+.set .meta{ font-size:12px; color:var(--muted) }
+
+.set .stats-row{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+
+@media (max-width: 640px){
+  .set .cover{ height: 260px; }
+}
+
+/* Focus clavier sur la carte entière */
+.set:focus-within, .set:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+  border-radius: 16px;
+}
+
 
     /* Résultats */
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px}
@@ -552,20 +627,51 @@
   pcCancel.addEventListener('click', closeChooser);
   chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
-  function renderSets(){ setsWrap.innerHTML=''; for(const s of SETS){ const el = document.createElement('div'); el.className='set'; el.innerHTML = `
-      <div class="cover" style="--bgimg:${s.cover}; background: ${s.cover}"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div>
-          <div class="name">${s.name}</div>
-          <div class="subtitle">Set disponible au lancement</div>
+  function renderSets(){
+  setsWrap.innerHTML='';
+  for(const s of SETS){
+    const count = (CARD_SETS[s.id]||[]).length || 0;
+
+    const el = document.createElement('div');
+    el.className='set';
+    el.innerHTML = `
+      <div class="cover" style="--bgimg:${s.cover}; background:${s.cover}">
+        <div class="overlay">
+          <div>
+            <div class="name">${s.name}</div>
+            <div class="meta">${count} cartes · Commune 60% · Peu co. 25% · Rare 10% · Lég. 4% · Exo. 1%</div>
+          </div>
+          <button class="btn pill" aria-label="Ouvrir ${s.name}">Ouvrir</button>
         </div>
-        <span class="tag"><span class="dot"></span>${(CARD_SETS[s.id]||[]).length || 0} cartes</span>
       </div>
-      <div class="subtitle">Probabilités par carte : Commune 60% · Peu commune 25% · Rare 10% · Légendaire 4% · Exotique 1%</div>
-      <div style="margin-top:10px"><button class="btn pill">Ouvrir</button></div>`;
-      el.querySelector('button').addEventListener('click', ()=> openChooser(s.id));
-      setsWrap.appendChild(el);
-    } }
+      <div class="stats-row">
+        <span class="tag"><span class="dot"></span>Set disponible</span>
+        <span class="subtitle">Clique sur Ouvrir pour choisir Standard/Premium</span>
+      </div>
+    `;
+
+    // Hover shine qui suit la souris
+    const cover = el.querySelector('.cover');
+    cover.addEventListener('pointermove', (e)=>{
+      const r = cover.getBoundingClientRect();
+      cover.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%');
+      cover.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%');
+    });
+
+    // Clic sur le bouton OU sur l'image
+    const openBtn = el.querySelector('button');
+    openBtn.addEventListener('click', ()=> openChooser(s.id));
+    cover.addEventListener('click', ()=> openChooser(s.id));
+    cover.setAttribute('role','button');
+    cover.setAttribute('tabindex','0');
+    cover.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' ') { e.preventDefault(); openChooser(s.id); }
+    });
+
+    setsWrap.appendChild(el);
+  }
+}
+
 
   // --- Toast helper
   function toast(msg,ms=1800){ let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=> t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms); }
