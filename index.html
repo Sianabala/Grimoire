@@ -411,7 +411,7 @@
   // --- Firebase imports
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
@@ -500,8 +500,7 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTim
   let collection = loadCollection();
   let stats = loadStats();
   let profile = loadProfile();
-  let currentUser = null; let playerDocRef = null;let unsubPlayer = null;
-  let packInventory = { standard: 0, premium: 0 };
+  let currentUser = null; let playerDocRef = null;
   function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
   function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
   function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
@@ -511,19 +510,10 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTim
   collection = { ...(data.collection || {}) };
   stats = { packsOpened: data?.stats?.packsOpened || 0 };
   profile = { level: data?.level || 1, xp: data?.xp || 0 };
-
-  // 👇 synchro du stock de packs depuis le cloud
-  packInventory = {
-    standard: Math.max(0, data?.packInventory?.standard || 0),
-    premium:  Math.max(0, data?.packInventory?.premium  || 0),
-  };
-
   renderStats();
   renderCollection();
-  updateRewardButton(data?.rewardsInbox || []); // ✅ garde le bouton récompenses à jour
-    refreshPackUI(); // 👈 met à jour les boutons de la modale si elle est ouverte
+  updateRewardButton(data?.rewardsInbox || []); // ✅ synchro du bouton
 }
-
 
   function maybeSaveLocal(){ if (!isCloud()) { localStorage.setItem(LS_KEY, JSON.stringify(collection)); localStorage.setItem(LS_STATS, JSON.stringify(stats)); localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } }
   function saveCollection(){ maybeSaveLocal(); } function saveStats(){ maybeSaveLocal(); } function saveProfile(){ maybeSaveLocal(); }
@@ -607,13 +597,14 @@ function updateRewardButton(inbox){
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
- // --- Ouverture de pack 100% cloud avec inventaire
-async function openPack({type='standard', setId, bypassInventory=false} = {}){
+  // --- Ouverture de pack 100% cloud, par set sélectionné
+ // --- Ouverture de pack 100% cloud, par set sélectionné
+async function openPack({type='standard', setId} = {}){
   const pool = CARD_SETS[setId] || ALL_CARDS;
   if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
   if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
 
-  // Tirage (pour l’affichage)
+  // Tirage affichage depuis le pool du set
   const cards=[];
   if(type==='premium'){
     const idx=Math.floor(Math.random()*5);
@@ -628,127 +619,71 @@ async function openPack({type='standard', setId, bypassInventory=false} = {}){
     }
   }
 
-  // Transaction Firestore: vérifie/consomme le stock + applique les gains
+  // Transaction Firestore = source de vérité
   const result = await runTransaction(db, async (trx)=>{
     const docSnap = await trx.get(playerDocRef);
-    const cur = docSnap.exists()
-      ? docSnap.data()
-      : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[], packInventory:{standard:0, premium:0} };
+    const cur = docSnap.exists() ? docSnap.data() : { stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
 
-    // 🔒 inventaire courant
-    const inv = {
-      standard: Math.max(0, cur?.packInventory?.standard || 0),
-      premium:  Math.max(0, cur?.packInventory?.premium  || 0),
-    };
-
-    // Sauf si bypass (récompense), on consomme 1 pack
-    if(!bypassInventory){
-      if((type==='standard' && inv.standard<=0) || (type==='premium' && inv.premium<=0)){
-        throw new Error('Tu n’as pas de pack disponible de ce type.');
-      }
-      if(type==='standard') inv.standard -= 1; else inv.premium -= 1;
-    }
-
-    // stats + collection
     const newStats = { ...cur.stats, packsOpened: (cur.stats?.packsOpened||0) + 1 };
     const newCollection = { ...(cur.collection||{}) };
     for(const c of cards){ newCollection[c.id] = (newCollection[c.id]||0) + 1; }
 
-    // XP / niveaux / récompenses
     let level = cur.level || 1;
-    let xp    = (cur.xp || 0) + xpGainForPack(type);
+    let xp = (cur.xp || 0) + xpGainForPack(type);  // +5 si Standard, +10 si Premium
     let rewards = cur.rewardsInbox || [];
-    let need  = xpForLevel(level);
+    let need = xpForLevel(level);
+
     while(xp >= need){
       xp -= need; level += 1; need = xpForLevel(level);
       const rw = nextRewardForLevel(level - 1);
       rewards = [...rewards, {
         id:'rw_'+Date.now()+Math.random().toString(36).slice(2),
-        type: rw.type, label: rw.label, t: Date.now()
+        type:rw.type, label:rw.label, t:Date.now()
       }];
     }
 
-    const newDoc = {
-      stats: newStats,
-      collection: newCollection,
-      level, xp,
-      rewardsInbox: rewards,
-      packInventory: inv,            // 👈 mise à jour du stock
-      updatedAt: serverTimestamp()
-    };
+    const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, updatedAt: serverTimestamp() };
     trx.set(playerDocRef, newDoc, { merge:true });
     return newDoc;
   });
 
-  // Sync UI & animation
+  // ⬇️ Tu avais perdu ces lignes
   updateLocalFromCloud(result);
   await playPackAnimation(cards);
   renderResults(cards);
   toast((type==='premium' ? '💎 Premium' : '🎴 Standard')+' — '+(SETS.find(s=>s.id===setId)?.name||'Set')+' ouvert !');
 }
 
+
+
   // --- Auth state
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user || null;
-  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-
-  // coupe l'écouteur si on change d'utilisateur
-  if (unsubPlayer) { unsubPlayer(); unsubPlayer = null; }
-
-  // UI header
-  loginBtn.style.display  = currentUser ? 'none' : '';
-  logoutBtn.style.display = currentUser ? '' : 'none';
-  adminBtn.style.display  = 'none';
-
-  // Déconnecté → reset affichage local
-  if (!currentUser) {
-    updateLocalFromCloud({
-      collection:{}, stats:{packsOpened:0}, level:1, xp:0,
-      rewardsInbox:[], packInventory:{standard:0, premium:0}
-    });
-    return;
-  }
-
-  // Charge (ou crée) le doc joueur
-  const data = await loadOrCreatePlayerDoc(currentUser).catch((e)=>{ console.error(e); return null; });
-
-  // Droits admin : par UID whitelist OU par rôle dans le doc
-  let allowByUid = ADMIN_UIDS.includes(currentUser.uid);
-  let allowByRole = false;
-  try{
-    const snap = await getDoc(doc(db,'players', currentUser.uid));
-    if (snap.exists()){
-      const d = snap.data();
-      allowByRole = !!(d.isAdmin === true || d.role === 'admin');
-    }
-  }catch(e){ console.warn('admin role check failed', e); }
-
-  if (allowByUid || allowByRole) adminBtn.style.display = '';
-
-  // Écoute temps réel du doc joueur → met à jour packInventory, stats, bouton récompenses, etc.
-  unsubPlayer = onSnapshot(doc(db,'players', currentUser.uid), (snap)=>{
-    if (snap.exists()) updateLocalFromCloud(snap.data());
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user || null;
+    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+    loginBtn.style.display = currentUser ? 'none' : '';
+    logoutBtn.style.display = currentUser ? '' : 'none';
+    adminBtn.style.display = 'none';
+    const nameBox = document.getElementById('user-display-name');
+    const userBar = document.getElementById('user-bar');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    if (!currentUser) { if (nameBox) nameBox.style.display = 'none'; if (userBar) userBar.style.display = 'none'; return; }
+    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+    let pseudo = data?.displayName || currentUser.displayName || '';
+    if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
+    if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
+    if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
+    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+    if (allowByUid || allowByRole) adminBtn.style.display = '';
   });
-});
-
 
   // --- Cloud bootstrap
   async function loadOrCreatePlayerDoc(user){
     playerDocRef = doc(db,'players',user.uid);
     const snap = await getDoc(playerDocRef);
     if(!snap.exists()){
-const base = {
-  displayName: user.displayName || '',
-  photoURL: user.photoURL || '',
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-  stats: { packsOpened: 0 },
-  collection: {},
-  level: 1,
-  xp: 0,
-  rewardsInbox: [],
-  packInventory: { standard: 1, premium: 0 } // 🎁 1 pack standard offert
-};
+      const base = { displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[] };
       await setDoc(playerDocRef, base);
       updateLocalFromCloud(base);
       return base;
@@ -770,33 +705,18 @@ const base = {
   document.getElementById('btn-test-firestore').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; } try{ const now=Date.now(); await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()}); const back=await getDoc(doc(db,'players',currentUser.uid)); printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest); } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); } });
   document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; } try{ const snap=await getDoc(doc(db,'players',currentUser.uid)); if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; } const data=snap.data(); updateLocalFromCloud(data); printDiag('✅ Priorité cloud appliquée.'); } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); } });
 
- // --- UI Sets + Chooser
-const setsWrap = document.getElementById('sets');
-const chooser = document.getElementById('pack-chooser');
-const pcSetName = document.getElementById('pc-set-name');
-const pcStandard = document.getElementById('pc-standard');
-const pcPremium = document.getElementById('pc-premium');
-const pcCancel = document.getElementById('pc-cancel');
-let currentSetId = null;
+  // --- UI Sets + Chooser
+  const setsWrap = document.getElementById('sets');
+  const chooser = document.getElementById('pack-chooser');
+  const pcSetName = document.getElementById('pc-set-name');
+  const pcStandard = document.getElementById('pc-standard');
+  const pcPremium = document.getElementById('pc-premium');
+  const pcCancel = document.getElementById('pc-cancel');
+  let currentSetId = null;
 
-// 🔁 met à jour les libellés/disabled de la modale selon le stock
-function refreshPackUI(){
-  if (chooser.hidden) return; // si la modale est fermée, on ne fait rien
-  pcStandard.textContent = `🎴 Standard (${packInventory.standard||0})`;
-  pcPremium.textContent  = `💎 Premium (${packInventory.premium||0})`;
-  pcStandard.disabled = (packInventory.standard||0) <= 0;
-  pcPremium.disabled  = (packInventory.premium||0)  <= 0;
-}
-
-
-function closeChooser(){ chooser.hidden = true; }
-
-// accepte un 3e param "opts" (ex: { bypassInventory:true } pour les récompenses)
-function choosePackOpen(setId, type, opts){
-  closeChooser();
-  openPack({ setId, type, ...(opts||{}) });
-}
-
+  function openChooser(setId){ currentSetId = setId; const s = SETS.find(x=>x.id===setId); pcSetName.textContent = s?.name || '—'; chooser.hidden = false; }
+  function closeChooser(){ chooser.hidden = true; }
+  function choosePackOpen(setId, type){ closeChooser(); openPack({ setId, type }); }
   pcStandard.addEventListener('click', ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'standard'); });
   pcPremium.addEventListener('click',  ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'premium');  });
   pcCancel.addEventListener('click', closeChooser);
@@ -844,15 +764,7 @@ function choosePackOpen(setId, type, opts){
   resetBtn.addEventListener('click', async ()=>{
     if(!isCloud()){ alert('Connecte-toi pour réinitialiser (cloud).'); return; }
     if(!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
-const base = {
-  stats: { packsOpened: 0 },
-  collection: {},
-  level: 1,
-  xp: 0,
-  rewardsInbox: [],
-  packInventory: { standard: 0, premium: 0 }, // 👈 reset du stock
-  updatedAt: serverTimestamp()
-};
+    const base = { stats: { packsOpened: 0 }, collection: {}, level: 1, xp: 0, rewardsInbox: [], updatedAt: serverTimestamp() };
     try{ await updateDoc(playerDocRef, base); updateLocalFromCloud(base); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none'; toast('Progression réinitialisée (cloud).'); }catch(e){ alert('Échec de réinitialisation: ' + (e?.message||e)); }
   });
 
@@ -905,15 +817,11 @@ document.getElementById('btn-claim-rewards').addEventListener('click', async ()=
 
     // Applique la récompense (ouvre un pack…)
     setTimeout(()=>{
-  const r = result.claimed;
-  if(r?.type === 'pack_standard')
-    choosePackOpen(currentSetId || 'NL', 'standard', { bypassInventory:true });
-  else if(r?.type === 'pack_premium')
-    choosePackOpen(currentSetId || 'NL', 'premium',  { bypassInventory:true });
-  else
-    alert('Récompense appliquée: ' + (r?.label || r?.type || 'inconnue'));
-}, 80);
-
+      const r = result.claimed;
+      if(r?.type === 'pack_standard')       choosePackOpen(currentSetId || 'NL', 'standard');
+      else if(r?.type === 'pack_premium')   choosePackOpen(currentSetId || 'NL', 'premium');
+      else alert('Récompense appliquée: ' + (r?.label || r?.type || 'inconnue'));
+    }, 80);
 
     toast('Récompense récupérée ✨');
 
