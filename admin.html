@@ -126,7 +126,7 @@
     // Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
@@ -224,11 +224,6 @@
               <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
               <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
               <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
-              <div class="k">Packs dispo:
-  <span class="v">Std ${p.packInventory?.standard||0}</span> —
-  <span class="v">Prem ${p.packInventory?.premium||0}</span>
-</div>
-
             </div>
             <div class="row">
               <button class="btn ghost pill" data-act="view">Voir</button>
@@ -267,12 +262,6 @@
           </div>
           <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs <span class="v">${p.stats?.packsOpened||0}</span></div>
           <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
-          <div style="margin-top:10px" class="k">
-  Packs dispo:
-  <span class="v">Standard ${p.packInventory?.standard||0}</span> —
-  <span class="v">Premium ${p.packInventory?.premium||0}</span>
-</div>
-
           <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
           <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
           <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
@@ -293,7 +282,6 @@
           level:1,
           xp:0,
           rewardsInbox:[],
-          packInventory:{ standard:0, premium:0 },
           updatedAt: serverTimestamp()
         });
         toast('Progression réinitialisée');
@@ -302,19 +290,23 @@
       }catch(e){ toast('Erreur: '+(e?.message||e)); }
     }
 
-   async function grantPack(uid,type,label){
-     try{
-       const ref = doc(db,'players',uid);
-       const payload = { updatedAt: serverTimestamp() };
-       if (type === 'pack_standard') payload['packInventory.standard'] = increment(1);
-       if (type === 'pack_premium')  payload['packInventory.premium']  = increment(1);
-       await updateDoc(ref, payload);
-       toast(label + ' crédité au joueur');
-      // refresh si on regarde ce joueur
-      const uidShown = (detailWrap.querySelector('.k span.v')||{}).textContent;
-      if(uidShown === uid){ viewPlayer(uid); }
-    }catch(e){ toast('Erreur: '+(e?.message||e)); }
-  }
+    async function grantPack(uid,type,label){
+      try{
+        await runTransaction(db, async (trx)=>{
+          const ref = doc(db,'players',uid);
+          const snap = await trx.get(ref);
+          if(!snap.exists()) throw new Error('Profil introuvable');
+          const data = snap.data();
+          const inbox = Array.isArray(data.rewardsInbox)? data.rewardsInbox.slice() : [];
+          inbox.push({ id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type, label, t: Date.now() });
+          trx.update(ref, { rewardsInbox: inbox, updatedAt: serverTimestamp() });
+        });
+        toast(label+' ajouté');
+        // refresh si on regarde ce joueur
+        const uidShown = (detailWrap.querySelector('.k span.v')||{}).textContent;
+        if(uidShown === uid){ viewPlayer(uid); }
+      }catch(e){ toast('Erreur: '+(e?.message||e)); }
+    }
 
     function filterCards(){ renderPlayers(lastPlayers); }
 
