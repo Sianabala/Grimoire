@@ -521,6 +521,7 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTim
   renderStats();
   renderCollection();
   updateRewardButton(data?.rewardsInbox || []); // ✅ garde le bouton récompenses à jour
+    refreshPackUI(); // 👈 met à jour les boutons de la modale si elle est ouverte
 }
 
 
@@ -753,30 +754,24 @@ const base = {
   document.getElementById('btn-test-firestore').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; } try{ const now=Date.now(); await updateDoc(doc(db,'players',currentUser.uid),{_rtTest:now,updatedAt:serverTimestamp()}); const back=await getDoc(doc(db,'players',currentUser.uid)); printDiag('Firestore round-trip OK, _rtTest='+ back.data()._rtTest); } catch(e){ printDiag('❌ Firestore round-trip échoué: '+(e?.message||e)); console.error(e); } });
   document.getElementById('btn-test-cloud-priority').addEventListener('click',async()=>{ clearDiag(); if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la priorité cloud.'); return; } try{ const snap=await getDoc(doc(db,'players',currentUser.uid)); if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; } const data=snap.data(); updateLocalFromCloud(data); printDiag('✅ Priorité cloud appliquée.'); } catch(e){ printDiag('❌ Erreur priorité cloud: '+(e?.message||e)); } });
 
-  // --- UI Sets + Chooser
-  const setsWrap = document.getElementById('sets');
-  const chooser = document.getElementById('pack-chooser');
-  const pcSetName = document.getElementById('pc-set-name');
-  const pcStandard = document.getElementById('pc-standard');
-  const pcPremium = document.getElementById('pc-premium');
-  const pcCancel = document.getElementById('pc-cancel');
-  let currentSetId = null;
+ // --- UI Sets + Chooser
+const setsWrap = document.getElementById('sets');
+const chooser = document.getElementById('pack-chooser');
+const pcSetName = document.getElementById('pc-set-name');
+const pcStandard = document.getElementById('pc-standard');
+const pcPremium = document.getElementById('pc-premium');
+const pcCancel = document.getElementById('pc-cancel');
+let currentSetId = null;
 
-function openChooser(setId){
-  currentSetId = setId;
-  const s = SETS.find(x=>x.id===setId);
-  pcSetName.textContent = s?.name || '—';
-
-  // Libellés avec le stock actuel
+// 🔁 met à jour les libellés/disabled de la modale selon le stock
+function refreshPackUI(){
+  if (chooser.hidden) return; // si la modale est fermée, inutile
   pcStandard.textContent = `🎴 Standard (${packInventory.standard||0})`;
   pcPremium.textContent  = `💎 Premium (${packInventory.premium||0})`;
-
-  // Disable si pas de stock
   pcStandard.disabled = (packInventory.standard||0) <= 0;
   pcPremium.disabled  = (packInventory.premium||0)  <= 0;
-
-  chooser.hidden = false;
 }
+
 function closeChooser(){ chooser.hidden = true; }
 
 // accepte un 3e param "opts" (ex: { bypassInventory:true } pour les récompenses)
