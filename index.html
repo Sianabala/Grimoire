@@ -354,6 +354,85 @@ await snapshotOwnedBeforeOpening();
   .input{ padding:10px 12px; font-size:14px; }
 }
 
+/* ---------- HERO invité ---------- */
+.hero-guest{
+  position: relative;
+  min-height: clamp(380px, 60vh, 720px);
+  display: grid;
+  place-items: center;
+  border-radius: 20px;        /* adapte si tu as une var de radius */
+  overflow: hidden;
+  margin-bottom: 24px;
+  isolation: isolate;
+}
+.hero-bg{
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-img), radial-gradient(1200px 600px at 75% 25%, rgba(255,255,255,0.08), transparent 40%), linear-gradient(180deg, #0a0c12 0%, #0a0c12 100%);
+  background-size: cover, auto, 100% 100%;
+  background-position: center, center, center;
+  filter: saturate(1.05) contrast(1.05);
+  transform: scale(1.02);
+}
+.hero-overlay{
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 600px at 30% 20%, rgba(0,0,0,0.35), transparent 50%),
+    linear-gradient(180deg, rgba(10,12,18,0.65) 0%, rgba(10,12,18,0.85) 100%);
+  backdrop-filter: blur(1px);
+}
+.hero-content{
+  position: relative; /* au-dessus des overlays */
+  text-align: center;
+  padding: clamp(16px, 4vw, 40px);
+  color: #fff;
+}
+.hero-content h1{
+  font-size: clamp(28px, 6vw, 56px);
+  line-height: 1.05;
+  margin: 0 0 10px;
+  letter-spacing: .2px;
+}
+.hero-content .subtitle{
+  font-size: clamp(14px, 2.1vw, 20px);
+  opacity: .92;
+  margin: 0 0 18px;
+}
+.hero-actions{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-hero{
+  font-size: clamp(14px, 2.2vw, 18px);
+  padding: 14px 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  transform: translateZ(0);
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.btn-hero:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.3);
+}
+.link-ghost{
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255,255,255,.7);
+  opacity: .9;
+  padding-bottom: 2px;
+}
+.link-ghost:hover{ opacity: 1; }
+
+/* Accessibilité / motion */
+@media (prefers-reduced-motion: reduce){
+  .btn-hero{ transition: none; }
+  .btn-hero:hover{ transform:none; box-shadow:none; }
+}
+
+                                          
   </style>
 </head>
 <body>
@@ -385,8 +464,27 @@ await snapshotOwnedBeforeOpening();
 
   <main class="container">
     <div class="grid">
-<!-- CTA invité -->
-<section id="guest-cta" class="panel" style="grid-column:span 12; display:none">
+
+<!-- HERO invité -->
+<section id="guest-cta" class="hero-guest" style="grid-column:span 12; display:none">
+  <!-- Image de fond : remplace l’URL ci-dessous par la tienne -->
+  <div class="hero-bg" style="--hero-img:url('images/hero-grimoire.jpg')"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content container">
+    <h1>Le Grimoire vous attend</h1>
+    <p class="subtitle">
+      Connectez-vous avec Twitch pour ouvrir vos packs et collectionner les cartes du Grimoire.
+    </p>
+    <div class="hero-actions">
+      <button id="guest-login" class="btn pill btn-hero" aria-label="Se connecter avec Twitch">
+        Se connecter avec Twitch
+      </button>
+      <a href="#panel-sets" class="link-ghost">Découvrir les sets</a>
+    </div>
+  </div>
+</section>
+  
   <div class="hd">
     <h3>Connectez-vous pour jouer</h3>
   </div>
