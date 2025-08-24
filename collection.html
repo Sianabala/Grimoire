@@ -74,10 +74,7 @@
     .muted{color:var(--muted)}
     .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
 
-    .footerbar{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
-    pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
-
-    /* Vignette d'image de carte */
+       /* Vignette d'image de carte */
     .thumb{
       width:100%; aspect-ratio:2/3; border-radius:12px; overflow:hidden;
       background:#0e1423; border:1px solid rgba(255,255,255,.08);
@@ -323,18 +320,7 @@
       </div>
     </section>
 
-    <section class="panel" style="grid-column:span 12">
-      <div class="hd"><h3>Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
-      <div class="bd">
-        <div class="footerbar">
-          <button id="btn-sync-from-cloud" class="btn">🔄 Forcer synchro Cloud → Local</button>
-          <button id="btn-export-json" class="btn ghost">Exporter JSON</button>
-          <button id="btn-clear-local" class="btn ghost">Effacer local</button>
-        </div>
-        <pre id="diag-log" class="diag"></pre>
-      </div>
-    </section>
-  </main>
+    </main>
 
   <!-- Viewer Zoom Carte -->
   <div id="viewer" class="viewer" aria-hidden="true" role="dialog" aria-modal="true">
@@ -466,7 +452,7 @@
       if (CARD_POOLS.length === 0) {
         CARD_POOLS = FALLBACK_CARDS.slice();
       }
-      log(`[DEBUG] Sets chargés: ${[...loadedSets].join(', ')} · ${CARD_POOLS.length} cartes`);
+console.log(`[DEBUG] Sets chargés: ${[...loadedSets].join(', ')} · ${CARD_POOLS.length} cartes`);
     }
 
     // Local storage
@@ -496,11 +482,7 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
     const sortBy=document.getElementById('sortBy');
     const ownedFilter=document.getElementById('ownedFilter');
 
-    const diag=document.getElementById('diag-log');
-    function log(line){ diag.textContent += (line + '\n'); }
-    function clearLog(){ diag.textContent=''; }
-
-    // Helper toast
+   // Helper toast
     function toast(msg,ms=1800){
       let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
       requestAnimationFrame(()=> t.classList.add('show'));
@@ -531,7 +513,7 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
             profile.level=data.level||profile.level||1;
             profile.xp=data.xp||profile.xp||0;
             save(LS_KEY,collection); save(LS_STATS,stats); save(LS_PROFILE,profile);
-            log('[DEBUG] Cloud → local appliqué');
+            console.log('[DEBUG] Aucun doc cloud — affichage local');
             toast('✅ Synchro Cloud appliquée');
           } else {
             log('[DEBUG] Aucun doc cloud — affichage local');
@@ -539,7 +521,7 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
           render();
         } catch(e){ console.error(e); }
       } else {
-        log('[DEBUG] Non connecté — affichage local');
+        console.log('[DEBUG] Non connecté — affichage local');
         render();
       }
     });
@@ -676,37 +658,7 @@ rarityBtns.forEach(b=>{ b.classList.add('active'); b.setAttribute('aria-pressed'
 });
 
 
-    document.getElementById('btn-sync-from-cloud').addEventListener('click', async ()=>{
-      if(!auth.currentUser){ alert('Connecte-toi avec Twitch pour synchroniser.'); return; }
-      try{
-        const snap=await getDoc(doc(db,'players', auth.currentUser.uid));
-        if(!snap.exists()) { alert('Aucune collection cloud.'); return; }
-        const data=snap.data();
-        collection = { ...(data.collection||{}) };
-        stats.packsOpened = data.stats?.packsOpened||0; profile.level=data.level||1; profile.xp=data.xp||0;
-        save(LS_KEY,collection); save(LS_STATS,stats); save(LS_PROFILE,profile);
-        log('[DEBUG] Synchro forcée Cloud → Local : OK');
-        render();
-        toast('✅ Synchro Cloud → Local réussie');
-      }catch(e){ console.error(e); alert('Erreur de synchro: '+(e?.message||e)); }
-    });
-
-    document.getElementById('btn-export-json').addEventListener('click', ()=>{
-      const payload={ collection, stats, profile, exportedAt:new Date().toISOString() };
-      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='grimoire-collection.json'; a.click(); URL.revokeObjectURL(url);
-      toast('📦 Export JSON prêt');
-    });
-
-    document.getElementById('btn-clear-local').addEventListener('click', ()=>{
-      if(confirm('Effacer la collection locale ? (Cloud inchangé)')){
-        collection={}; save(LS_KEY,collection); render();
-        toast('🧹 Local effacé');
-      }
-    });
-
-    // Init
+       // Init
     await loadCardSets();
     fillSets();
     render();
