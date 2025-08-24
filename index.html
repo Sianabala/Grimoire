@@ -385,9 +385,22 @@ await snapshotOwnedBeforeOpening();
 
   <main class="container">
     <div class="grid">
+<!-- CTA invité -->
+<section id="guest-cta" class="panel" style="grid-column:span 12; display:none">
+  <div class="hd">
+    <h3>Connectez-vous pour jouer</h3>
+  </div>
+  <div class="bd" style="display:flex; flex-direction:column; gap:10px">
+    <p class="subtitle">Connectez-vous avec Twitch pour ouvrir vos packs et collectionner les cartes du Grimoire.</p>
+    <div>
+      <button id="guest-login" class="btn pill">Se connecter avec Twitch</button>
+    </div>
+  </div>
+</section>
 
+      
       <!-- Statistiques -->
-      <section class="panel" style="grid-column:span 12">
+      <section id="panel-stats" class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Statistiques</h3>
                   </div>
@@ -415,7 +428,7 @@ await snapshotOwnedBeforeOpening();
       </section>
 
       <!-- Sets disponibles (NOUVEAU) -->
-      <section class="panel" style="grid-column:span 12">
+      <section id="panel-sets" class="panel" style="grid-column:span 12">
         <div class="hd">
           <h3>Sets disponibles</h3>
           <small class="subtitle">Clique sur un set puis choisis le niveau du pack</small>
@@ -426,7 +439,7 @@ await snapshotOwnedBeforeOpening();
       </section>
 
       <!-- Résultats d'ouverture -->
-      <section class="panel" style="grid-column:span 12">
+      <section id="panel-results" class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Résultats d'ouverture</h3></div>
         <div class="bd">
           <div id="special-banner" class="banner" style="display:none"></div>
@@ -502,6 +515,26 @@ await snapshotOwnedBeforeOpening();
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
   const adminBtn  = document.getElementById('btn-admin');
+
+    // --- Sélecteurs panneaux / CTA invité
+const panelStats   = document.getElementById('panel-stats');
+const panelSets    = document.getElementById('panel-sets');
+const panelResults = document.getElementById('panel-results');
+const guestCta     = document.getElementById('guest-cta');
+
+// Le bouton de la section invité déclenche le même login que celui du header
+const guestLoginBtn = document.getElementById('guest-login');
+if (guestLoginBtn) guestLoginBtn.addEventListener('click', () => loginBtn.click());
+
+// Helper d’affichage
+function setGuestMode(isGuest){
+  if (panelStats)   panelStats.style.display   = isGuest ? 'none' : '';
+  if (panelSets)    panelSets.style.display    = isGuest ? 'none' : '';
+  if (panelResults) panelResults.style.display = isGuest ? 'none' : '';
+  if (guestCta)     guestCta.style.display     = isGuest ? '' : 'none';
+}
+
+    
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
   loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
@@ -810,7 +843,8 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     if (!currentUser) {
   if (nameBox) nameBox.style.display = 'none';
   if (userBar) userBar.style.display = 'none';
-  setAdminUIVisible(false);           // <-- ajoute ceci
+  setAdminUIVisible(false);   
+  setGuestMode(true); 
   refreshPackUI();
   return;
 }
@@ -826,7 +860,7 @@ const isAdmin = allowByUid || allowByRole;
 
 if (isAdmin) adminBtn.style.display = '';
 setAdminUIVisible(isAdmin);
-
+setGuestMode(false);
   });
 
   // --- Cloud bootstrap
