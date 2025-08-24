@@ -239,48 +239,7 @@
       opacity:0; transition: opacity .2s ease, transform .2s ease }
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
 
-/* --- NEW: utilitaires "nouvelle carte" --- */
-
-// Stockage temporaire des IDs possédés AVANT l'ouverture (rempli au lancement de l'animation)
-window.__ownedBefore = new Set();
-
-/** Affiche la bannière "nouvelle carte" pendant 5s */
-function showNewCardBanner(cardName){
-  const banner = document.getElementById('special-banner');
-  if(!banner) return;
-  banner.className = 'banner new-card';
-  banner.style.display = 'flex';
-  banner.innerHTML = `📜✨ <strong>NOUVELLE carte !</strong> ${cardName}`;
-  clearTimeout(window.__newCardTimer);
-  window.__newCardTimer = setTimeout(()=>{ banner.style.display = 'none'; }, 5000);
-}
-
-/** (exemple) Récupère les IDs possédés avant l'ouverture.
- *  Adaptation: branche cette fonction sur ta source réelle (Firestore/localStorage).
- */
-// --- NEW: utilitaires "nouvelle carte" ---
-// ...
-async function getOwnedCardIdsBefore(){
-  // 🔁 Utilise la collection locale actuelle (côté client)
-  if (typeof collection === 'object' && collection){
-    return Object.keys(collection).filter(id => (collection[id]||0) > 0);
-  }
-  // Fallback éventuel (si tu gardes un cache custom)
-  if (window.playerCollection && typeof window.playerCollection === 'object'){
-    return Object.keys(window.playerCollection).filter(id => (window.playerCollection[id]?.qty||0) > 0);
-  }
-  return [];
-}
-
-}
-
-/** À appeler AU DÉBUT de l'ouverture de pack (avant d'appliquer les tirages) */
-async function snapshotOwnedBeforeOpening(){
-  const ids = await getOwnedCardIdsBefore();
-  window.__ownedBefore = new Set(ids);
-}
-
-    
+   
     /* Progress */
     .xpbar{height:12px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden}
     .xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow: 0 0 18px rgba(124,92,255,.35) inset; transition:width .25s ease}
@@ -541,6 +500,47 @@ await snapshotOwnedBeforeOpening();
   const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
   const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
+/* --- NEW: utilitaires "nouvelle carte" --- */
+
+// Stockage temporaire des IDs possédés AVANT l'ouverture (rempli au lancement de l'animation)
+window.__ownedBefore = new Set();
+
+/** Affiche la bannière "nouvelle carte" pendant 5s */
+function showNewCardBanner(cardName){
+  const banner = document.getElementById('special-banner');
+  if(!banner) return;
+  banner.className = 'banner new-card';
+  banner.style.display = 'flex';
+  banner.innerHTML = `📜✨ <strong>NOUVELLE carte !</strong> ${cardName}`;
+  clearTimeout(window.__newCardTimer);
+  window.__newCardTimer = setTimeout(()=>{ banner.style.display = 'none'; }, 5000);
+}
+
+/** (exemple) Récupère les IDs possédés avant l'ouverture.
+ *  Adaptation: branche cette fonction sur ta source réelle (Firestore/localStorage).
+ */
+// --- NEW: utilitaires "nouvelle carte" ---
+// ...
+async function getOwnedCardIdsBefore(){
+  // 🔁 Utilise la collection locale actuelle (côté client)
+  if (typeof collection === 'object' && collection){
+    return Object.keys(collection).filter(id => (collection[id]||0) > 0);
+  }
+  // Fallback éventuel (si tu gardes un cache custom)
+  if (window.playerCollection && typeof window.playerCollection === 'object'){
+    return Object.keys(window.playerCollection).filter(id => (window.playerCollection[id]?.qty||0) > 0);
+  }
+  return [];
+}
+
+}
+
+/** À appeler AU DÉBUT de l'ouverture de pack (avant d'appliquer les tirages) */
+async function snapshotOwnedBeforeOpening(){
+  const ids = await getOwnedCardIdsBefore();
+  window.__ownedBefore = new Set(ids);
+}
+    
   // --- Sets (2 sets visibles au lancement)
   const SETS = [
   { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:"https://i.goopics.net/ilm7lk.png" },
@@ -627,8 +627,13 @@ await snapshotOwnedBeforeOpening();
 
   function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
     const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
-    const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); } else { banner.style.display='none'; } }
-
+    const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); } 
+    } else {
+    // Ne pas cacher si une bannière "nouvelle carte" est en cours
+    if (!banner.classList.contains('new-card')) {
+      banner.style.display='none';
+        }
+    
   function renderCollection(){ const wrap=document.getElementById('collection'); if(!wrap) return; wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=ALL_CARDS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id)); for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + '<div style="font-weight:700">'+card.name+'</div>' + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>' + '</div><div class="qty">'+card.set+' — '+card.id+'</div>' + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>'; wrap.appendChild(div); } }
 
   // --- Rewards button UI ---
@@ -794,6 +799,9 @@ async function openPack({type='standard', setId} = {}){
       }
     }
 
+// ⬇️ AJOUT ICI (avant la transaction)
+await snapshotOwnedBeforeOpening();
+  
     // Transaction Firestore = source de vérité
     let newDocState = null;
     try{
