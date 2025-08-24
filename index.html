@@ -347,7 +347,6 @@
 
           <div class="footerbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
             <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
-            <button id="btn-reset" class="btn ghost pill">Réinitialiser la collection (cloud)</button>
             <span id="packs-balance-badge" class="badge" style="display:none">Packs dispo : —</span>
           </div>
         </div>
@@ -879,17 +878,7 @@ setAdminUIVisible(isAdmin);
   // --- Toast helper
   function toast(msg,ms=1800){ let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=> t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms); }
 
-  // --- Reset -> cloud
-  const resetBtn = document.getElementById('btn-reset');
-  resetBtn.textContent = 'Réinitialiser la collection (cloud)';
-  resetBtn.addEventListener('click', async ()=>{
-    if(!isCloud()){ alert('Connecte-toi pour réinitialiser (cloud).'); return; }
-    if(!confirm('Réinitialiser complètement ta progression (cloud) ?')) return;
-    const base = { stats: { packsOpened: 0 }, collection: {}, level: 1, xp: 0, rewardsInbox: [], packBalances:{standard:0,premium:0}, updatedAt: serverTimestamp() };
-    try{ await updateDoc(playerDocRef, base); updateLocalFromCloud(base); document.getElementById('results').innerHTML=''; document.getElementById('special-banner').style.display='none'; toast('Progression réinitialisée (cloud).'); }catch(e){ alert('Échec de réinitialisation: ' + (e?.message||e)); }
-  });
-
-  // --- Init
+   // --- Init
   async function init(){
     const skel = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:12px"><div class="card"></div><div class="card"></div><div class="card"></div></div>';
     document.getElementById('results').innerHTML = skel;
