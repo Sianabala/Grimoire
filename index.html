@@ -441,11 +441,6 @@ body.guest #guest-cta { display: block !important; }
 
 body.logged-in #guest-cta { display: none !important; }
 
-                                          button.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
                                           
   </style>
 </head>
@@ -467,7 +462,7 @@ body.logged-in #guest-cta { display: none !important; }
         <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
         <div id="user-display-name" class="subtitle" style="display:none"></div>
         <div class="hero-actions">
-          <a href="/collection.html" class="btn ghost pill" id="btn-collection">📚 Ma Collection</a>
+          <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
           <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
           <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
           <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
@@ -494,7 +489,6 @@ body.logged-in #guest-cta { display: none !important; }
       <button id="guest-login" class="btn pill btn-hero" aria-label="Se connecter avec Twitch">
         Se connecter avec Twitch
       </button>
-      <a href="#panel-sets" class="link-ghost">Découvrir les sets</a>
     </div>
   </div>
 </section>
@@ -628,28 +622,13 @@ const guestLoginBtn = document.getElementById('guest-login');
 if (guestLoginBtn) guestLoginBtn.addEventListener('click', () => loginBtn.click());
 
 // Helper d’affichage
-const collectionBtn = document.getElementById('btn-collection');
-
 function setGuestMode(isGuest){
-  if (panelStats)     panelStats.style.display   = isGuest ? 'none' : '';
-  if (panelResults)   panelResults.style.display = isGuest ? 'none' : '';
-  if (guestCta)       guestCta.style.display     = isGuest ? '' : 'none';
-  if (collectionBtn)  collectionBtn.style.display= isGuest ? 'none' : '';
-
-  // La section Sets reste toujours visible
-  if (panelSets)      panelSets.style.display    = '';
-
-  // Désactiver ou réactiver les boutons "ouvrir pack"
-  document.querySelectorAll('#panel-sets button').forEach(btn => {
-    if (isGuest) {
-      btn.disabled = true;
-      btn.classList.add('disabled');
-    } else {
-      btn.disabled = false;
-      btn.classList.remove('disabled');
-    }
-  });
+  if (panelStats)   panelStats.style.display   = isGuest ? 'none' : '';
+  if (panelSets)    panelSets.style.display    = isGuest ? 'none' : '';
+  if (panelResults) panelResults.style.display = isGuest ? 'none' : '';
+  if (guestCta)     guestCta.style.display     = isGuest ? '' : 'none';
 }
+
     
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
   loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
