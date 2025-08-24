@@ -354,6 +354,24 @@ await snapshotOwnedBeforeOpening();
   .input{ padding:10px 12px; font-size:14px; }
 }
 
+/* Lisibilité du badge de solde packs (garde l'emplacement existant) */
+.badge.packs-balance{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  font-weight:600; font-size:14px; line-height:1;
+}
+.badge.packs-balance .sep{ opacity:.65 }
+.badge.packs-balance .dot{
+  width:8px; height:8px; border-radius:999px;
+  background: currentColor; opacity:.85;
+}
+@media (max-width:600px){
+  .badge.packs-balance{ font-size:13px; padding:5px 9px }
+}
+
+                                          
   </style>
 </head>
 <body>
@@ -409,7 +427,13 @@ await snapshotOwnedBeforeOpening();
 
           <div class="footerbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
             <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
-            <span id="packs-balance-badge" class="badge" style="display:none">Packs dispo : —</span>
+            <span id="packs-balance-badge" class="badge packs-balance" aria-live="polite" style="display:none">
+  <span class="dot" aria-hidden="true"></span>
+  <span>Standard ×<strong id="packs-standard">0</strong></span>
+  <span class="sep">·</span>
+  <span>Premium ×<strong id="packs-premium">0</strong></span>
+</span>
+
           </div>
         </div>
       </section>
@@ -859,7 +883,20 @@ setAdminUIVisible(isAdmin);
   function refreshPackUI(){
     // Met à jour le badge + états des boutons de choix
     const badgeEl = document.getElementById('packs-balance-badge');
-    if(badgeEl){ badgeEl.textContent = `Packs dispo : Standard ×${packBalances.standard} · Premium ×${packBalances.premium}`; badgeEl.style.display = ''; }
+if (badgeEl) {
+  const stdEl = document.getElementById('packs-standard');
+  const prmEl = document.getElementById('packs-premium');
+  if (stdEl) stdEl.textContent = String(packBalances.standard || 0);
+  if (prmEl) prmEl.textContent = String(packBalances.premium || 0);
+  // Option UX : afficher le badge seulement connecté (mode cloud)
+  try {
+    badgeEl.style.display = (typeof isCloud === 'function' && isCloud()) ? '' : 'none';
+  } catch {
+    badgeEl.style.display = '';
+  }
+}
+
+    
     if(pcStandard){ pcStandard.textContent = `🎴 Standard ${packBalances.standard?`(×${packBalances.standard})`:''}`; pcStandard.disabled = packBalances.standard<=0; pcStandard.classList.toggle('ghost', packBalances.standard<=0); pcStandard.title = packBalances.standard<=0 ? 'Aucun pack Standard disponible' : ''; }
     if(pcPremium){ pcPremium.textContent = `💎 Premium ${packBalances.premium?`(×${packBalances.premium})`:''}`; pcPremium.disabled = packBalances.premium<=0; pcPremium.classList.toggle('ghost', packBalances.premium<=0); pcPremium.title = packBalances.premium<=0 ? 'Aucun pack Premium disponible' : ''; }
     // Désactive les boutons "Ouvrir" de chaque set si aucun pack
