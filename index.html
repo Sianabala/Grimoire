@@ -354,6 +354,32 @@ await snapshotOwnedBeforeOpening();
   .input{ padding:10px 12px; font-size:14px; }
 }
 
+                                          .leaderboard-wrap{
+  overflow:auto; border-radius:12px; border:1px solid rgba(255,255,255,.08);
+  background: linear-gradient(180deg,#0f1324,#0a0f1e);
+}
+.leaderboard{
+  width:100%; border-collapse:collapse; font-size:14px;
+}
+.leaderboard th, .leaderboard td{
+  padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+}
+.leaderboard thead th{ font-weight:800; color:var(--muted); position:sticky; top:0; background:rgba(11,15,26,.65); backdrop-filter:blur(4px) }
+.leaderboard tbody tr:hover{ background:rgba(255,255,255,.04) }
+
+.lb-user{
+  display:flex; align-items:center; gap:10px;
+}
+.lb-user img{
+  width:28px; height:28px; border-radius:999px; object-fit:cover; border:1px solid rgba(255,255,255,.15);
+}
+.lb-rank{
+  font-weight:900;
+}
+.lb-rank.medal-1{ color:#ffd700 } /* or */
+.lb-rank.medal-2{ color:#c0c0c0 } /* argent */
+.lb-rank.medal-3{ color:#cd7f32 } /* bronze */
+
   </style>
 </head>
 <body>
@@ -431,8 +457,41 @@ await snapshotOwnedBeforeOpening();
         <div class="bd">
           <div id="special-banner" class="banner" style="display:none"></div>
           <div class="results" id="results"></div>
-        </div>
+        </div>   
       </section>
+
+      <!-- Classement (Top 10 complétion) -->
+<section class="panel" style="grid-column:span 12">
+  <div class="hd">
+    <h3>Classement — Top 10 complétion</h3>
+    <small class="subtitle">Basé sur % de complétion (cartes uniques / total)</small>
+  </div>
+  <div class="bd">
+    <div id="lb-empty" class="subtitle" style="display:none">Aucun joueur pour l’instant.</div>
+    <div class="leaderboard-wrap">
+      <table class="leaderboard">
+        <thead>
+          <tr>
+            <th style="width:64px">Rang</th>
+            <th>Joueur</th>
+            <th style="text-align:right">Complétion</th>
+            <th style="text-align:right">Uniques</th>
+            <th style="text-align:right">Packs</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <!-- Lignes injectées en JS -->
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:10px; justify-content:flex-end">
+      <button id="lb-refresh" class="btn pill ghost">↻ Actualiser</button>
+    </div>
+  </div>
+</section>
+
+
+      
      </div>
 
     <!-- Overlay d'animation d'ouverture de pack -->
@@ -479,7 +538,9 @@ await snapshotOwnedBeforeOpening();
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, getDocs, query, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+    
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
 
@@ -559,6 +620,127 @@ await snapshotOwnedBeforeOpening();
     console.log('[DEBUG] Sets chargés ->', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
   }
 
+// --- Leaderboard (Top 10 complétion)
+const LB_LIMIT_FETCH = 200; // on récupère un échantillon, puis on trie côté client
+const lbBody   = document.getElementById('leaderboard-body');
+const lbEmpty  = document.getElementById('lb-empty');
+const lbRefreshBtn = document.getElementById('lb-refresh');
+
+function fmtPct(n){ return `${Math.max(0, Math.min(100, Math.round(n)))}%`; }
+
+function renderLeaderboard(rows){
+  lbBody.innerHTML = '';
+  if(!rows.length){
+    lbEmpty.style.display = '';
+    return;
+  }
+  lbEmpty.style.display = 'none';
+
+  rows.slice(0,10).forEach((r, idx)=>{
+    const tr = document.createElement('tr');
+
+    const rankTd = document.createElement('td');
+    rankTd.className = 'lb-rank';
+    const place = idx+1;
+    let medalClass = '';
+    if(place===1) medalClass = 'medal-1';
+    else if(place===2) medalClass = 'medal-2';
+    else if(place===3) medalClass = 'medal-3';
+    rankTd.classList.add(medalClass);
+    rankTd.textContent = place;
+    tr.appendChild(rankTd);
+
+    const userTd = document.createElement('td');
+    userTd.innerHTML = `
+      <div class="lb-user">
+        <img src="${r.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'}" alt="">
+        <strong>${r.displayName || '(Anonyme)'}</strong>
+      </div>`;
+    tr.appendChild(userTd);
+
+    const pctTd = document.createElement('td');
+    pctTd.style.textAlign = 'right';
+    pctTd.textContent = fmtPct(r.completionPct);
+    tr.appendChild(pctTd);
+
+    const uniqTd = document.createElement('td');
+    uniqTd.style.textAlign = 'right';
+    uniqTd.textContent = `${r.uniqueOwned} / ${r.totalUnique}`;
+    tr.appendChild(uniqTd);
+
+    const packsTd = document.createElement('td');
+    packsTd.style.textAlign = 'right';
+    packsTd.textContent = r.packsOpened;
+    tr.appendChild(packsTd);
+
+    lbBody.appendChild(tr);
+  });
+}
+
+/** Calcule le % de complétion d’un document "players" Firestore */
+function computeCompletionFromDoc(docData, totalUnique){
+  const coll = docData?.collection || {};
+  const uniqueOwned = Object.keys(coll).length;
+  const completionPct = totalUnique > 0 ? (uniqueOwned / totalUnique) * 100 : 0;
+  return { uniqueOwned, completionPct };
+}
+
+/** Charge des joueurs, calcule la complétion, trie, et affiche */
+async function loadLeaderboard(){
+  try{
+    // Assure-toi que les cartes sont chargées (ALL_CARDS alimenté par loadCardSets)
+    const totalUnique = new Set(ALL_CARDS.map(c=>c.id)).size;
+
+    // Récupère un échantillon de joueurs (jusqu'à 200) puis on trie côté client
+    const q = query(collection(db, 'players'), limit(LB_LIMIT_FETCH));
+    const snap = await getDocs(q);
+
+    const rows = [];
+    snap.forEach(d=>{
+      const data = d.data() || {};
+      const { uniqueOwned, completionPct } = computeCompletionFromDoc(data, totalUnique);
+      rows.push({
+        uid: d.id,
+        displayName: data.displayName || '',
+        photoURL: data.photoURL || '',
+        packsOpened: data?.stats?.packsOpened || 0,
+        uniqueOwned,
+        completionPct,
+        totalUnique
+      });
+    });
+
+    // Tri: 1) % complétion desc, 2) uniques desc, 3) packsOpened desc
+    rows.sort((a,b)=> (b.completionPct - a.completionPct) ||
+                      (b.uniqueOwned - a.uniqueOwned) ||
+                      (b.packsOpened - a.packsOpened));
+
+    renderLeaderboard(rows);
+  }catch(e){
+    console.error('[Leaderboard] load failed', e);
+    lbEmpty.textContent = "Erreur de chargement du classement.";
+    lbEmpty.style.display = '';
+  }
+}
+
+// Bouton "Actualiser"
+if(lbRefreshBtn){
+  lbRefreshBtn.addEventListener('click', ()=> loadLeaderboard());
+}
+
+// Appel automatique une fois les sets/cartes chargés
+(async ()=>{
+  // ton code charge déjà les sets via loadCardSets() avant d'ouvrir des packs.
+  // Si ce n'est pas déjà fait ici, on s'assure de charger les sets puis le classement.
+  try{
+    if(!ALL_CARDS || ALL_CARDS.length===0){
+      await loadCardSets(); // s'appuie sur ta fonction existante :contentReference[oaicite:1]{index=1}
+    }
+  }catch(e){ /* si déjà chargé, ce n'est pas grave */ }
+  await loadLeaderboard();
+})();
+
+    
   // --- Local/state (mode déconnecté uniquement)
   const LS_KEY = 'grimoire.alpha.collection.v2_6';
   const LS_STATS = 'grimoire.alpha.stats.v2_6';
@@ -583,6 +765,18 @@ await snapshotOwnedBeforeOpening();
     updateRewardButton(data?.rewardsInbox || []); // synchro du bouton
     refreshPackUI();
   }
+
+    try{
+  const totalUnique = new Set(ALL_CARDS.map(c=>c.id)).size;
+  const uniqueOwned = Object.keys(newDocState?.collection || {}).length;
+  const completionPct = totalUnique>0 ? Math.round((uniqueOwned/totalUnique)*100) : 0;
+  await updateDoc(playerDocRef, {
+    uniqueOwned,
+    completionPct,
+    updatedAt: serverTimestamp()
+  });
+}catch(e){ console.warn('[Leaderboard] unable to persist derived fields', e); }
+
 
   function maybeSaveLocal(){ if (!isCloud()) { localStorage.setItem(LS_KEY, JSON.stringify(collection)); localStorage.setItem(LS_STATS, JSON.stringify(stats)); localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } }
   function saveCollection(){ maybeSaveLocal(); } function saveStats(){ maybeSaveLocal(); } function saveProfile(){ maybeSaveLocal(); }
