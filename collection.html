@@ -659,7 +659,7 @@ const enabled = new Set(
       elUniques.textContent = uniques;
       elTotal.textContent = totalCards;
       elCompletion.textContent = completion + '%';
-      elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
+      elByRarity.textContent = `Communes:${byR[RARITY.COMMON]} · Peu communes:${byR[RARITY.UNCOMMON]} · Rares:${byR[RARITY.RARE]} · Légendaires:${byR[RARITY.LEGENDARY]} · Exotiques:${byR[RARITY.EXOTIC]}`;
 
     // Cards (groupé par set avec header + barre de progression)
 elCards.innerHTML = '';
