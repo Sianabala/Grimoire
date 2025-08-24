@@ -374,20 +374,21 @@
       </section>
 
       <!-- Debug & Diagnostics -->
-      <section class="panel" style="grid-column:span 12">
-        <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
-        <div class="bd">
-          <div class="footerbar" style="display:flex;gap:10px;flex-wrap:wrap">
-            <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
-            <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
-            <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
-            <button id="btn-test-premium" class="btn ghost pill">Test Premium garanti (1 000)</button>
-            <button id="btn-test-firestore" class="btn ghost pill">Test Firestore round-trip</button>
-            <button id="btn-test-cloud-priority" class="btn ghost pill">Test priorité cloud (lecture)</button>
-          </div>
-          <pre id="diag-log" class="diag"></pre>
-        </div>
-      </section>
+<section id="admin-diag" class="panel" style="grid-column:span 12; display:none">
+  <div class="hd"><h3>Configuration & Diagnostic</h3><span class="subtitle">Aide au débogage</span></div>
+  <div class="bd">
+    <div class="footerbar" style="display:flex;gap:10px;flex-wrap:wrap">
+      <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
+      <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
+      <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
+      <button id="btn-test-premium" class="btn ghost pill">Test Premium garanti (1 000)</button>
+      <button id="btn-test-firestore" class="btn ghost pill">Test Firestore round-trip</button>
+      <button id="btn-test-cloud-priority" class="btn ghost pill">Test priorité cloud (lecture)</button>
+    </div>
+    <pre id="diag-log" class="diag"></pre>
+  </div>
+</section>
+
 
     </div>
 
@@ -763,15 +764,26 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     const userBar = document.getElementById('user-bar');
     const userName = document.getElementById('user-name');
     const userAvatar = document.getElementById('user-avatar');
-    if (!currentUser) { if (nameBox) nameBox.style.display = 'none'; if (userBar) userBar.style.display = 'none'; refreshPackUI(); return; }
+    if (!currentUser) {
+  if (nameBox) nameBox.style.display = 'none';
+  if (userBar) userBar.style.display = 'none';
+  setAdminUIVisible(false);           // <-- ajoute ceci
+  refreshPackUI();
+  return;
+}
+
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
     let pseudo = data?.displayName || currentUser.displayName || '';
     if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
     if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
     if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
     const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-    if (allowByUid || allowByRole) adminBtn.style.display = '';
+const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+const isAdmin = allowByUid || allowByRole;
+
+if (isAdmin) adminBtn.style.display = '';
+setAdminUIVisible(isAdmin);
+
   });
 
   // --- Cloud bootstrap
@@ -937,6 +949,15 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
   const userLogoutBtn = document.getElementById('user-logout');
   if (userLogoutBtn) { userLogoutBtn.addEventListener('click', async () => { try { console.log('[DEBUG] Logout (barre utilisateur)'); await signOut(auth); } catch (e) { console.error(e); } }); }
 
+
+    let currentIsAdmin = false;
+function setAdminUIVisible(isAdmin){
+  currentIsAdmin = !!isAdmin;
+  const diagPanel = document.getElementById('admin-diag');
+  if (diagPanel) diagPanel.style.display = isAdmin ? '' : 'none';
+}
+
+    
   </script>
 
 </body>
