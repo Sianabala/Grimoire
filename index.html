@@ -432,6 +432,15 @@ await snapshotOwnedBeforeOpening();
   .btn-hero:hover{ transform:none; box-shadow:none; }
 }
 
+/* États d'auth visuels, robustes même sans JS */
+body.guest #panel-stats,
+body.guest #panel-sets,
+body.guest #panel-results { display: none !important; }
+
+body.guest #guest-cta { display: block !important; }
+
+body.logged-in #guest-cta { display: none !important; }
+
                                           
   </style>
 </head>
@@ -466,7 +475,7 @@ await snapshotOwnedBeforeOpening();
     <div class="grid">
 
 <!-- HERO invité -->
-<section id="guest-cta" class="hero-guest" style="grid-column:span 12; display:none">
+<section id="guest-cta" class="panel" style="grid-column:span 12">
   <!-- Image de fond : remplace l’URL ci-dessous par la tienne -->
   <div class="hero-bg" style="--hero-img:url('images/hero-grimoire.jpg')"></div>
   <div class="hero-overlay"></div>
@@ -941,7 +950,8 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     if (!currentUser) {
   if (nameBox) nameBox.style.display = 'none';
   if (userBar) userBar.style.display = 'none';
-  setAdminUIVisible(false);   
+  setAdminUIVisible(false);
+  document.body.className = 'guest';   // <<< AJOUT
   setGuestMode(true); 
   refreshPackUI();
   return;
@@ -958,7 +968,8 @@ const isAdmin = allowByUid || allowByRole;
 
 if (isAdmin) adminBtn.style.display = '';
 setAdminUIVisible(isAdmin);
-setGuestMode(false);
+document.body.className = 'logged-in';
+    setGuestMode(false);
   });
 
   // --- Cloud bootstrap
