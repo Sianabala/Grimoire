@@ -233,30 +233,6 @@
     .po-stage{ position:absolute; inset:0; display:grid; place-items:center; padding:20px }
     .po-actions{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); }
 
-.po-animation {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  transform: translateY(0);
-  transition: transform 0.3s ease;
-}
-.po-pack.hidden {
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.po-fan {
-  transform: translateY(20px);
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-}
-.po-fan.revealed {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-    
     .po-pack{ width:240px; height:360px; perspective:1000px; position:relative; filter: drop-shadow(0 30px 50px rgba(0,0,0,.65)); animation: poFloat 2.8s ease-in-out infinite; }
     .po-pack-body{ position:absolute; inset:0; border-radius:18px; background:
       radial-gradient(120px 60px at 20% 20%, rgba(124,92,255,.35), transparent 60%),
@@ -394,27 +370,20 @@
     <div id="pack-overlay" aria-hidden="true" hidden>
       <div class="po-backdrop"></div>
       <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
-  <div class="po-animation">
-    <div class="po-pack" id="po-pack" aria-hidden="true">
-      <div class="po-pack-body">
-        <div class="po-pack-gloss"></div>
-        <div class="po-pack-logo">GRIMOIRE</div>
+        <div class="po-pack" id="po-pack" aria-hidden="true">
+          <div class="po-pack-body">
+            <div class="po-pack-gloss"></div>
+            <div class="po-pack-logo">GRIMOIRE</div>
+          </div>
+          <div class="po-pack-shine"></div>
+        </div>
+        <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+        <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
+        <canvas id="po-confetti" width="1280" height="720"></canvas>
+        <div class="po-actions">
+          <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+        </div>
       </div>
-      <div class="po-pack-shine"></div>
-    </div>
-
-    <div class="po-slit" id="po-slit" aria-hidden="true"></div>
-
-    <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
-  </div>
-
-  <canvas id="po-confetti" width="1280" height="720"></canvas>
-
-  <div class="po-actions">
-    <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
-  </div>
-</div>
-
     </div>
 
     <!-- Choix du niveau de pack (modal) -->
@@ -609,44 +578,11 @@
   function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
   function rarityGlowClass(r){ if(r===RARITY.EXOTIC) return 'glow-exotic'; if(r===RARITY.LEGENDARY) return 'glow-legendary'; if(r===RARITY.RARE) return 'glow-rare'; if(r===RARITY.UNCOMMON) return 'glow-uncommon'; return 'glow-common'; }
   function burst(x, y, strong=false){ const parts = []; const n = strong ? 140 : 80; for(let i=0;i<n;i++){ parts.push({ x, y, vx: (Math.random()*2-1)*(strong?6:4), vy: (Math.random()*-2-2)*(strong?2:1.6), g:  0.18, a:  1, s:  Math.random()*2+1 }); } const start = performance.now(); function step(t){ step._lt = t; ctxFx.clearRect(0,0,poFx.width,poFx.height); parts.forEach(p=>{ p.vy += p.g; p.x  += p.vx; p.y  += p.vy; p.a  -= 0.012; ctxFx.globalAlpha = Math.max(0,p.a); ctxFx.fillStyle = '#fff'; ctxFx.fillRect(p.x, p.y, p.s, p.s); }); ctxFx.globalAlpha = 1; if(performance.now()-start < 1800) requestAnimationFrame(step); else ctxFx.clearRect(0,0,poFx.width,poFx.height); } requestAnimationFrame(step); }
-  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); 
-                                          poFan.innerHTML = '';
-poSlit.style.opacity = 0;
-poSlit.style.height = '0px';
-poPack.style.opacity = 1;
-poPack.classList.remove('hidden');
-poFan.classList.remove('revealed');
-
-                                          poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; 
-                                          await wait(skipRequested ? 0 : 520);
-poSlit.style.opacity = 1;
-poSlit.style.height = '180px'; // simplifié
-
-await wait(skipRequested ? 0 : 260);
-
-// Disparition du pack
-poPack.classList.add('hidden');
-
-// Affichage de la fan
-poFan.innerHTML = '';
-cards.forEach((c, i) => {
-  const el = document.createElement('div');
-  el.className = 'po-card';
-  el.style.setProperty('--rot', `${[-18,-9,0,9,18][i]}deg`);
-  el.setAttribute('data-idx', String(i));
-  el.innerHTML = `
-    <div class="img" style="--bg:url('${(c.image||'').replaceAll("'","\\'")}')"></div>
-    <div class="shine"></div>
-    <div class="tagbar">${c.name || 'Carte'}</div>
-    <div class="veil">Clique pour révéler</div>
-  `;
-  poFan.appendChild(el);
-});
-
-// Révèle la fan lentement
-poFan.classList.add('revealed');
-await wait(skipRequested ? 0 : 300);
-
+  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); poFan.innerHTML = ''; poSlit.style.opacity = 0; poSlit.style.height = '0px'; poPack.style.opacity = 1; poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); el.innerHTML = `
+  <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+  <div class="shine"></div>
+  <div class="tagbar">${c.name || 'Carte'}</div>
+  <div class="veil">Clique pour révéler</div>`; poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
     function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; el.setAttribute('aria-pressed','true'); el.classList.add(rarityGlowClass(c.rarity)); el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)'; const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC); if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
