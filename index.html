@@ -417,39 +417,41 @@
 
     </div>
 
-    <!-- Overlay d'animation d'ouverture de pack -->
-     <div id="pack-overlay" aria-hidden="true" hidden>
-    <div class="po-backdrop"></div>
-    <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
-      <div class="po-pack" id="po-pack" aria-hidden="true">
-        <div class="po-pack-body">
-          <div class="po-pack-gloss"></div>
-          <div class="po-pack-logo">GRIMOIRE</div>
-        </div>
-        <div class="po-pack-shine"></div>
+   <!-- Overlay d'animation d'ouverture de pack -->
+<div id="pack-overlay" aria-hidden="true" hidden>
+  <div class="po-backdrop"></div>
+  <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
+    <div class="po-pack" id="po-pack" aria-hidden="true">
+      <div class="po-pack-body">
+        <div class="po-pack-gloss"></div>
+        <div class="po-pack-logo">GRIMOIRE</div>
       </div>
-      <div class="po-slit" id="po-slit" aria-hidden="true"></div>
-      <div class="po-fan" id="po-fan"></div>
-      <canvas id="po-confetti" width="1280" height="720"></canvas>
-      <div class="po-actions">
-        <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
-      </div>
+      <div class="po-pack-shine"></div>
     </div>
-       <!-- Zoom carte -->
-    <div id="card-zoom" hidden>
-      <div class="cz-backdrop"></div>
-      <div class="cz-wrap">
-        <button class="cz-close" aria-label="Fermer">✕</button>
-        <div class="cz-card">
-          <div class="cz-img" style="--bg:url('')"></div>
-          <div class="cz-meta">
-            <div id="cz-title">—</div>
-            <div id="cz-sub" class="subtitle">—</div>
-          </div>
+    <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+    <div class="po-fan" id="po-fan"></div>
+    <canvas id="po-confetti" width="1280" height="720"></canvas>
+    <div class="po-actions">
+      <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+    </div>
+  </div>
+
+  <!-- Zoom carte -->
+  <div id="card-zoom" hidden>
+    <div class="cz-backdrop"></div>
+    <div class="cz-wrap">
+      <button class="cz-close" aria-label="Fermer">✕</button>
+      <div class="cz-card">
+        <div class="cz-img" style="--bg:url('')"></div>
+        <div class="cz-meta">
+          <div id="cz-title">—</div>
+          <div id="cz-sub" class="subtitle">—</div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
 
     </div>
 
@@ -662,7 +664,8 @@ const currentSet = SETS.find(s => s.id === setId);
 art.style.backgroundImage = currentSet?.img ? `url('${currentSet.img.replaceAll("'","\\'")}')` : 'none';
                                                  
     const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { 
-      const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); 
+      const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; 
+                                                 await wait(skipRequested ? 0 : 520); 
                                                  
       const r = poPack.getBoundingClientRect(); 
       poSlit.style.left = (r.left + r.width/2) + 'px'; 
@@ -714,24 +717,45 @@ poFan.style.opacity = '1';
 Array.from(poFan.children).forEach((el, i)=> {
 setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
 });                                                 
-    await wait(skipRequested ? 0 : 420);
-    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; // 🔁 passer du verso à la face si disponible
-        const imgEl = el.querySelector('.img');
-        const face = el.dataset.face;
-        if (face) {
-          imgEl.style.setProperty('--bg', `url('${face}')`);
-        } else {
-          // s'il n'y a pas d'image de face, on garde le verso
-          imgEl.style.setProperty('--bg', `url('${CARD_BACK_URL.replaceAll("'","\\'")}')`);
-        }
-        el.setAttribute('aria-pressed','true');
-        el.classList.add(rarityGlowClass(c.rarity));
-        el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
-        const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
-        if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
-      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); 
-                                                   
-  el.addEventListener('click', ()=> {
+   await wait(skipRequested ? 0 : 420);
+
+function setupClickReveal(){
+  let remaining = new Set(cards.map((_,i)=> i));
+  let resolveAll;
+  const done = new Promise(r=> resolveAll = r);
+
+  function onKey(e){
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      e.currentTarget.click();
+    }
+  }
+
+  function revealIndex(i, fast=false){
+    const c  = cards[i];
+    const el = poFan.querySelector('.po-card[data-idx="'+i+'"]');
+    if(!el || el.getAttribute('aria-pressed') === 'true') return;
+
+    const imgEl = el.querySelector('.img');
+    const face  = el.dataset.face;
+    imgEl.style.setProperty('--bg', `url('${(face || CARD_BACK_URL).replaceAll("'","\\'")}')`);
+
+    el.setAttribute('aria-pressed','true');
+    el.classList.add(rarityGlowClass(c.rarity));
+    el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
+
+    const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
+    if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC);
+  }
+
+  Array.from(poFan.children).forEach((el, i)=>{
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-pressed','false');
+    el.addEventListener('keydown', onKey);
+
+    // 1er clic = révéler, 2e clic = zoom
+    el.addEventListener('click', ()=>{
       const already = el.getAttribute('aria-pressed') === 'true';
       if(!already){
         revealIndex(i, false);
@@ -745,14 +769,32 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
       }
     }, { passive:true });
 
-    el.addEventListener('touchend', ()=> {
+    // Tap mobile rapide juste après révélation => zoom
+    el.addEventListener('touchend', ()=>{
       if (el._justRevealedAt && (performance.now() - el._justRevealedAt) < 350){
         const c = cards[i];
         const face = el.dataset.face || '';
         openCardZoom({ face, name:c.name, set:c.set, rarity:c.rarity });
       }
       el._justRevealedAt = 0;
-    }, { passive:true });    await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
+    }, { passive:true });
+  });
+
+  function revealAllFast(){
+    remaining.forEach(idx => revealIndex(idx, true));
+    remaining.clear();
+    resolveAll();
+  }
+  if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); }
+  if (skipRequested){ revealAllFast(); }
+
+  return done;
+}
+
+await setupClickReveal();
+await wait(skipRequested ? 0 : 280);
+hideOverlay();
+
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
   async function openPack({type='standard', setId} = {}){
