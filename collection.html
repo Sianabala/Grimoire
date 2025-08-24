@@ -241,9 +241,17 @@ function cardFrontUrl(c){
 // Verso par défaut (URL directe d'une image)
 const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as ton propre fichier
   
-    // Chargement dynamique du set
+       // Chargement dynamique de plusieurs sets
     let CARD_POOLS = [];
+
+    // Les fichiers JSON des sets à charger
+    const SET_FILES = [
+      '/data/sets/nouvelle-lumiere.json',
+      '/data/sets/twitch.json'
+    ];
+
     const FALLBACK_CARDS = [
+
       { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
       { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
       { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
@@ -260,28 +268,58 @@ const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as
       if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
       return RARITY.COMMON;
     }
-    async function loadCardSet(){
-      const url='/data/sets/nouvelle-lumiere.json';
-      try{
-        console.log('[DEBUG][collection] fetch', url);
-        const res=await fetch(url,{cache:'no-store'});
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data=await res.json();
-        if(!data?.cards?.length) throw new Error('Fichier JSON sans cartes');
-        CARD_POOLS = data.cards.map(c=>({
-  id: c.id,
-  name: c.name,
-  set: c.set || 'Nouvelle Lumière',
-  rarity: mapRarity(c.rarity),
-  image: c.image || ''            // 👈 on conserve l'URL si fournie
-}));
+       async function loadCardSets(){
+      CARD_POOLS = [];
+      const loadedSets = new Set();
 
-        console.log('[DEBUG][collection] loaded', CARD_POOLS.length, 'cards');
-      }catch(e){
-        console.warn('[DEBUG][collection] fallback local', e);
-        CARD_POOLS = FALLBACK_CARDS.slice();
+      for (const url of SET_FILES) {
+        try {
+          console.log('[DEBUG][collection] fetch', url);
+          const res = await fetch(url, { cache:'no-store' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+
+          const setName =
+            data?.set
+              || data?.name
+              || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
+                  : url.includes('twitch') ? 'Twitch'
+                  : 'Set inconnu');
+
+          if (!Array.isArray(data?.cards) || !data.cards.length) {
+            console.warn('[DEBUG][collection] Fichier sans cartes:', url);
+            continue;
+          }
+
+          const mapped = data.cards.map(c => ({
+            id: c.id,
+            name: c.name,
+            set: c.set || setName,
+            rarity: mapRarity(c.rarity),
+            image: c.image || ''
+          }));
+
+          CARD_POOLS.push(...mapped);
+          loadedSets.add(setName);
+          console.log('[DEBUG][collection] loaded', mapped.length, 'cards from', setName);
+        } catch(e) {
+          console.warn('[DEBUG][collection] erreur chargement', url, e);
+          if (url.includes('nouvelle-lumiere') && CARD_POOLS.length === 0) {
+            CARD_POOLS.push(...FALLBACK_CARDS);
+            loadedSets.add('Nouvelle Lumière');
+            console.log('[DEBUG][collection] fallback utilisé pour Nouvelle Lumière');
+          }
+        }
       }
+
+      if (CARD_POOLS.length === 0) {
+        CARD_POOLS = FALLBACK_CARDS.slice();
+        loadedSets.add('Nouvelle Lumière');
+      }
+
+      log(`[DEBUG] Sets chargés: ${[...loadedSets].join(', ')} · ${CARD_POOLS.length} cartes`);
     }
+
 
     // Local storage (mêmes clés que l’index)
     const LS_KEY='grimoire.alpha.collection.v2_5';
@@ -484,8 +522,8 @@ elCards.appendChild(div);
       }
     });
 
-    // Init
-    await loadCardSet();
+        // Init
+    await loadCardSets();
     fillSets();
     render();
   </script>
