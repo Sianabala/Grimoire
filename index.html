@@ -586,7 +586,7 @@ body.logged-in #guest-cta { display: none !important; }
   // --- Firebase imports
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { doc, enableIndexedDbPersistence, getDoc, getFirestore, onSnapshot, runTransaction, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
@@ -696,12 +696,17 @@ function setGuestMode(isGuest){
   let profile = loadProfile();
   let currentUser = null; let playerDocRef = null;
   let packBalances = { standard:0, premium:0 };
+  let unsubscribePlayer = null; // realtime listener unsubscribe
+  let authInitialized = false;      // avoid flicker to 0 on first null auth event
+  let lastCloudData = null;         // keep last known cloud snapshot
+  let openingInProgress = false;       // prevent double opening
   function loadCollection(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch{ return {}; } }
   function loadStats(){ try{ return JSON.parse(localStorage.getItem(LS_STATS))||{packsOpened:0}; }catch{ return {packsOpened:0}; } }
   function loadProfile(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILE))||{level:1,xp:0}; }catch{ return {level:1,xp:0}; } }
 
   const isCloud = () => !!currentUser && !!playerDocRef;
   function updateLocalFromCloud(data){
+    lastCloudData = data || null;
     collection = { ...(data.collection || {}) };
     stats = { packsOpened: data?.stats?.packsOpened || 0 };
     profile = { level: data?.level || 1, xp: data?.xp || 0 };
@@ -864,7 +869,9 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
   async function openPack({type='standard', setId} = {}){
-    const pool = CARD_SETS[setId] || ALL_CARDS;
+        if (openingInProgress) { toast('Ouverture en cours…'); return; }
+    openingInProgress = true;
+const pool = CARD_SETS[setId] || ALL_CARDS;
     if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
     if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
 
@@ -915,7 +922,7 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
         trx.set(playerDocRef, newDoc, { merge:true });
         return newDoc;
       });
-    }catch(e){ alert(e.message || String(e)); return; }
+    }catch(e){ alert(e.message || String(e)); openingInProgress=false; return; }
 
     // Mise à jour UI + animation
     updateLocalFromCloud(newDocState);
@@ -935,15 +942,20 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     const userBar = document.getElementById('user-bar');
     const userName = document.getElementById('user-name');
     const userAvatar = document.getElementById('user-avatar');
+    
+    // Clean up any previous listener
+    if (unsubscribePlayer) { try { unsubscribePlayer(); } catch {} unsubscribePlayer = null; }
+
     if (!currentUser) {
-  if (nameBox) nameBox.style.display = 'none';
-  if (userBar) userBar.style.display = 'none';
-  setAdminUIVisible(false);
-  document.body.className = 'guest';   // <<< AJOUT
-  setGuestMode(true); 
-  refreshPackUI();
-  return;
-}
+      if (nameBox) nameBox.style.display = 'none';
+      if (userBar) userBar.style.display = 'none';
+      setAdminUIVisible(false);
+      document.body.className = 'guest';
+      setGuestMode(true);
+      authInitialized = true; // first auth event handled
+      refreshPackUI(); // will show '—' instead of 0s
+      return;
+    }
 
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
     let pseudo = data?.displayName || currentUser.displayName || '';
@@ -951,13 +963,27 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
     if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
     const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-const isAdmin = allowByUid || allowByRole;
-
-if (isAdmin) adminBtn.style.display = '';
-setAdminUIVisible(isAdmin);
-document.body.className = 'logged-in';
+    const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+    const isAdmin = allowByUid || allowByRole;
+    if (isAdmin) adminBtn.style.display = '';
+    setAdminUIVisible(isAdmin);
+    document.body.className = 'logged-in';
     setGuestMode(false);
+    authInitialized = true;
+
+    // Start realtime listener to keep balances in sync and avoid stale/zero UI
+    try {
+      if (!playerDocRef) { playerDocRef = doc(db, 'players', currentUser.uid); }
+      unsubscribePlayer = onSnapshot(playerDocRef, (snap)=>{
+        if (snap.exists()) {
+          updateLocalFromCloud(snap.data());
+        }
+      }, (err)=>{
+        console.warn('[DEBUG] onSnapshot error', err);
+      });
+    } catch (e) {
+      console.warn('[DEBUG] Failed to attach onSnapshot', e);
+    }
   });
 
   // --- Cloud bootstrap
@@ -990,7 +1016,13 @@ document.body.className = 'logged-in';
   function refreshPackUI(){
     // Met à jour le badge + états des boutons de choix
     const badgeEl = document.getElementById('packs-balance-badge');
-    if(badgeEl){ badgeEl.textContent = `Packs dispo : Standard ×${packBalances.standard} · Premium ×${packBalances.premium}`; badgeEl.style.display = ''; }
+    const logged = isCloud();
+    if (badgeEl) {
+      const std = logged ? (packBalances.standard||0) : '—';
+      const prem = logged ? (packBalances.premium||0) : '—';
+      badgeEl.textContent = `Packs dispo : Standard ×${std} · Premium ×${prem}`;
+      badgeEl.style.display = '';
+    } · Premium ×${packBalances.premium}`; badgeEl.style.display = ''; }
     if(pcStandard){ pcStandard.textContent = `🎴 Standard ${packBalances.standard?`(×${packBalances.standard})`:''}`; pcStandard.disabled = packBalances.standard<=0; pcStandard.classList.toggle('ghost', packBalances.standard<=0); pcStandard.title = packBalances.standard<=0 ? 'Aucun pack Standard disponible' : ''; }
     if(pcPremium){ pcPremium.textContent = `💎 Premium ${packBalances.premium?`(×${packBalances.premium})`:''}`; pcPremium.disabled = packBalances.premium<=0; pcPremium.classList.toggle('ghost', packBalances.premium<=0); pcPremium.title = packBalances.premium<=0 ? 'Aucun pack Premium disponible' : ''; }
     // Désactive les boutons "Ouvrir" de chaque set si aucun pack
@@ -1061,6 +1093,9 @@ document.body.className = 'logged-in';
 
   init();
 
+  // Network resilience indicators
+  window.addEventListener('offline', ()=> toast('⚠️ Hors ligne — dernier solde affiché'));
+  window.addEventListener('online',  ()=> toast('✅ De retour en ligne — synchronisation…'));
   // --- Réclamations de récompenses (convertit les packs en solde) ---
   document.getElementById('btn-claim-rewards').addEventListener('click', async ()=>{
     if(!currentUser){ alert('Connecte-toi avec Twitch pour réclamer tes récompenses.'); return; }
