@@ -263,6 +263,28 @@
   .backtotop{ transition: none; }
 }
 
+
+    /* En-têtes de set + progression */
+.set-hd{
+  grid-column: 1 / -1;
+  display:flex; align-items:center; gap:12px; justify-content:space-between;
+  padding:10px 12px; margin:6px 0 2px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.set-hd .title{ font-weight:800; letter-spacing:.2px }
+.set-hd .meta{ font-size:12px; color: var(--muted); margin-top:2px }
+
+.prog{ flex:1; height:8px; border-radius:999px; overflow:hidden; position:relative;
+  background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); }
+.prog > span{
+  position:absolute; inset:0 auto 0 0; width:var(--w,0%);
+  background: linear-gradient(90deg, rgba(124,92,255,.7), rgba(184,107,255,.7));
+  box-shadow: inset 0 0 8px rgba(124,92,255,.25);
+}
+
     
   </style>
 </head>
@@ -573,6 +595,23 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
       }
     }
 
+// Calcule la progression "uniques possédées / total" pour chaque set
+function computeSetStats(){
+  const statsBySet = {};
+  // totaux uniques par set
+  for(const c of CARD_POOLS){
+    if(!statsBySet[c.set]) statsBySet[c.set] = { total: 0, owned: 0 };
+    statsBySet[c.set].total++;
+  }
+  // uniques possédées par set
+  for(const id of Object.keys(collection)){
+    const card = CARD_POOLS.find(x => x.id === id);
+    if(card && statsBySet[card.set]) statsBySet[card.set].owned++;
+  }
+  return statsBySet;
+}
+
+    
     // Rendu
     function render(){
       const all = CARD_POOLS.map(c=>({...c, qty:(collection[c.id]||0)}));
@@ -622,34 +661,72 @@ const enabled = new Set(
       elCompletion.textContent = completion + '%';
       elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
 
-      // Cards
-      elCards.innerHTML = '';
-      for (const c of list) {
-        const has = (c.qty || 0) > 0;
-        const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
+    // Cards (groupé par set avec header + barre de progression)
+elCards.innerHTML = '';
 
-        const div = document.createElement('div');
-        div.className = 'mini-card';
-        div.dataset.id = c.id;            // AJOUT
-        div.dataset.has = has ? '1' : '0';// AJOUT
+const setStats = computeSetStats();
 
-        div.innerHTML = `
-          <span class="qty">x${c.qty || 0}</span>
-          <div class="thumb ${has ? '' : 'is-locked'}" title="${has ? c.name : 'Carte non obtenue'}" data-id="${c.id}">
-            <img src="${imgSrc}"
-                 alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
-            <strong>${c.name}</strong>
-            <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
-          </div>
-          <div class="muted">${c.set} — ${c.id}</div>
-        `;
-        elCards.appendChild(div);
-      }
+// Regroupe la liste filtrée par set (en respectant le tri courant)
+const groups = new Map();
+for(const c of list){
+  if(!groups.has(c.set)) groups.set(c.set, []);
+  groups.get(c.set).push(c);
+}
 
+// Si un set est sélectionné dans le filtre, on ne rend qu’un groupe ; sinon on rend tous les groupes
+const orderedGroups = [...groups.entries()].sort((a,b)=> a[0].localeCompare(b[0]));
+
+// Render par groupe
+for(const [setName, cards] of orderedGroups){
+  // Header de set
+  const s = setStats[setName] || { total: cards.length, owned: 0 };
+  const pct = s.total ? Math.round(100 * s.owned / s.total) : 0;
+
+  const hd = document.createElement('div');
+  hd.className = 'set-hd';
+  hd.innerHTML = `
+    <div>
+      <div class="title">${setName}</div>
+      <div class="meta">${s.owned}/${s.total} uniques · ${pct}%</div>
+    </div>
+    <div class="prog"
+      role="progressbar"
+      aria-label="Progression ${setName}"
+      aria-valuemin="0"
+      aria-valuemax="${s.total}"
+      aria-valuenow="${s.owned}">
+      <span style="--w:${pct}%"></span>
+    </div>
+  `;
+  elCards.appendChild(hd);
+
+  // Cartes du groupe
+  for (const c of cards) {
+    const has = (c.qty || 0) > 0;
+    const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
+
+    const div = document.createElement('div');
+    div.className = 'mini-card';
+    div.dataset.id = c.id;
+    div.dataset.has = has ? '1' : '0';
+
+    div.innerHTML = `
+      <span class="qty">x${c.qty || 0}</span>
+      <div class="thumb ${has ? '' : 'is-locked'}" title="${has ? c.name : 'Carte non obtenue'}" data-id="${c.id}">
+        <img src="${imgSrc}"
+             alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
+             loading="lazy"
+             onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
+        <strong>${c.name}</strong>
+        <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
+      </div>
+      <div class="muted">${c.set} — ${c.id}</div>
+    `;
+    elCards.appendChild(div);
+  }
+}
       elCount.textContent = `${list.length} éléments`;
     }
 
