@@ -450,7 +450,6 @@
   { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:"https://i.goopics.net/wnhrl2.png" }
 ];
 
-
   // --- Pools par set + pool combiné
   const CARD_SETS = {}; // { setId: Card[] }
   let ALL_CARDS = [];   // pour stats/collection
@@ -564,7 +563,7 @@
   function pickCardByRarity(rarity, pool){ const p = (pool||[]).filter(c=>c.rarity===rarity); if(p.length===0){ const idx=rarityOrder.indexOf(rarity); for(let j=idx-1;j>=0;j--){ const q=(pool||[]).filter(c=>c.rarity===rarityOrder[j]); if(q.length) return q[Math.floor(Math.random()*q.length)]; } return (pool||ALL_CARDS)[Math.floor(Math.random()*Math.max(1,(pool||ALL_CARDS).length))]; } return p[Math.floor(Math.random()*p.length)]; }
   function ensureAtLeastRare(){ const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]); const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]]; let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE; }
 
-  // --- Overlay animation (inchangé sauf factorisation)
+  // --- Overlay animation (inchangé sauf logique verso/face)
   const overlay = document.getElementById('pack-overlay');
   const poPack  = document.getElementById('po-pack');
   const poSlit  = document.getElementById('po-slit');
@@ -572,18 +571,38 @@
   const poSkip  = document.getElementById('po-skip');
   const poFx    = document.getElementById('po-confetti');
   const ctxFx   = poFx.getContext('2d');
+  const CARD_BACK_URL = 'https://i.goopics.net/5vn5ys.png'; // 🆕 verso demandé
   let skipRequested = false; if (poSkip) { poSkip.addEventListener('click', ()=>{ skipRequested = true; }); }
   function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
   function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
   function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
   function rarityGlowClass(r){ if(r===RARITY.EXOTIC) return 'glow-exotic'; if(r===RARITY.LEGENDARY) return 'glow-legendary'; if(r===RARITY.RARE) return 'glow-rare'; if(r===RARITY.UNCOMMON) return 'glow-uncommon'; return 'glow-common'; }
   function burst(x, y, strong=false){ const parts = []; const n = strong ? 140 : 80; for(let i=0;i<n;i++){ parts.push({ x, y, vx: (Math.random()*2-1)*(strong?6:4), vy: (Math.random()*-2-2)*(strong?2:1.6), g:  0.18, a:  1, s:  Math.random()*2+1 }); } const start = performance.now(); function step(t){ step._lt = t; ctxFx.clearRect(0,0,poFx.width,poFx.height); parts.forEach(p=>{ p.vy += p.g; p.x  += p.vx; p.y  += p.vy; p.a  -= 0.012; ctxFx.globalAlpha = Math.max(0,p.a); ctxFx.fillStyle = '#fff'; ctxFx.fillRect(p.x, p.y, p.s, p.s); }); ctxFx.globalAlpha = 1; if(performance.now()-start < 1800) requestAnimationFrame(step); else ctxFx.clearRect(0,0,poFx.width,poFx.height); } requestAnimationFrame(step); }
-  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); poFan.innerHTML = ''; poSlit.style.opacity = 0; poSlit.style.height = '0px'; poPack.style.opacity = 1; poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); el.innerHTML = `
-  <div class="img" style="--bg:url('${(c.image||'https://i.goopics.net/5vn5ys.png').replaceAll("'","\\'")}')"></div>
-  <div class="shine"></div>
-  <div class="tagbar">${c.name || 'Carte'}</div>
-  <div class="veil">Clique pour révéler</div>`; poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
-    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; el.setAttribute('aria-pressed','true'); el.classList.add(rarityGlowClass(c.rarity)); el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)'; const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC); if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
+  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); poFan.innerHTML = ''; poSlit.style.opacity = 0; poSlit.style.height = '0px'; poPack.style.opacity = 1; poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); // image face potentielle
+    const faceUrl = (c.image || '').replaceAll("'", "\\'");
+    el.innerHTML = `
+      <div class="img" style="--bg:url('${CARD_BACK_URL.replaceAll("'","\\'")}')"></div>
+      <div class="shine"></div>
+      <div class="tagbar">${c.name || 'Carte'}</div>
+      <div class="veil">CLIQUE POUR REVELER</div>`;
+    // stocker la face dans data-face (si dispo)
+    if (faceUrl) el.dataset.face = faceUrl;
+    poFan.appendChild(el);
+  }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
+    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; // 🔁 passer du verso à la face si disponible
+        const imgEl = el.querySelector('.img');
+        const face = el.dataset.face;
+        if (face) {
+          imgEl.style.setProperty('--bg', `url('${face}')`);
+        } else {
+          // s'il n'y a pas d'image de face, on garde le verso
+          imgEl.style.setProperty('--bg', `url('${CARD_BACK_URL.replaceAll("'","\\'")}')`);
+        }
+        el.setAttribute('aria-pressed','true');
+        el.classList.add(rarityGlowClass(c.rarity));
+        el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
+        const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
+        if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
