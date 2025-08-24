@@ -63,6 +63,8 @@
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
     .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+  
+  .qty{ width:90px }
   </style>
 </head>
 <body>
@@ -211,97 +213,109 @@
     }
 
     function renderPlayers(list){
-      const term = (search.value||'').toLowerCase();
-      const filtered = list.filter(p=>{
-        const dn = (p.displayName||'').toLowerCase();
-        return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
-      });
-      playersWrap.innerHTML = '';
-      for(const p of filtered){
-        const std = (p.packBalances?.standard)||0;
-        const prem = (p.packBalances?.premium)||0;
-        const el = document.createElement('div'); el.className='card';
-        el.innerHTML = `
-          <div class="row space">
-            <div>
-              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
-              <div class="k">UID: <span class="v">${p.uid}</span></div>
-              <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
-              <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
-              <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
-              <div class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
-            </div>
-            <div class="btn-group">
-              <button class="btn ghost pill" data-act="view">Voir</button>
-              <button class="btn warn pill" data-act="add-std">+1 Standard</button>
-              <button class="btn warn pill" data-act="add-std5">+5</button>
-              <button class="btn warn pill" data-act="add-std10">+10</button>
-              <button class="btn success pill" data-act="add-prem">+1 Premium</button>
-              <button class="btn success pill" data-act="add-prem5">+5</button>
-              <button class="btn success pill" data-act="add-prem10">+10</button>
-              <button class="btn danger pill" data-act="reset">Réinitialiser</button>
-            </div>
-          </div>`;
-        el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
-        el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
-        el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',1));
-        el.querySelector('[data-act="add-std5"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',5));
-        el.querySelector('[data-act="add-std10"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',10));
-        el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',1));
-        el.querySelector('[data-act="add-prem5"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',5));
-        el.querySelector('[data-act="add-prem10"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',10));
-        playersWrap.appendChild(el);
-      }
-    }
+  const term = (search.value||'').toLowerCase();
+  const filtered = list.filter(p=>{
+    const dn = (p.displayName||'').toLowerCase();
+    return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
+  });
+  playersWrap.innerHTML = '';
+  for(const p of filtered){
+    const std = (p.packBalances?.standard)||0;
+    const prem = (p.packBalances?.premium)||0;
+    const el = document.createElement('div'); el.className='card';
+    el.innerHTML = `
+      <div class="row space">
+        <div>
+          <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+          <div class="k">UID: <span class="v">${p.uid}</span></div>
+          <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
+          <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
+          <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
+          <div class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn ghost pill" data-act="view">Voir</button>
+
+          <button class="btn warn pill" data-act="add-std">+1 Standard</button>
+          <input class="input qty" data-qty="std" type="number" min="1" placeholder="Qté">
+          <button class="btn warn pill" data-act="add-std-custom">Ajouter</button>
+
+          <button class="btn success pill" data-act="add-prem">+1 Premium</button>
+          <input class="input qty" data-qty="prem" type="number" min="1" placeholder="Qté">
+          <button class="btn success pill" data-act="add-prem-custom">Ajouter</button>
+
+          <button class="btn danger pill" data-act="reset">Réinitialiser</button>
+        </div>
+      </div>`;
+
+    el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
+    el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
+
+    const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
+    const qtyStd = el.querySelector('[data-qty="std"]');
+    const qtyPrem = el.querySelector('[data-qty="prem"]');
+
+    el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',1));
+    el.querySelector('[data-act="add-std-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard', getQty(qtyStd)));
+
+    el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',1));
+    el.querySelector('[data-act="add-prem-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium', getQty(qtyPrem)));
+
+    playersWrap.appendChild(el);
+  }
+}
+
 
     async function viewPlayer(uid){
-      detailWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
-      try{
-        const snap = await getDoc(doc(db,'players',uid));
-        if(!snap.exists()){ detailWrap.innerHTML = '<div class="subtitle">Profil introuvable.</div>'; return; }
-        const p = snap.data();
-        const uniques = Object.keys(p.collection||{});
-        const inbox = Array.isArray(p.rewardsInbox)? p.rewardsInbox.slice() : [];
-        const rewards = inbox.filter(r=>!(r?.type==='pack_standard' || r?.type==='pack_premium' || r?.type==='standard' || r?.type==='premium'));
-        const packsInInbox = inbox.filter(r=> (r?.type==='pack_standard' || r?.type==='pack_premium'));
-        const std = (p.packBalances?.standard)||0;
-        const prem = (p.packBalances?.premium)||0;
-        detailWrap.innerHTML = `
-          <div class="row space">
-            <div>
-              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
-              <div class="k">UID: <span class="v" id="detail-uid">${uid}</span></div>
-            </div>
-            <div class="btn-group">
-              <button class="btn warn pill" id="btn-std">+1 Standard</button>
-              <button class="btn warn pill" id="btn-std5">+5</button>
-              <button class="btn warn pill" id="btn-std10">+10</button>
-              <button class="btn success pill" id="btn-prem">+1 Premium</button>
-              <button class="btn success pill" id="btn-prem5">+5</button>
-              <button class="btn success pill" id="btn-prem10">+10</button>
-              <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
-            </div>
-          </div>
-          <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs ouverts <span class="v">${p.stats?.packsOpened||0}</span></div>
-          <div style="margin-top:10px" class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
-          <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
-          ${packsInInbox.length ? `<div style="margin-top:14px" class="row"><button class="btn pill" id="btn-migrate">Convertir les packs du coffre → solde</button><span class="k">(${packsInInbox.length} à convertir)</span></div>` : ''}
-          <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
-          <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class=\"k\">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
-          <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
-          <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
-        `;
-        document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
-        document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',1));
-        document.getElementById('btn-std5').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',5));
-        document.getElementById('btn-std10').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',10));
-        document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',1));
-        document.getElementById('btn-prem5').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',5));
-        document.getElementById('btn-prem10').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',10));
-        const mig = document.getElementById('btn-migrate');
-        if(mig) mig.addEventListener('click', ()=> migratePacksFromInbox(uid));
-      }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
-    }
+  detailWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
+  try{
+    const snap = await getDoc(doc(db,'players',uid));
+    if(!snap.exists()){ detailWrap.innerHTML = '<div class="subtitle">Profil introuvable.</div>'; return; }
+    const p = snap.data();
+    const uniques = Object.keys(p.collection||{});
+    const inbox = Array.isArray(p.rewardsInbox)? p.rewardsInbox.slice() : [];
+    const rewards = inbox.filter(r=>!(r?.type==='pack_standard' || r?.type==='pack_premium' || r?.type==='standard' || r?.type==='premium'));
+    const packsInInbox = inbox.filter(r=> (r?.type==='pack_standard' || r?.type==='pack_premium'));
+    const std = (p.packBalances?.standard)||0;
+    const prem = (p.packBalances?.premium)||0;
+    detailWrap.innerHTML = `
+      <div class="row space">
+        <div>
+          <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+          <div class="k">UID: <span class="v" id="detail-uid">${uid}</span></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn warn pill" id="btn-std">+1 Standard</button>
+          <input class="input qty" id="qty-std" type="number" min="1" placeholder="Qté">
+          <button class="btn warn pill" id="btn-std-custom">Ajouter</button>
+
+          <button class="btn success pill" id="btn-prem">+1 Premium</button>
+          <input class="input qty" id="qty-prem" type="number" min="1" placeholder="Qté">
+          <button class="btn success pill" id="btn-prem-custom">Ajouter</button>
+
+          <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
+        </div>
+      </div>
+      <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs ouverts <span class="v">${p.stats?.packsOpened||0}</span></div>
+      <div style="margin-top:10px" class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
+      <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
+      ${packsInInbox.length ? `<div style="margin-top:14px" class="row"><button class="btn pill" id="btn-migrate">Convertir les packs du coffre → solde</button><span class="k">(${packsInInbox.length} à convertir)</span></div>` : ''}
+      <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
+      <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
+      <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
+      <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
+    `;
+    const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
+    document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
+    document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',1));
+    document.getElementById('btn-std-custom').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard', getQty(document.getElementById('qty-std'))));
+    document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',1));
+    document.getElementById('btn-prem-custom').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium', getQty(document.getElementById('qty-prem'))));
+    const mig = document.getElementById('btn-migrate');
+    if(mig) mig.addEventListener('click', ()=> migratePacksFromInbox(uid));
+  }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
+}
+
 
     async function resetPlayer(uid){
       if(!confirm('Réinitialiser la progression de ce joueur ?')) return;
