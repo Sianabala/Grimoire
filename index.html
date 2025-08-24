@@ -206,6 +206,25 @@
 
     .banner{margin:12px 0;padding:12px;border-radius:14px;background:linear-gradient(90deg,rgba(234,179,8,.15),rgba(124,92,255,.15));border:1px solid rgba(234,179,8,.35); display:flex; align-items:center; gap:10px; backdrop-filter: blur(6px)}
 
+    /* --- NEW: Bannière "nouvelle carte" --- */
+.banner.new-card{
+  background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(234,179,8,.25));
+  border-color: rgba(234,179,8,.45);
+  animation: newCardIn .6s ease, newCardOut .6s ease 4.5s forwards;
+  gap: 8px;
+}
+.banner.new-card strong{
+  font-weight: 900;
+}
+@keyframes newCardIn{
+  from{ transform: translateY(12px); opacity: 0; }
+  to  { transform: translateY(0);    opacity: 1; }
+}
+@keyframes newCardOut{
+  to{ opacity: 0; transform: translateY(-8px); }
+}
+
+    
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
 
     /* Toast */
@@ -215,6 +234,43 @@
       opacity:0; transition: opacity .2s ease, transform .2s ease }
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
 
+/* --- NEW: utilitaires "nouvelle carte" --- */
+
+// Stockage temporaire des IDs possédés AVANT l'ouverture (rempli au lancement de l'animation)
+window.__ownedBefore = new Set();
+
+/** Affiche la bannière "nouvelle carte" pendant 5s */
+function showNewCardBanner(cardName){
+  const banner = document.getElementById('special-banner');
+  if(!banner) return;
+  banner.className = 'banner new-card';
+  banner.style.display = 'flex';
+  banner.innerHTML = `📜✨ <strong>NOUVELLE carte !</strong> ${cardName}`;
+  clearTimeout(window.__newCardTimer);
+  window.__newCardTimer = setTimeout(()=>{ banner.style.display = 'none'; }, 5000);
+}
+
+/** (exemple) Récupère les IDs possédés avant l'ouverture.
+ *  Adaptation: branche cette fonction sur ta source réelle (Firestore/localStorage).
+ */
+async function getOwnedCardIdsBefore(){
+  // 1) Si tu disposes d'un cache local (ex: window.playerCollection):
+  if (window.playerCollection && typeof window.playerCollection === 'object'){
+    return Object.keys(window.playerCollection).filter(id => (window.playerCollection[id]?.qty||0) > 0);
+  }
+
+  // 2) Sinon, si tu as un snapshot Firestore accessible ici, remplace par la lecture adéquate.
+  //    Par défaut on renvoie un tableau vide (aucune carte possédée).
+  return [];
+}
+
+/** À appeler AU DÉBUT de l'ouverture de pack (avant d'appliquer les tirages) */
+async function snapshotOwnedBeforeOpening(){
+  const ids = await getOwnedCardIdsBefore();
+  window.__ownedBefore = new Set(ids);
+}
+
+    
     /* Progress */
     .xpbar{height:12px;border-radius:999px;background:#0e1423;border:1px solid rgba(255,255,255,.08);overflow:hidden}
     .xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow: 0 0 18px rgba(124,92,255,.35) inset; transition:width .25s ease}
@@ -265,6 +321,12 @@
       linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase; border-radius:20px; }
     .po-card[aria-pressed="true"] .veil{ display:none; }
 
+// ... juste avant de construire/afficher les cartes tirées :
+await snapshotOwnedBeforeOpening();
+
+// puis tu continues ton flux existant (tirage, rendu des .po-card, etc.)
+
+                                          
 /* Art du pack pendant l'animation */
 .po-pack-art{
   position:absolute; inset:10px;
