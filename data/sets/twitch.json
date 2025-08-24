@@ -52,6 +52,6 @@
     { "id": "TW-049", "name": "Burger", "set": "Twitch", "rarity": "rare", "cardType": "object", "image": "https://i.goopics.net/hefsiq.png" },
     { "id": "TW-050", "name": "Pâtes carbonara", "set": "Twitch", "rarity": "légendaire", "cardType": "object", "image": "https://i.goopics.net/dksu8w.png" },
     { "id": "TW-051", "name": "Bungie Creator", "set": "Twitch", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/x63rr6.png" },
-    { "id": "TW-052", "name": "Ubisoft Creator", "set": "Twitch", "rarity": "rare", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/3aqpe1.pngg" }
+    { "id": "TW-052", "name": "Ubisoft Creator", "set": "Twitch", "rarity": "rare", "cardType": "gardian", "needsReview": true, "image": "https://i.goopics.net/3aqpe1.png" }
   ]
 }
