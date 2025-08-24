@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire · Ma collection</title>
-   <link rel="stylesheet" href="/rarities.css">
- <style>
+  <link rel="stylesheet" href="/rarities.css">
+  <style>
     :root{ --bg:#0b0f1a; --panel:#121829; --panel-2:#0e1423; --text:#e8ecf3; --muted:#9aa6be; --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b; --danger:#ef4444; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.35); --shadow-sm:0 4px 12px rgba(0,0,0,.25); --card-w: 220px; }
     *{box-sizing:border-box; scrollbar-width: thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04); }
     *::-webkit-scrollbar{ height:10px; width:10px; }
@@ -68,19 +68,17 @@
     .footerbar{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:240px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace}
 
-/* Vignette d'image de carte */
-.thumb{
-  width:100%; aspect-ratio:2/3; border-radius:12px; overflow:hidden;
-  background:#0e1423; border:1px solid rgba(255,255,255,.08);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
-}
-.thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-.thumb.is-back img{
-  filter: grayscale(.25) brightness(.9) blur(.2px);
-}
+    /* Vignette d'image de carte */
+    .thumb{
+      width:100%; aspect-ratio:2/3; border-radius:12px; overflow:hidden;
+      background:#0e1423; border:1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .thumb.is-back img{
+      filter: grayscale(.25) brightness(.9) blur(.2px);
+    }
 
-
-   
     /* Skeletons */
     .skel{ position:relative; overflow:hidden; background:#0e1423; border-radius:12px; min-height:64px; border:1px solid rgba(255,255,255,.06); }
     .skel::after{
@@ -107,20 +105,77 @@
       .tag .dot{ animation: pulse 1.6s ease-in-out infinite; }
       @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.15); opacity:1 } }
     }
-   .thumb.is-locked {
-  position: relative;
-}
-.thumb.is-locked img {
-  opacity: 0.35; /* verso plus transparent */
-}
-.thumb.is-locked::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.4); /* voile sombre */
-  border-radius: inherit;
-}
+    .thumb.is-locked {
+      position: relative;
+    }
+    .thumb.is-locked img {
+      opacity: 0.35; /* verso plus transparent */
+    }
+    .thumb.is-locked::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4); /* voile sombre */
+      border-radius: inherit;
+    }
 
+    /* === Viewer plein écran (zoom carte) === */
+    .viewer{
+      position: fixed; inset: 0; z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      padding: 24px; background: rgba(5,7,12,.66); backdrop-filter: blur(6px);
+    }
+    .viewer.open{ display: flex; }
+
+    .viewer__panel{
+      width: min(90vw, 760px);
+      max-height: 90vh;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      display: grid; grid-template-rows: auto 1fr auto;
+      overflow: hidden; position: relative;
+    }
+    .viewer__hd{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .viewer__title{ font-weight: 700; }
+    .viewer__meta{ font-size: 12px; color: var(--muted); }
+
+    .viewer__bd{
+      position: relative; overflow: hidden;
+      display: grid; place-items: center;
+      padding: 12px;
+    }
+    .viewer__img{
+      max-width: 100%; max-height: 78vh; height: auto; display: block;
+      user-select: none; -webkit-user-drag: none;
+      transition: transform .15s ease;
+      cursor: zoom-in;
+    }
+    .viewer__img.zoomed{
+      cursor: zoom-out;
+      transform: scale(var(--z, 1.8));
+      transform-origin: var(--ox, 50%) var(--oy, 50%);
+    }
+
+    .viewer__ft{
+      display:flex; gap:8px; justify-content:flex-end; align-items:center;
+      padding: 10px 12px; border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    .viewer__close{
+      appearance:none; border:0; cursor:pointer;
+      background: transparent; color: var(--text);
+      border:1px solid rgba(255,255,255,.16);
+      padding:8px 10px; border-radius: 10px;
+    }
+    .viewer__close:hover{ background: rgba(255,255,255,.06); }
+
+    /* Désactive le scroll en arrière-plan quand viewer ouvert */
+    body.noscroll{ overflow: hidden; }
   </style>
 </head>
 <body>
@@ -199,6 +254,28 @@
     </section>
   </main>
 
+  <!-- Viewer Zoom Carte -->
+  <div id="viewer" class="viewer" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="viewer__panel" role="document">
+      <div class="viewer__hd">
+        <div>
+          <div id="viewer-title" class="viewer__title">Titre de la carte</div>
+          <div id="viewer-meta" class="viewer__meta">Set — ID — Rareté</div>
+        </div>
+        <button id="viewer-close" class="viewer__close" aria-label="Fermer">✕</button>
+      </div>
+      <div class="viewer__bd">
+        <img id="viewer-img" class="viewer__img" src="" alt="Carte en grand">
+      </div>
+      <div class="viewer__ft">
+        <button id="viewer-zoom-out" class="btn ghost" type="button">−</button>
+        <button id="viewer-zoom-reset" class="btn ghost" type="button">Reset</button>
+        <button id="viewer-zoom-in" class="btn ghost" type="button">+</button>
+        <button id="viewer-close-2" class="btn" type="button">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     console.log('[DEBUG][collection] script chargé');
 
@@ -228,30 +305,24 @@
     const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
     const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
-// Images des cartes (à adapter à ton projet)
-const CARD_IMAGE_BASE = '/images/cards/front/';
-const CARD_IMAGE_EXT  = 'webp';  // change en 'png' ou 'jpg' si besoin
+    // Images des cartes
+    const CARD_IMAGE_BASE = '/images/cards/front/';
+    const CARD_IMAGE_EXT  = 'webp';  // change en 'png' ou 'jpg' si besoin
+    function cardFrontUrl(c){
+      if (c.image && c.image.startsWith('http')) return c.image;
+      if (c.image && !c.image.startsWith('http')) return c.image;
+      return `${CARD_IMAGE_BASE}${c.id}.${CARD_IMAGE_EXT}`;
+    }
+    const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png';
 
-function cardFrontUrl(c){
-  if (c.image && c.image.startsWith('http')) return c.image;        // URL absolue
-  if (c.image && !c.image.startsWith('http')) return c.image;       // chemin relatif fourni
-  return `${CARD_IMAGE_BASE}${c.id}.${CARD_IMAGE_EXT}`;             // fallback construit
-}
-
-// Verso par défaut (URL directe d'une image)
-const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as ton propre fichier
-  
-       // Chargement dynamique de plusieurs sets
+    // Chargement dynamique de plusieurs sets
     let CARD_POOLS = [];
-
-    // Les fichiers JSON des sets à charger
     const SET_FILES = [
       '/data/sets/nouvelle-lumiere.json',
       '/data/sets/twitch.json'
     ];
 
     const FALLBACK_CARDS = [
-
       { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
       { id:'NL-002', name:'Carabine du Patrouilleur', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
       { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
@@ -268,10 +339,9 @@ const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as
       if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
       return RARITY.COMMON;
     }
-       async function loadCardSets(){
+    async function loadCardSets(){
       CARD_POOLS = [];
       const loadedSets = new Set();
-
       for (const url of SET_FILES) {
         try {
           console.log('[DEBUG][collection] fetch', url);
@@ -311,17 +381,13 @@ const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as
           }
         }
       }
-
       if (CARD_POOLS.length === 0) {
         CARD_POOLS = FALLBACK_CARDS.slice();
-        loadedSets.add('Nouvelle Lumière');
       }
-
       log(`[DEBUG] Sets chargés: ${[...loadedSets].join(', ')} · ${CARD_POOLS.length} cartes`);
     }
 
-
-    // Local storage (mêmes clés que l’index)
+    // Local storage
     const LS_KEY='grimoire.alpha.collection.v2_5';
     const LS_STATS='grimoire.alpha.stats.v2_5';
     const LS_PROFILE='grimoire.alpha.profile.v2_5';
@@ -360,10 +426,10 @@ const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as
       setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms);
     }
 
-    // Skeletons init (remplacés après render)
+    // Skeletons init
     elCards.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>';
 
-    // Fill sets from CARD_POOLS (après chargement)
+    // Fill sets after load
     function fillSets(){
       setFilter.innerHTML='<option value="">Tous les sets</option>';
       const sets=[...new Set(CARD_POOLS.map(c=>c.set))].sort();
@@ -425,9 +491,9 @@ const CARD_BACK_IMAGE = 'https://i.goopics.net/5vn5ys.png'; // remplace si tu as
         list = list.filter(c=> c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s));
       }
       const cbOnlyOwned = document.getElementById('only-owned');
-if (cbOnlyOwned?.checked) {
-    list = list.filter(c => (collection[c.id]||0) > 0);
-}
+      if (cbOnlyOwned?.checked) {
+        list = list.filter(c => (collection[c.id]||0) > 0);
+      }
 
       switch(sortBy.value){
         case 'rarity,id': list.sort((a,b)=> rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || a.id.localeCompare(b.id)); break;
@@ -450,39 +516,41 @@ if (cbOnlyOwned?.checked) {
       elByRarity.textContent = `C:${byR[RARITY.COMMON]} · U:${byR[RARITY.UNCOMMON]} · R:${byR[RARITY.RARE]} · L:${byR[RARITY.LEGENDARY]} · E:${byR[RARITY.EXOTIC]}`;
 
       // Cards
-    elCards.innerHTML = ''; 
-   for (const c of list) {
-  const has = (c.qty || 0) > 0;
-const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
+      elCards.innerHTML = '';
+      for (const c of list) {
+        const has = (c.qty || 0) > 0;
+        const imgSrc = has ? cardFrontUrl(c) : CARD_BACK_IMAGE;
 
-const div = document.createElement('div');
-div.className = 'mini-card';
-div.innerHTML = `
-  <span class="qty">x${c.qty || 0}</span>
-  <div class="thumb ${has ? '' : 'is-locked'}" title="${has ? c.name : 'Carte non obtenue'}">
-    <img src="${imgSrc}"
-         alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
-         loading="lazy"
-         onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
-    <strong>${c.name}</strong>
-    <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
-  </div>
-  <div class="muted">${c.set} — ${c.id}</div>
-`;
-elCards.appendChild(div);
+        const div = document.createElement('div');
+        div.className = 'mini-card';
+        div.dataset.id = c.id;            // AJOUT
+        div.dataset.has = has ? '1' : '0';// AJOUT
 
-}
+        div.innerHTML = `
+          <span class="qty">x${c.qty || 0}</span>
+          <div class="thumb ${has ? '' : 'is-locked'}" title="${has ? c.name : 'Carte non obtenue'}" data-id="${c.id}">
+            <img src="${imgSrc}"
+                 alt="${has ? `Illustration de ${c.name}` : 'Verso — carte non obtenue'}"
+                 loading="lazy"
+                 onerror="this.onerror=null; this.src='${CARD_BACK_IMAGE}'">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 6px">
+            <strong>${c.name}</strong>
+            <span class="tag ${rarityClass(c.rarity)}"><span class="dot"></span>${c.rarity}</span>
+          </div>
+          <div class="muted">${c.set} — ${c.id}</div>
+        `;
+        elCards.appendChild(div);
+      }
 
       elCount.textContent = `${list.length} éléments`;
     }
 
     // Events
-   for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy,document.getElementById('only-owned')]){
-    el.addEventListener('input', render);
-    el.addEventListener('change', render);
-}
+    for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy,document.getElementById('only-owned')]){
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    }
 
     document.getElementById('btn-clear').addEventListener('click', ()=>{
       q.value=''; setFilter.value='';
@@ -522,10 +590,113 @@ elCards.appendChild(div);
       }
     });
 
-        // Init
+    // Init
     await loadCardSets();
     fillSets();
     render();
+
+    // === Viewer (zoom carte) ===
+    const viewer      = document.getElementById('viewer');
+    const viewerImg   = document.getElementById('viewer-img');
+    const viewerTitle = document.getElementById('viewer-title');
+    const viewerMeta  = document.getElementById('viewer-meta');
+    const btnClose    = document.getElementById('viewer-close');
+    const btnClose2   = document.getElementById('viewer-close-2');
+    const btnZoomIn   = document.getElementById('viewer-zoom-in');
+    const btnZoomOut  = document.getElementById('viewer-zoom-out');
+    const btnZoomReset= document.getElementById('viewer-zoom-reset');
+
+    let currentZoom = 1; // 1 = fit, >1 = zoom
+    const Z_MIN = 1, Z_MAX = 3, Z_STEP = 0.25;
+
+    function openViewer(card){
+      viewerTitle.textContent = card.name;
+      viewerMeta.textContent  = `${card.set} — ${card.id} — ${card.rarity}`;
+      viewerImg.src = cardFrontUrl(card);
+      viewerImg.alt = `Carte ${card.name} en grand`;
+      currentZoom = 1;
+      viewerImg.classList.remove('zoomed');
+      viewerImg.style.setProperty('--z', currentZoom);
+      viewerImg.style.setProperty('--ox', '50%');
+      viewerImg.style.setProperty('--oy', '50%');
+
+      viewer.classList.add('open');
+      document.body.classList.add('noscroll');
+      viewer.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeViewer(){
+      viewer.classList.remove('open');
+      document.body.classList.remove('noscroll');
+      viewer.setAttribute('aria-hidden', 'true');
+    }
+
+    function setZoom(z){
+      currentZoom = Math.min(Z_MAX, Math.max(Z_MIN, z));
+      if (currentZoom === 1){
+        viewerImg.classList.remove('zoomed');
+      } else {
+        viewerImg.classList.add('zoomed');
+      }
+      viewerImg.style.setProperty('--z', currentZoom);
+    }
+
+    // Délégation : clic sur une carte
+    elCards.addEventListener('click', (e)=>{
+      const thumb = e.target.closest('.thumb');
+      if(!thumb) return;
+      const id = thumb.getAttribute('data-id');
+      const card = CARD_POOLS.find(c => c.id === id);
+      const has = (collection[id] || 0) > 0;
+
+      if(!card) return;
+      if(!has){
+        toast('🔒 Carte non obtenue');
+        return;
+      }
+      openViewer(card);
+    });
+
+    // Clic sur fond pour fermer
+    viewer.addEventListener('click', (e)=>{
+      if(e.target === viewer) closeViewer();
+    });
+
+    btnClose.addEventListener('click', closeViewer);
+    btnClose2.addEventListener('click', closeViewer);
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape' && viewer.classList.contains('open')) closeViewer();
+    });
+
+    // Zoom boutons
+    btnZoomIn.addEventListener('click', ()=> setZoom(currentZoom + Z_STEP));
+    btnZoomOut.addEventListener('click', ()=> setZoom(currentZoom - Z_STEP));
+    btnZoomReset.addEventListener('click', ()=> setZoom(1));
+
+    // Zoom à la molette
+    viewerImg.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const dir = Math.sign(e.deltaY);
+      setZoom(currentZoom + (dir > 0 ? -Z_STEP : Z_STEP));
+    }, { passive:false });
+
+    // Zoom au clic + focus au point cliqué
+    viewerImg.addEventListener('click', (e)=>{
+      const rect = viewerImg.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top)  / rect.height) * 100;
+
+      if(currentZoom === 1){
+        setZoom(1.8);
+        viewerImg.style.setProperty('--ox', `${x}%`);
+        viewerImg.style.setProperty('--oy', `${y}%`);
+      } else {
+        setZoom(1);
+        viewerImg.style.setProperty('--ox', '50%');
+        viewerImg.style.setProperty('--oy', '50%');
+      }
+    });
   </script>
 </body>
 </html>
