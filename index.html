@@ -462,7 +462,7 @@ body.logged-in #guest-cta { display: none !important; }
         <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
         <div id="user-display-name" class="subtitle" style="display:none"></div>
         <div class="hero-actions">
-          <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
+          <a href="/collection.html" class="btn ghost pill" id="btn-collection">📚 Ma Collection</a>
           <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
           <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
           <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
@@ -623,12 +623,16 @@ const guestLoginBtn = document.getElementById('guest-login');
 if (guestLoginBtn) guestLoginBtn.addEventListener('click', () => loginBtn.click());
 
 // Helper d’affichage
+const collectionBtn = document.getElementById('btn-collection');
+
 function setGuestMode(isGuest){
-  if (panelStats)   panelStats.style.display   = isGuest ? 'none' : '';
-  if (panelSets)    panelSets.style.display    = isGuest ? 'none' : '';
-  if (panelResults) panelResults.style.display = isGuest ? 'none' : '';
-  if (guestCta)     guestCta.style.display     = isGuest ? '' : 'none';
+  if (panelStats)     panelStats.style.display   = isGuest ? 'none' : '';
+  if (panelSets)      panelSets.style.display    = isGuest ? 'none' : '';
+  if (panelResults)   panelResults.style.display = isGuest ? 'none' : '';
+  if (guestCta)       guestCta.style.display     = isGuest ? '' : 'none';
+  if (collectionBtn)  collectionBtn.style.display= isGuest ? 'none' : '';
 }
+
 
     
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
