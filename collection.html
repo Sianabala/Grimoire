@@ -207,6 +207,33 @@
   .viewer__panel{ width: min(96vw, 560px); }
 }
 
+/* Segmented control pour raretés */
+.seg{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.segbtn,.segctl{
+  appearance:none; border:1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05); color: var(--text);
+  padding:8px 12px; border-radius:999px; cursor:pointer;
+  font-weight:600; transition:.15s ease;
+}
+.segbtn .dot{display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:8px;opacity:.9}
+.segbtn[data-r="commune"] .dot{ background:#9aa6be; }
+.segbtn[data-r="peu commune"] .dot{ background:#22c55e; }
+.segbtn[data-r="rare"] .dot{ background:#3b82f6; }
+.segbtn[data-r="légendaire"] .dot{ background:#7f11e0; }
+.segbtn[data-r="exotique"] .dot{ background:#eab308; }
+
+.segbtn.active{
+  background: linear-gradient(180deg, rgba(124,92,255,.18), rgba(184,107,255,.14));
+  border-color: rgba(124,92,255,.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.segbtn:not(.active):hover, .segctl:hover{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.26);
+}
+.segsep{width:1px;height:22px;background:rgba(255,255,255,.12);margin:0 4px;border-radius:1px}
+
+    
   </style>
 </head>
 <body>
@@ -245,11 +272,29 @@
           <select id="setFilter" class="input select">
             <option value="">Tous les sets</option>
           </select>
-          <label class="pill"><input type="checkbox" id="r-common" checked> Commune</label>
-          <label class="pill"><input type="checkbox" id="r-uncommon" checked> Peu commune</label>
-          <label class="pill"><input type="checkbox" id="r-rare" checked> Rare</label>
-          <label class="pill"><input type="checkbox" id="r-legendary" checked> Légendaire</label>
-          <label class="pill"><input type="checkbox" id="r-exotic" checked> Exotique</label>
+          <div id="rarityFilter" class="seg">
+  <button type="button" class="segbtn active" data-r="commune" aria-pressed="true">
+    <span class="dot"></span> Commune
+  </button>
+  <button type="button" class="segbtn active" data-r="peu commune" aria-pressed="true">
+    <span class="dot"></span> Peu commune
+  </button>
+  <button type="button" class="segbtn active" data-r="rare" aria-pressed="true">
+    <span class="dot"></span> Rare
+  </button>
+  <button type="button" class="segbtn active" data-r="légendaire" aria-pressed="true">
+    <span class="dot"></span> Légendaire
+  </button>
+  <button type="button" class="segbtn active" data-r="exotique" aria-pressed="true">
+    <span class="dot"></span> Exotique
+  </button>
+
+  <span class="segsep" aria-hidden="true"></span>
+
+  <button type="button" id="rarity-all" class="segctl">Tout</button>
+  <button type="button" id="rarity-none" class="segctl">Aucun</button>
+</div>
+
           
           <select id="ownedFilter" class="input select" aria-label="Filtrer par possession">
             <option value="">Possées ou non possédées</option>
@@ -445,11 +490,9 @@
 
     const q=document.getElementById('q');
     const setFilter=document.getElementById('setFilter');
-    const cbCommon=document.getElementById('r-common');
-    const cbUncommon=document.getElementById('r-uncommon');
-    const cbRare=document.getElementById('r-rare');
-    const cbLegendary=document.getElementById('r-legendary');
-    const cbExotic=document.getElementById('r-exotic');
+  const rarityFilter = document.getElementById('rarityFilter');        // <-- AJOUT
+const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOUT
+
     const sortBy=document.getElementById('sortBy');
     const ownedFilter=document.getElementById('ownedFilter');
 
@@ -515,13 +558,13 @@
     // Rendu
     function render(){
       const all = CARD_POOLS.map(c=>({...c, qty:(collection[c.id]||0)}));
-      const enabled=new Set([
-        cbCommon.checked? RARITY.COMMON:null,
-        cbUncommon.checked? RARITY.UNCOMMON:null,
-        cbRare.checked? RARITY.RARE:null,
-        cbLegendary.checked? RARITY.LEGENDARY:null,
-        cbExotic.checked? RARITY.EXOTIC:null
-      ].filter(Boolean));
+    // construit l’ensemble des raretés activées depuis les boutons actifs
+const enabled = new Set(
+  rarityBtns
+    .filter(b => b.classList.contains('active'))
+    .map(b => b.getAttribute('data-r'))
+);
+
       let list = all.filter(c=> enabled.has(c.rarity));
       if(setFilter.value) list = list.filter(c=> c.set===setFilter.value);
       if(q.value?.trim()){
@@ -593,16 +636,39 @@
     }
 
     // Events
-   for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy,ownedFilter]){
+// === RARETÉS : segmented control ===
+// État initial : tout actif (déjà dans l’HTML via .active)
+// Toggle d’un bouton de rareté
+rarityBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const isActive = btn.classList.toggle('active');
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    render();
+  });
+});
+
+// Boutons Tout / Aucun
+document.getElementById('rarity-all').addEventListener('click', ()=>{
+  rarityBtns.forEach(b=>{ b.classList.add('active'); b.setAttribute('aria-pressed','true'); });
+  render();
+});
+document.getElementById('rarity-none').addEventListener('click', ()=>{
+  rarityBtns.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+  render();
+});
+
+    
+ for(const el of [q, setFilter, sortBy, ownedFilter]){
   el.addEventListener('input', render);
   el.addEventListener('change', render);
 }
 
 
+
     document.getElementById('btn-clear').addEventListener('click', ()=>{
   q.value='';
   setFilter.value='';
-  cbCommon.checked=cbUncommon.checked=cbRare.checked=cbLegendary.checked=cbExotic.checked=true;
+rarityBtns.forEach(b=>{ b.classList.add('active'); b.setAttribute('aria-pressed','true'); });
   sortBy.value='set,id';
   ownedFilter.value=''; // <-- AJOUT
   render();
