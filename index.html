@@ -208,6 +208,11 @@
 
     /* --- NEW: Bannière "nouvelle carte" --- */
 .banner.new-card{
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 80; /* > overlay (60) et >= modal (70) */
   background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(234,179,8,.25));
   border-color: rgba(234,179,8,.45);
   animation: newCardIn .6s ease, newCardOut .6s ease 4.5s forwards;
@@ -253,15 +258,20 @@ function showNewCardBanner(cardName){
 /** (exemple) Récupère les IDs possédés avant l'ouverture.
  *  Adaptation: branche cette fonction sur ta source réelle (Firestore/localStorage).
  */
+// --- NEW: utilitaires "nouvelle carte" ---
+// ...
 async function getOwnedCardIdsBefore(){
-  // 1) Si tu disposes d'un cache local (ex: window.playerCollection):
+  // 🔁 Utilise la collection locale actuelle (côté client)
+  if (typeof collection === 'object' && collection){
+    return Object.keys(collection).filter(id => (collection[id]||0) > 0);
+  }
+  // Fallback éventuel (si tu gardes un cache custom)
   if (window.playerCollection && typeof window.playerCollection === 'object'){
     return Object.keys(window.playerCollection).filter(id => (window.playerCollection[id]?.qty||0) > 0);
   }
-
-  // 2) Sinon, si tu as un snapshot Firestore accessible ici, remplace par la lecture adéquate.
-  //    Par défaut on renvoie un tableau vide (aucune carte possédée).
   return [];
+}
+
 }
 
 /** À appeler AU DÉBUT de l'ouverture de pack (avant d'appliquer les tirages) */
@@ -735,7 +745,12 @@ Array.from(poFan.children).forEach((el, i)=> {
 setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
 });                                                 
     await wait(skipRequested ? 0 : 420);
-    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; // 🔁 passer du verso à la face si disponible
+    function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } 
+                                
+                                function revealIndex(i, fast=false){ 
+                                  const c = cards[i]; 
+                                  const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); 
+                                  if(!el || el.getAttribute('aria-pressed') === 'true') return; // 🔁 passer du verso à la face si disponible
         const imgEl = el.querySelector('.img');
         const face = el.dataset.face;
         if (face) {
@@ -747,13 +762,19 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
         el.setAttribute('aria-pressed','true');
         el.classList.add(rarityGlowClass(c.rarity));
         el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
-        const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
+       
+                                  // ⬅️⬅️ AJOUTE ceci (bannière si c'est une nouvelle carte)
+  if (window.__ownedBefore && !window.__ownedBefore.has(c.id)) {
+    showNewCardBanner(c.name || 'Nouvelle carte');
+  }
+                                  
+                                  const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
         if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
-  async function openPack({type='standard', setId} = {}){
+async function openPack({type='standard', setId} = {}){
     const pool = CARD_SETS[setId] || ALL_CARDS;
     if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
     if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
