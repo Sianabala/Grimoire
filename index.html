@@ -266,112 +266,6 @@
     #pack-chooser .modal{ position:relative; width:min(420px,92vw); border-radius:18px; background: linear-gradient(180deg,#0f172a,#0b1120); border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); padding:18px }
     #pack-chooser h4{ margin:0 0 6px; font-size:18px }
     #pack-chooser .row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
- 
-  .po-animation {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  transform: translateY(0);
-  transition: transform 0.3s ease;
-}
-
-.po-pack {
-  width: 160px;
-  height: 240px;
-  background: linear-gradient(45deg, #1c1f2a, #2d324b);
-  border: 2px solid #888;
-  border-radius: 12px;
-  position: relative;
-  box-shadow: 0 0 20px rgba(255,255,255,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.po-pack.hidden {
-  opacity: 0;
-  transform: scale(0.8);
-}
-
-.po-slit {
-  width: 2px;
-  height: 0;
-  background: white;
-  opacity: 0;
-  transition: height 0.3s ease, opacity 0.3s ease;
-}
-
-.po-fan {
-  display: flex;
-  gap: 8px;
-  transform: translateY(20px);
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-}
-.po-fan.revealed {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.po-card {
-  width: 100px;
-  height: 150px;
-  background: #111;
-  border-radius: 12px;
-  overflow: hidden;
-  transform: rotate(var(--rot));
-  transition: transform 0.3s ease;
-  position: relative;
-  cursor: pointer;
-  perspective: 1000px;
-}
-
-.po-card .front,
-.po-card .back,
-.po-card .zoom {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  backface-visibility: hidden;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.po-card .front { z-index: 2; opacity: 0; }
-.po-card .back  { z-index: 1; opacity: 1; background: #222; display: grid; place-items: center; color: #ccc; font-weight: bold; font-size: 14px; }
-.po-card .zoom  { z-index: 3; opacity: 0; transform: scale(1.8); pointer-events: none; }
-
-.po-card.revealed .front { opacity: 1; }
-.po-card.revealed .back  { opacity: 0; }
-.po-card.zoomed .zoom    { opacity: 1; pointer-events: auto; }
-
-.po-card.zoomed {
-  z-index: 99;
-  transform: scale(1.8) translateY(-10%);
-  box-shadow: 0 20px 80px rgba(0,0,0,.6);
-}
-
-.img {
-  background-size: cover;
-  background-position: center;
-  width: 100%;
-  height: 100%;
-}
-
-.tagbar {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  background: rgba(0,0,0,0.6);
-  text-align: center;
-  font-size: 12px;
-  padding: 4px 0;
-}
-
   </style>
 </head>
 <body>
@@ -473,52 +367,25 @@
     </div>
 
     <!-- Overlay d'animation d'ouverture de pack -->
-   <div id="pack-overlay">
-  <div class="po-stage">
-    <div class="po-animation">
-      <div class="po-pack" id="po-pack">GRIMOIRE</div>
-      <div class="po-slit" id="po-slit"></div>
-      <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
+    <div id="pack-overlay" aria-hidden="true" hidden>
+      <div class="po-backdrop"></div>
+      <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
+        <div class="po-pack" id="po-pack" aria-hidden="true">
+          <div class="po-pack-body">
+            <div class="po-pack-gloss"></div>
+            <div class="po-pack-logo">GRIMOIRE</div>
+          </div>
+          <div class="po-pack-shine"></div>
+        </div>
+        <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+        <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
+        <canvas id="po-confetti" width="1280" height="720"></canvas>
+        <div class="po-actions">
+          <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+        </div>
+      </div>
     </div>
-    <canvas id="po-confetti" width="1280" height="720"></canvas>
-    <div class="po-actions">
-      <button id="po-skip" class="btn">Passer</button>
-    </div>
-  </div>
-</div>
 
-
-.po-card {
-  position: relative;
-  perspective: 1000px;
-  transition: transform 0.3s ease;
-}
-
-.po-card .front,
-.po-card .back,
-.po-card .zoom {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  backface-visibility: hidden;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.po-card .front { z-index: 2; opacity: 0; }
-.po-card .back  { z-index: 1; opacity: 1; background: linear-gradient(180deg, #0b0f1a, #141b33); display: grid; place-items: center; color: var(--text); font-weight: bold; font-size: 14px; }
-.po-card .zoom  { z-index: 3; opacity: 0; transform: scale(1.8); pointer-events: none; }
-
-.po-card.revealed .front { opacity: 1; }
-.po-card.revealed .back  { opacity: 0; }
-.po-card.zoomed .zoom    { opacity: 1; pointer-events: auto; }
-
-.po-card.zoomed {
-  z-index: 99;
-  transform: scale(1.8) translateY(-10%);
-  box-shadow: 0 20px 80px rgba(0,0,0,.6);
-}
-
-    
     <!-- Choix du niveau de pack (modal) -->
     <div id="pack-chooser" hidden>
       <div class="backdrop"></div>
@@ -711,94 +578,13 @@
   function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
   function rarityGlowClass(r){ if(r===RARITY.EXOTIC) return 'glow-exotic'; if(r===RARITY.LEGENDARY) return 'glow-legendary'; if(r===RARITY.RARE) return 'glow-rare'; if(r===RARITY.UNCOMMON) return 'glow-uncommon'; return 'glow-common'; }
   function burst(x, y, strong=false){ const parts = []; const n = strong ? 140 : 80; for(let i=0;i<n;i++){ parts.push({ x, y, vx: (Math.random()*2-1)*(strong?6:4), vy: (Math.random()*-2-2)*(strong?2:1.6), g:  0.18, a:  1, s:  Math.random()*2+1 }); } const start = performance.now(); function step(t){ step._lt = t; ctxFx.clearRect(0,0,poFx.width,poFx.height); parts.forEach(p=>{ p.vy += p.g; p.x  += p.vx; p.y  += p.vy; p.a  -= 0.012; ctxFx.globalAlpha = Math.max(0,p.a); ctxFx.fillStyle = '#fff'; ctxFx.fillRect(p.x, p.y, p.s, p.s); }); ctxFx.globalAlpha = 1; if(performance.now()-start < 1800) requestAnimationFrame(step); else ctxFx.clearRect(0,0,poFx.width,poFx.height); } requestAnimationFrame(step); }
-async function playPackAnimation(cards) {
-  const wait = (ms) => new Promise(res => setTimeout(res, ms));
-  const poPack = document.getElementById('po-pack');
-  const poSlit = document.getElementById('po-slit');
-  const poFan = document.getElementById('po-fan');
-  const skipRequested = false;
-
-  poFan.innerHTML = '';
-  poSlit.style.opacity = 0;
-  poSlit.style.height = '0px';
-  poPack.style.opacity = 1;
-  poPack.classList.remove('hidden');
-  poFan.classList.remove('revealed');
-
-  await wait(skipRequested ? 0 : 520);
-  poSlit.style.opacity = 1;
-  poSlit.style.height = '180px';
-
-  await wait(skipRequested ? 0 : 260);
-  poPack.classList.add('hidden');
-
-  poFan.innerHTML = '';
-  cards.forEach((c, i) => {
-    const el = document.createElement('div');
-    el.className = 'po-card';
-    el.style.setProperty('--rot', `${[-18,-9,0,9,18][i]}deg`);
-    el.setAttribute('data-idx', String(i));
-    el.innerHTML = `
-      <div class="front">
-        <div class="img" style="background-image:url('${c.image}')"></div>
-        <div class="tagbar">${c.name}</div>
-      </div>
-      <div class="back">Clique pour révéler</div>
-      <div class="zoom">
-        <div class="img" style="background-image:url('${c.image}')"></div>
-        <div class="tagbar">${c.name} — ${c.set}</div>
-      </div>
-    `;
-    el.addEventListener('click', () => {
-      if (el.classList.contains('zoomed')) {
-        el.classList.remove('zoomed');
-      } else if (!el.classList.contains('revealed')) {
-        el.classList.add('revealed');
-      } else {
-        el.classList.add('zoomed');
-      }
-    }, { passive: true });
-    poFan.appendChild(el);
-  });
-
-  poFan.classList.add('revealed');
-  await wait(skipRequested ? 0 : 300);
-}
-  el.innerHTML = `
-  <div class="front">
-    <div class="img" style="--bg:url('${(c.image||'').replaceAll("'","\\'")}')"></div>
-    <div class="shine"></div>
-    <div class="tagbar">${c.name || 'Carte'}</div>
-  </div>
-  <div class="back">Clique pour révéler</div>
-  <div class="zoom">
-    <div class="img" style="--bg:url('${(c.image||'').replaceAll("'","\\'")}')"></div>
-    <div class="shine"></div>
-    <div class="tagbar">${c.name || 'Carte'} — ${c.set}</div>
-    <div class="veil" style="font-size: 12px;">Appuie de nouveau pour quitter</div>
-  </div>
-`;
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
+  async function playPackAnimation(cards){ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; skipRequested = reduce ? true : false; poFx.width = Math.min(1280, innerWidth); poFx.height = Math.min(720, innerHeight); poFan.innerHTML = ''; poSlit.style.opacity = 0; poSlit.style.height = '0px'; poPack.style.opacity = 1; poPack.style.transform = ''; showOverlay(); const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); el.innerHTML = `
+  <div class="img" style="--bg:url('${(c.image||'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop').replaceAll("'","\\'")}')"></div>
+  <div class="shine"></div>
+  <div class="tagbar">${c.name || 'Carte'}</div>
+  <div class="veil">Clique pour révéler</div>`; poFan.appendChild(el); }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
     function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; el.setAttribute('aria-pressed','true'); el.classList.add(rarityGlowClass(c.rarity)); el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)'; const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC); if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
-      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); 
-     el.addEventListener('click', ()=> {
-  if (el.classList.contains('zoomed')) {
-    el.classList.remove('zoomed');
-    return;
-  }
-  if (!el.classList.contains('revealed')) {
-    revealIndex(i, false);
-    remaining.delete(i);
-    if (remaining.size === 0) resolveAll();
-  } else {
-    el.classList.add('zoomed');
-  }
-}, { passive: true });
-
-                                
-    function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
+      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
     await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
