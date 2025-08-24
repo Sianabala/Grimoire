@@ -289,13 +289,7 @@
       radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
       linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase; border-radius:20px; }
     .po-card[aria-pressed="true"] .veil{ display:none; }
-
-// ... juste avant de construire/afficher les cartes tirées :
-await snapshotOwnedBeforeOpening();
-
-// puis tu continues ton flux existant (tirage, rendu des .po-card, etc.)
-
-                                          
+                                        
 /* Art du pack pendant l'animation */
 .po-pack-art{
   position:absolute; inset:10px;
@@ -519,14 +513,29 @@ function showNewCardBanner(cardName){
 /** (exemple) Récupère les IDs possédés avant l'ouverture.
  *  Adaptation: branche cette fonction sur ta source réelle (Firestore/localStorage).
  */
-// --- NEW: utilitaires "nouvelle carte" ---
-// ...
+/* --- NEW: utilitaires "nouvelle carte" --- */
+
+// Stockage temporaire des IDs possédés AVANT l'ouverture (rempli au lancement de l'animation)
+window.__ownedBefore = new Set();
+
+/** Affiche la bannière "nouvelle carte" pendant 5s */
+function showNewCardBanner(cardName){
+  const banner = document.getElementById('special-banner');
+  if(!banner) return;
+  banner.className = 'banner new-card';
+  banner.style.display = 'flex';
+  banner.innerHTML = `📜✨ <strong>NOUVELLE carte !</strong> ${cardName}`;
+  clearTimeout(window.__newCardTimer);
+  window.__newCardTimer = setTimeout(()=>{ banner.style.display = 'none'; }, 5000);
+}
+
+/** Récupère les IDs possédés avant l'ouverture (local/cloud selon ton état actuel) */
 async function getOwnedCardIdsBefore(){
-  // 🔁 Utilise la collection locale actuelle (côté client)
+  // 1) Local (collection synchronisée depuis Cloud par updateLocalFromCloud)
   if (typeof collection === 'object' && collection){
     return Object.keys(collection).filter(id => (collection[id]||0) > 0);
   }
-  // Fallback éventuel (si tu gardes un cache custom)
+  // 2) Fallback éventuel
   if (window.playerCollection && typeof window.playerCollection === 'object'){
     return Object.keys(window.playerCollection).filter(id => (window.playerCollection[id]?.qty||0) > 0);
   }
@@ -623,12 +632,65 @@ async function snapshotOwnedBeforeOpening(){
   function rankFromCompletion(p){ if(p >= 100) return 'Parangon'; if(p >= 90) return 'Exemplaire'; if(p >= 80) return 'Vainqueur'; if(p >= 70) return 'Justicier'; if(p >= 60) return 'Elite'; if(p >= 50) return 'Vétéran'; if(p >= 40) return 'Aventurier'; if(p >= 30) return 'Éclaireur'; if(p >= 20) return 'Initié'; if(p >= 10) return 'Explorateur'; return 'Nouvelle lumière'; }
   function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
-  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
-    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
-    const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); 
-     }else {if (!banner.classList.contains('new-card')) {
+  function renderResults(cards){
+  const wrap = document.getElementById('results');
+  wrap.innerHTML='';
+
+  let hasLegendary = false, hasExotic = false;
+
+  for(const card of cards){
+    const div = document.createElement('div');
+    div.className = 'card';
+
+    const img = document.createElement('div');
+    img.className = 'img';
+    if(card.image){
+      img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`;
+      img.style.opacity = .85;
+    }
+
+    const shine = document.createElement('div');
+    shine.className = 'shine';
+
+    div.appendChild(img);
+    div.appendChild(shine);
+
+    div.addEventListener('pointermove', (e)=>{
+      const r = e.currentTarget.getBoundingClientRect();
+      const mx = ((e.clientX - r.left)/r.width)*100;
+      const my = ((e.clientY - r.top)/r.height)*100;
+      shine.style.setProperty('--mx', mx+'%');
+      shine.style.setProperty('--my', my+'%');
+    });
+
+    const footer = document.createElement('div');
+    footer.className = 'footer';
+    footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`;
+    div.appendChild(footer);
+
+    wrap.appendChild(div);
+
+    if(card.rarity===RARITY.LEGENDARY) hasLegendary = true;
+    if(card.rarity===RARITY.EXOTIC)    hasExotic    = true;
+  }
+
+  const banner = document.getElementById('special-banner');
+  if(hasExotic || hasLegendary){
+    banner.style.display = 'flex';
+    banner.classList.remove('new-card'); // ne pas cumuler les états
+    banner.innerHTML = (hasExotic
+      ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !'
+      : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>';
+    const btnClose = banner.querySelector('.close');
+    if(btnClose) btnClose.addEventListener('click', ()=>{ banner.style.display='none'; });
+  } else {
+    // Ne pas cacher si une bannière "nouvelle carte" est en cours
+    if (!banner.classList.contains('new-card')) {
       banner.style.display='none';
-        }
+    }
+  }
+}
+
     
   function renderCollection(){ const wrap=document.getElementById('collection'); if(!wrap) return; wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=ALL_CARDS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id)); for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + '<div style="font-weight:700">'+card.name+'</div>' + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>' + '</div><div class="qty">'+card.set+' — '+card.id+'</div>' + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>'; wrap.appendChild(div); } }
 
