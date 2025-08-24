@@ -1,0 +1,32 @@
+/* === Mobile tweaks (<= 640px) === */
+@media (max-width: 640px){
+  /* 3) Breakpoints & textes */
+  .container{ padding:12px; }
+  .row{ gap:10px; }
+  .title{ font-size:18px; }
+  .stat .v{ font-size:20px; }
+  nav a{ padding:6px 8px; font-size:14px; }
+
+  /* 4) Cartes & images */
+  /* (collection.html) */
+  .cards{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; }
+  .mini-card{ padding:8px; }
+  .mini-card strong{ font-size:14px; }
+  .thumb{ max-width:150px; margin:0 auto; }
+
+  /* (admin.html) */
+  .grid{ grid-template-columns: repeat(4, 1fr); gap:12px; }
+  .panel .hd{ padding:14px; }
+  .panel .bd{ padding:14px; }
+
+  /* 5) Boutons cliquables au doigt */
+  .btn{ padding:12px 16px; font-size:14px; }
+  .pill{ padding:4px 10px; font-size:12px; }
+  .input{ padding:10px 12px; font-size:14px; }
+}
+
+/* Un petit ajustement tablette si tu veux (<= 960px) */
+@media (max-width: 960px){
+  /* admin.html */
+  .grid{ grid-template-columns: repeat(6, 1fr); }
+}
