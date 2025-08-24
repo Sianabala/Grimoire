@@ -539,7 +539,8 @@
   function rankFromCompletion(p){ if(p >= 100) return 'Parangon'; if(p >= 90) return 'Exemplaire'; if(p >= 80) return 'Vainqueur'; if(p >= 70) return 'Justicier'; if(p >= 60) return 'Elite'; if(p >= 50) return 'Vétéran'; if(p >= 40) return 'Aventurier'; if(p >= 30) return 'Éclaireur'; if(p >= 20) return 'Initié'; if(p >= 10) return 'Explorateur'; return 'Nouvelle lumière'; }
   function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
-  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
+  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
+    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
     const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); } else { banner.style.display='none'; } }
 
   function renderCollection(){ const wrap=document.getElementById('collection'); if(!wrap) return; wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=ALL_CARDS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id)); for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + '<div style="font-weight:700">'+card.name+'</div>' + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>' + '</div><div class="qty">'+card.set+' — '+card.id+'</div>' + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>'; wrap.appendChild(div); } }
@@ -604,7 +605,43 @@ body.insertBefore(art, body.firstChild);
 const currentSet = SETS.find(s => s.id === setId);
 art.style.backgroundImage = currentSet?.img ? `url('${currentSet.img.replaceAll("'","\\'")}')` : 'none';
                                                  
-    const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); const r = poPack.getBoundingClientRect(); poSlit.style.left = (r.left + r.width/2) + 'px'; poSlit.style.top  = (r.top  + 40) + 'px'; poSlit.style.opacity = 1; poSlit.style.height  = (r.height - 80) + 'px'; await wait(skipRequested ? 0 : 260); poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); await wait(skipRequested ? 0 : 160); const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); // image face potentielle
+    const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { 
+      const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); 
+                                                 
+      const r = poPack.getBoundingClientRect(); 
+      poSlit.style.left = (r.left + r.width/2) + 'px'; 
+      poSlit.style.top  = (r.top  + 40) + 'px'; 
+      poSlit.style.opacity = 1; 
+      poSlit.style.height  = (r.height - 80) + 'px'; 
+      await wait(skipRequested ? 0 : 260); 
+      poPack.style.opacity = 0; burst(poFx.width/2, poFx.height/2, false); 
+      await wait(skipRequested ? 0 : 160); 
+
+// --- Aligner le ventail de cartes sur la position du pack (évite le "saut" sur mobile)
+poFan.style.position = 'absolute';
+
+// Centre horizontalement sur le pack
+const packCenterX = r.left + r.width / 2;
+// Décale légèrement vers le bas (62% de la hauteur du pack ≈ bord inférieur visuel du sachet)
+const packBaselineY = r.top + r.height * 0.62;
+
+// Contraintes de sécurité pour petits écrans
+const margin = 12;
+const safeY = Math.min(
+  Math.max(packBaselineY, margin),
+  innerHeight - margin
+);
+
+// Place le ventail exactement là
+poFan.style.left = packCenterX + 'px';
+poFan.style.top  = safeY + 'px';
+poFan.style.transform = 'translate(-50%, -50%)';
+
+// On neutralise le léger translateY défini en CSS pour éviter tout décalage
+poFan.style.opacity = '0';
+
+                                                 
+      const ANG = [-18,-9,0,9,18]; cards.forEach((c, i)=>{ const el = document.createElement('div'); el.className = 'po-card'; el.style.setProperty('--rot', ANG[i]+'deg'); el.setAttribute('data-idx', String(i)); // image face potentielle
     const faceUrl = (c.image || '').replaceAll("'", "\\'");
     el.innerHTML = `
       <div class="img" style="--bg:url('${CARD_BACK_URL.replaceAll("'","\\'")}')"></div>
@@ -614,7 +651,14 @@ art.style.backgroundImage = currentSet?.img ? `url('${currentSet.img.replaceAll(
     // stocker la face dans data-face (si dispo)
     if (faceUrl) el.dataset.face = faceUrl;
     poFan.appendChild(el);
-  }); poFan.style.opacity = 1; Array.from(poFan.children).forEach((el, i)=>{ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i); }); await wait(skipRequested ? 0 : 420);
+  }); 
+                                                 
+// Affiche le ventail SANS décaler la position (reste collé au sachet)
+poFan.style.opacity = '1';
+Array.from(poFan.children).forEach((el, i)=> {
+setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
+});                                                 
+    await wait(skipRequested ? 0 : 420);
     function setupClickReveal(){ let remaining = new Set(cards.map((_,i)=> i)); let resolveAll; const done = new Promise(r=> resolveAll = r); function onKey(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.currentTarget.click(); } } function revealIndex(i, fast=false){ const c = cards[i]; const el = poFan.querySelector('.po-card[data-idx="'+i+'"]'); if(!el || el.getAttribute('aria-pressed') === 'true') return; // 🔁 passer du verso à la face si disponible
         const imgEl = el.querySelector('.img');
         const face = el.dataset.face;
