@@ -292,6 +292,32 @@
   .input{ padding:10px 12px; font-size:14px; }
 }
 
+    /* --- Zoom carte --- */
+    #card-zoom[hidden]{ display:none !important }
+    #card-zoom{ position:fixed; inset:0; z-index:80; }
+    #card-zoom .cz-backdrop{
+      position:absolute; inset:0; background: rgba(6,8,15,.8); backdrop-filter: blur(4px);
+    }
+    #card-zoom .cz-wrap{
+      position:absolute; inset:0; display:grid; place-items:center; padding:20px;
+    }
+    #card-zoom .cz-card{
+      width:min(86vw, 560px); aspect-ratio:2/3; border-radius:20px;
+      background: linear-gradient(180deg,#141b33,#0b0f1a);
+      border:1px solid rgba(255,255,255,.12); box-shadow: 0 30px 80px rgba(0,0,0,.6);
+      overflow:hidden; transform: scale(.96); opacity:0; transition: transform .18s ease, opacity .18s ease;
+      position:relative;
+    }
+    #card-zoom.show .cz-card{ transform: scale(1); opacity:1; }
+    #card-zoom .cz-img{ position:absolute; inset:0; background: var(--bg) center/cover no-repeat; mix-blend:screen; opacity:.92 }
+    #card-zoom .cz-meta{
+      position:absolute; left:0; right:0; bottom:0; padding:12px 14px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.75)); font-weight:800
+    }
+    #card-zoom .cz-close{
+      position:absolute; top:14px; right:14px; border:1px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.35); color:#e8ecf3; border-radius:999px; padding:8px 10px; cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -392,23 +418,39 @@
     </div>
 
     <!-- Overlay d'animation d'ouverture de pack -->
-    <div id="pack-overlay" aria-hidden="true" hidden>
-      <div class="po-backdrop"></div>
-      <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
-        <div class="po-pack" id="po-pack" aria-hidden="true">
-          <div class="po-pack-body">
-            <div class="po-pack-gloss"></div>
-            <div class="po-pack-logo">GRIMOIRE</div>
-          </div>
-          <div class="po-pack-shine"></div>
+     <div id="pack-overlay" aria-hidden="true" hidden>
+    <div class="po-backdrop"></div>
+    <div class="po-stage" role="dialog" aria-label="Ouverture du pack">
+      <div class="po-pack" id="po-pack" aria-hidden="true">
+        <div class="po-pack-body">
+          <div class="po-pack-gloss"></div>
+          <div class="po-pack-logo">GRIMOIRE</div>
         </div>
-        <div class="po-slit" id="po-slit" aria-hidden="true"></div>
-        <div class="po-fan" id="po-fan" aria-live="polite" aria-atomic="true"></div>
-        <canvas id="po-confetti" width="1280" height="720"></canvas>
-        <div class="po-actions">
-          <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+        <div class="po-pack-shine"></div>
+      </div>
+      <div class="po-slit" id="po-slit" aria-hidden="true"></div>
+      <div class="po-fan" id="po-fan"></div>
+      <canvas id="po-confetti" width="1280" height="720"></canvas>
+      <div class="po-actions">
+        <button id="po-skip" class="btn pill ghost">Passer l’animation</button>
+      </div>
+    </div>
+       <!-- Zoom carte -->
+    <div id="card-zoom" hidden>
+      <div class="cz-backdrop"></div>
+      <div class="cz-wrap">
+        <button class="cz-close" aria-label="Fermer">✕</button>
+        <div class="cz-card">
+          <div class="cz-img" style="--bg:url('')"></div>
+          <div class="cz-meta">
+            <div id="cz-title">—</div>
+            <div id="cz-sub" class="subtitle">—</div>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
     </div>
 
     <!-- Choix du niveau de pack (modal) -->
@@ -687,8 +729,30 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
         el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
         const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
         if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
-      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
-    await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
+      Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); 
+                                                   
+  el.addEventListener('click', ()=> {
+      const already = el.getAttribute('aria-pressed') === 'true';
+      if(!already){
+        revealIndex(i, false);
+        remaining.delete(i);
+        if(remaining.size === 0){ resolveAll(); }
+        el._justRevealedAt = performance.now();
+      } else {
+        const c = cards[i];
+        const face = el.dataset.face || '';
+        openCardZoom({ face, name:c.name, set:c.set, rarity:c.rarity });
+      }
+    }, { passive:true });
+
+    el.addEventListener('touchend', ()=> {
+      if (el._justRevealedAt && (performance.now() - el._justRevealedAt) < 350){
+        const c = cards[i];
+        const face = el.dataset.face || '';
+        openCardZoom({ face, name:c.name, set:c.set, rarity:c.rarity });
+      }
+      el._justRevealedAt = 0;
+    }, { passive:true });    await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
   async function openPack({type='standard', setId} = {}){
@@ -946,6 +1010,35 @@ function setAdminUIVisible(isAdmin){
   if (diagPanel) diagPanel.style.display = isAdmin ? '' : 'none';
 }
 
+    // --- Zoom helpers
+    const zoomEl = document.getElementById('card-zoom');
+    const czImg  = zoomEl?.querySelector('.cz-img');
+    const czTitle= zoomEl?.querySelector('#cz-title');
+    const czSub  = zoomEl?.querySelector('#cz-sub');
+    const czClose= zoomEl?.querySelector('.cz-close');
+
+    function openCardZoom({ face, name, set, rarity }){
+      if(!zoomEl) return;
+      const bg = (face && face.trim()) ? face : CARD_BACK_URL;
+      czImg.style.setProperty('--bg', `url('${bg.replaceAll("'","\\'")}')`);
+      czTitle.textContent = name || 'Carte';
+      czSub.textContent = `${set||'—'} — ${rarity||'—'}`;
+      zoomEl.hidden = false;
+      requestAnimationFrame(()=> zoomEl.classList.add('show'));
+      const onKey = (e)=>{ if(e.key === 'Escape'){ closeCardZoom(); } };
+      document.addEventListener('keydown', onKey, { once:true });
+      zoomEl._escHandler = onKey;
+    }
+    function closeCardZoom(){
+      if(!zoomEl || zoomEl.hidden) return;
+      zoomEl.classList.remove('show');
+      setTimeout(()=> zoomEl.hidden = true, 150);
+      if(zoomEl._escHandler){ document.removeEventListener('keydown', zoomEl._escHandler); zoomEl._escHandler = null; }
+    }
+    if(zoomEl){
+      zoomEl.querySelector('.cz-backdrop').addEventListener('click', closeCardZoom, { passive:true });
+      czClose.addEventListener('click', closeCardZoom, { passive:true });
+    }
     
   </script>
 
