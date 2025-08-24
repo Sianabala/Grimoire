@@ -145,6 +145,26 @@
         <div class="bd"><pre id="diag" class="diag"></pre></div>
       </section>
 
+      <!-- Configuration & Diagnostic (déplacé depuis index) -->
+<section class="panel" style="grid-column:span 12">
+  <div class="hd">
+    <h3>Configuration & Diagnostic</h3>
+    <span class="subtitle">Outils d’admin (non visibles côté joueurs)</span>
+  </div>
+  <div class="bd">
+    <div class="footerbar" style="display:flex;gap:10px;flex-wrap:wrap">
+      <button id="btn-test-config" class="btn ghost pill">Tester config Firebase</button>
+      <button id="btn-test-auth" class="btn ghost pill">Tester Auth (qui suis-je ?)</button>
+      <button id="btn-test-draws" class="btn ghost pill">Test tirages (10 000)</button>
+      <button id="btn-test-premium" class="btn ghost pill">Test Premium garanti (1 000)</button>
+      <button id="btn-test-firestore" class="btn ghost pill">Test Firestore round-trip</button>
+      <button id="btn-test-cloud-priority" class="btn ghost pill">Test priorité cloud (lecture)</button>
+    </div>
+    <pre id="diag-log" class="diag"></pre>
+  </div>
+</section>
+
+
     </div>
   </main>
 
@@ -423,6 +443,116 @@
     function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
+
+
+    // --- Mini outils pour le panneau "Configuration & Diagnostic"
+let currentUser = null; // capture l'utilisateur pour les tests
+
+// alimente currentUser dans ton onAuthStateChanged déjà existant :
+const _origAuthCb = onAuthStateChanged; // (pas réellement nécessaire si tu modifies directement le callback existant)
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user || null;
+  // le reste de ta logique d'accès admin reste inchangé
+});
+
+// helpers d'affichage
+const diagLog = document.getElementById('diag-log');
+function printDiag(line){ if(diagLog) diagLog.textContent += (line + '\n'); }
+function clearDiag(){ if(diagLog) diagLog.textContent = ''; }
+
+// petite version locale des raretés pour les tests de tirage
+const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
+function weightedRandomRarity(){
+  const total = Object.values(RARITY_WEIGHTS).reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for(const [rar, w] of Object.entries(RARITY_WEIGHTS)){ if((r -= w) < 0) return rar; }
+  return RARITY.COMMON;
+}
+const ensureAtLeastRare = ()=> RARITY.RARE;
+
+// listeners
+const btnCfg  = document.getElementById('btn-test-config');
+const btnAuth = document.getElementById('btn-test-auth');
+const btnDraw = document.getElementById('btn-test-draws');
+const btnPrem = document.getElementById('btn-test-premium');
+const btnFS   = document.getElementById('btn-test-firestore');
+const btnCP   = document.getElementById('btn-test-cloud-priority');
+
+btnCfg?.addEventListener('click', ()=>{
+  clearDiag();
+  const checks = [
+    ['apiKey ok', !!firebaseConfig.apiKey],
+    ['authDomain ok', !!firebaseConfig.authDomain],
+    ['projectId ok', !!firebaseConfig.projectId],
+    ['appId ok', !!firebaseConfig.appId],
+  ];
+  for(const [name, ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
+  printDiag('\nConfig OK si toutes les coches sont vertes.');
+});
+
+btnAuth?.addEventListener('click', ()=>{
+  clearDiag();
+  if(currentUser){
+    printDiag('Connecté ✅');
+    printDiag('uid: '+currentUser.uid);
+    printDiag('displayName: '+(currentUser.displayName||'(—)'));
+    printDiag('email: '+(currentUser.email||'(—)'));
+    printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
+  } else {
+    printDiag('Non connecté ❌');
+  }
+});
+
+btnDraw?.addEventListener('click', ()=>{
+  clearDiag();
+  const N = 10000;
+  const counts = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
+  for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
+  const pct=x=>(100*x/N).toFixed(2)+'%';
+  printDiag(`Distribution (~60/25/10/4/1) sur ${N} tirages:`);
+  for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
+    printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
+  }
+});
+
+btnPrem?.addEventListener('click', ()=>{
+  clearDiag();
+  const P=1000; let ok=0,fail=0;
+  for(let p=0;p<P;p++){
+    const idx=Math.floor(Math.random()*5);
+    const pulls = Array.from({length:5}, (_,i)=> i===idx ? ensureAtLeastRare() : weightedRandomRarity());
+    if(pulls.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
+  }
+  printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`);
+  printDiag(fail===0 ? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Au moins un pack Premium n’a pas respecté la garantie.');
+});
+
+btnFS?.addEventListener('click', async ()=>{
+  clearDiag();
+  if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
+  try{
+    const now=Date.now();
+    await updateDoc(doc(db,'players',currentUser.uid), { _rtTest: now, updatedAt: serverTimestamp() });
+    const back = await getDoc(doc(db,'players',currentUser.uid));
+    printDiag('Firestore round-trip OK, _rtTest=' + back.data()._rtTest);
+  }catch(e){
+    printDiag('❌ Firestore round-trip échoué: '+(e?.message||e));
+  }
+});
+
+btnCP?.addEventListener('click', async ()=>{
+  clearDiag();
+  if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la lecture cloud.'); return; }
+  try{
+    const snap = await getDoc(doc(db,'players',currentUser.uid));
+    if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
+    printDiag('✅ Lecture cloud réussie (doc présent).');
+  }catch(e){
+    printDiag('❌ Erreur lecture cloud: '+(e?.message||e));
+  }
+});
+
   </script>
 </body>
 </html>
