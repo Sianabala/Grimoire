@@ -66,6 +66,24 @@
     .btn-group{display:flex;gap:8px;flex-wrap:wrap}
   
   .qty{ width:90px }
+
+    @media (max-width: 640px){
+  .container{ padding:12px; }
+  .row{ gap:10px; }
+  .title{ font-size:18px; }
+
+  .grid{ grid-template-columns: repeat(4, 1fr); gap:12px; }
+  .panel .hd{ padding:14px; }
+  .panel .bd{ padding:14px; }
+
+  .btn{ padding:12px 16px; font-size:14px; }
+  .pill{ padding:4px 10px; font-size:12px; }
+  .input{ padding:10px 12px; font-size:14px; }
+}
+@media (max-width: 960px){
+  .grid{ grid-template-columns: repeat(6, 1fr); }
+}
+
   </style>
 </head>
 <body>
