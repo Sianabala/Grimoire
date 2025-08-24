@@ -354,12 +354,6 @@ await snapshotOwnedBeforeOpening();
   .input{ padding:10px 12px; font-size:14px; }
 }
 
-                                          .pack-hud{ position:fixed; top:14px; right:14px; z-index:120; display:inline-flex; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(12,18,34,.75); border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 30px rgba(0,0,0,.35); font-weight:600; font-size:14px; line-height:1; backdrop-filter:blur(6px) }
-.pack-hud .label{ opacity:.85; font-weight:700; letter-spacing:.3px }
-.pack-hud .sep{ opacity:.6 }
-.pack-hud .dot{ width:8px; height:8px; border-radius:999px; background:linear-gradient(180deg,var(--accent),var(--accent-2)); box-shadow:0 0 0 2px rgba(124,92,255,.25) }
-@media (max-width:600px){ .pack-hud{ top:10px; right:10px; padding:7px 10px; font-size:13px } }
-
   </style>
 </head>
 <body>
@@ -387,16 +381,6 @@ await snapshotOwnedBeforeOpening();
         </div>
       </div>
     </div>
-
-    <div id="pack-hud" class="pack-hud" aria-live="polite" hidden>
-  <span class="label">Packs</span>
-  <span class="dot"></span>
-  <span>Standard ×<strong id="hud-standard">0</strong></span>
-  <span class="sep">·</span>
-  <span>Premium ×<strong id="hud-premium">0</strong></span>
-</div>
-
-    
   </header>
 
   <main class="container">
@@ -878,23 +862,11 @@ setAdminUIVisible(isAdmin);
     if(badgeEl){ badgeEl.textContent = `Packs dispo : Standard ×${packBalances.standard} · Premium ×${packBalances.premium}`; badgeEl.style.display = ''; }
     if(pcStandard){ pcStandard.textContent = `🎴 Standard ${packBalances.standard?`(×${packBalances.standard})`:''}`; pcStandard.disabled = packBalances.standard<=0; pcStandard.classList.toggle('ghost', packBalances.standard<=0); pcStandard.title = packBalances.standard<=0 ? 'Aucun pack Standard disponible' : ''; }
     if(pcPremium){ pcPremium.textContent = `💎 Premium ${packBalances.premium?`(×${packBalances.premium})`:''}`; pcPremium.disabled = packBalances.premium<=0; pcPremium.classList.toggle('ghost', packBalances.premium<=0); pcPremium.title = packBalances.premium<=0 ? 'Aucun pack Premium disponible' : ''; }
-    
     // Désactive les boutons "Ouvrir" de chaque set si aucun pack
     const noPacks = (packBalances.standard + packBalances.premium) <= 0;
     document.querySelectorAll('.set .overlay .btn').forEach(btn=>{ btn.disabled = noPacks; btn.classList.toggle('ghost', noPacks); btn.title = noPacks ? 'Aucun pack disponible. Obtiens des packs via admin ou récompenses.' : ''; });
   }
-// --- Update sticky HUD ---
-const hud = document.getElementById('pack-hud');
-const hs = document.getElementById('hud-standard');
-const hp = document.getElementById('hud-premium');
-if(hud && hs && hp){
-  hs.textContent = String(packBalances.standard||0);
-  hp.textContent = String(packBalances.premium||0);
-  // Afficher uniquement en mode cloud (connecté)
-  try{ hud.hidden = !(typeof isCloud==='function' ? isCloud() : true); }catch{ hud.hidden = false; }
-}
 
-    
   function openChooser(setId){ currentSetId = setId; const s = SETS.find(x=>x.id===setId); pcSetName.textContent = s?.name || '—'; chooser.hidden = false; refreshPackUI(); }
   function closeChooser(){ chooser.hidden = true; }
   function choosePackOpen(setId, type){ closeChooser(); openPack({ setId, type }); }
