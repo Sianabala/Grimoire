@@ -250,7 +250,13 @@
           <label class="pill"><input type="checkbox" id="r-rare" checked> Rare</label>
           <label class="pill"><input type="checkbox" id="r-legendary" checked> Légendaire</label>
           <label class="pill"><input type="checkbox" id="r-exotic" checked> Exotique</label>
-          <label class="pill"><input type="checkbox" id="only-owned"> Uniquement possédées</label>
+          
+          <select id="ownedFilter" class="input select" aria-label="Filtrer par possession">
+            <option value="">Possédées + Non possédées</option>
+            <option value="owned">Uniquement possédées</option>
+            <option value="missing">Uniquement non possédées</option>
+          </select>
+          
           <select id="sortBy" class="input select">
             <option value="set,id">Trier par Set → ID</option>
             <option value="rarity,id">Trier par Rareté → ID</option>
@@ -445,6 +451,7 @@
     const cbLegendary=document.getElementById('r-legendary');
     const cbExotic=document.getElementById('r-exotic');
     const sortBy=document.getElementById('sortBy');
+    const ownedFilter=document.getElementById('ownedFilter');
 
     const diag=document.getElementById('diag-log');
     function log(line){ diag.textContent += (line + '\n'); }
@@ -521,10 +528,18 @@
         const s=q.value.trim().toLowerCase();
         list = list.filter(c=> c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s));
       }
-      const cbOnlyOwned = document.getElementById('only-owned');
-      if (cbOnlyOwned?.checked) {
-        list = list.filter(c => (collection[c.id]||0) > 0);
-      }
+      switch (ownedFilter.value) {
+  case 'owned':
+    list = list.filter(c => (collection[c.id] || 0) > 0);
+    break;
+  case 'missing':
+    list = list.filter(c => (collection[c.id] || 0) === 0);
+    break;
+  default:
+    // Possédées + Non possédées (ne rien faire)
+    break;
+}
+
 
       switch(sortBy.value){
         case 'rarity,id': list.sort((a,b)=> rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || a.id.localeCompare(b.id)); break;
@@ -578,18 +593,22 @@
     }
 
     // Events
-    for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy,document.getElementById('only-owned')]){
-      el.addEventListener('input', render);
-      el.addEventListener('change', render);
-    }
+   for(const el of [q,setFilter,cbCommon,cbUncommon,cbRare,cbLegendary,cbExotic,sortBy,ownedFilter]){
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+}
+
 
     document.getElementById('btn-clear').addEventListener('click', ()=>{
-      q.value=''; setFilter.value='';
-      cbCommon.checked=cbUncommon.checked=cbRare.checked=cbLegendary.checked=cbExotic.checked=true;
-      sortBy.value='set,id';
-      render();
-      toast('Filtres réinitialisés');
-    });
+  q.value='';
+  setFilter.value='';
+  cbCommon.checked=cbUncommon.checked=cbRare.checked=cbLegendary.checked=cbExotic.checked=true;
+  sortBy.value='set,id';
+  ownedFilter.value=''; // <-- AJOUT
+  render();
+  toast('Filtres réinitialisés');
+});
+
 
     document.getElementById('btn-sync-from-cloud').addEventListener('click', async ()=>{
       if(!auth.currentUser){ alert('Connecte-toi avec Twitch pour synchroniser.'); return; }
