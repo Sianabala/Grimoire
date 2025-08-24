@@ -533,8 +533,6 @@ async function getOwnedCardIdsBefore(){
   return [];
 }
 
-}
-
 /** À appeler AU DÉBUT de l'ouverture de pack (avant d'appliquer les tirages) */
 async function snapshotOwnedBeforeOpening(){
   const ids = await getOwnedCardIdsBefore();
