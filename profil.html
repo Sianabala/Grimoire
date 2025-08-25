@@ -168,21 +168,14 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-  // Map des raretés embarquée (128 cartes)
-  const RARITY_OF_CARD = {
-    "NL-001": "commune", "NL-002": "commune", "NL-003": "commune",
-    "NL-004": "commune", "NL-005": "légendaire",
-    // ... ⚠️ ici tu ajoutes toutes les entrées de nouvelle-lumiere.json et twitch.json ...
-    // exemple :
-    // "TW-001": "commune", "TW-002": "rare", ..., "TW-052": "exotique"
-  };
-
+  // Map officielle (issue de tes JSON)
+  const RARITY_OF_CARD = {"NL-001":"commune","NL-002":"commune","NL-003":"commune","NL-004":"commune","NL-005":"légendaire","NL-006":"commune","NL-007":"commune","NL-008":"commune","NL-009":"commune","NL-010":"peu commune","NL-011":"commune","NL-012":"peu commune","NL-013":"commune","NL-014":"commune","NL-015":"commune","NL-016":"peu commune","NL-017":"commune","NL-018":"peu commune","NL-019":"rare","NL-020":"peu commune","NL-021":"commune","NL-022":"peu commune","NL-023":"peu commune","NL-024":"commune","NL-025":"commune","NL-026":"peu commune","NL-027":"peu commune","NL-028":"peu commune","NL-029":"peu commune","NL-030":"peu commune","NL-031":"peu commune","NL-032":"rare","NL-033":"peu commune","NL-034":"peu commune","NL-035":"peu commune","NL-036":"peu commune","NL-037":"peu commune","NL-038":"peu commune","NL-039":"rare","NL-040":"peu commune","NL-041":"peu commune","NL-042":"peu commune","NL-043":"peu commune","NL-044":"peu commune","NL-045":"rare","NL-046":"rare","NL-047":"rare","NL-048":"rare","NL-049":"rare","NL-050":"rare","NL-051":"rare","NL-052":"rare","NL-053":"rare","NL-054":"rare","NL-055":"rare","NL-056":"rare","NL-057":"rare","NL-058":"rare","NL-059":"rare","NL-060":"rare","NL-061":"rare","NL-062":"rare","NL-063":"peu commune","NL-064":"peu commune","NL-065":"peu commune","NL-066":"peu commune","NL-067":"peu commune","NL-068":"peu commune","NL-069":"peu commune","NL-070":"peu commune","NL-071":"peu commune","NL-072":"peu commune","NL-073":"peu commune","NL-074":"peu commune","NL-075":"peu commune","NL-076":"peu commune","TW-001":"commune","TW-002":"commune","TW-003":"commune","TW-004":"peu commune","TW-005":"commune","TW-006":"commune","TW-007":"peu commune","TW-008":"commune","TW-009":"commune","TW-010":"peu commune","TW-011":"commune","TW-012":"peu commune","TW-013":"peu commune","TW-014":"peu commune","TW-015":"commune","TW-016":"commune","TW-017":"peu commune","TW-018":"peu commune","TW-019":"peu commune","TW-020":"peu commune","TW-021":"rare","TW-022":"rare","TW-023":"rare","TW-024":"rare","TW-025":"rare","TW-026":"rare","TW-027":"rare","TW-028":"rare","TW-029":"rare","TW-030":"rare","TW-031":"rare","TW-032":"rare","TW-033":"rare","TW-034":"rare","TW-035":"rare","TW-036":"rare","TW-037":"rare","TW-038":"rare","TW-039":"rare","TW-040":"rare","TW-041":"commune","TW-042":"légendaire","TW-043":"légendaire","TW-044":"légendaire","TW-045":"légendaire","TW-046":"exotique","TW-047":"exotique","TW-048":"exotique","TW-049":"exotique","TW-050":"exotique","TW-051":"exotique","TW-052":"rare"};
   const CATALOG_SIZE = Object.keys(RARITY_OF_CARD).length;
-
-  // exposer en global pour le script module
+  // expose en global
   window.RARITY_OF_CARD = RARITY_OF_CARD;
   window.CATALOG_SIZE   = CATALOG_SIZE;
 </script>
+
 
   
    <script type="module">
@@ -191,9 +184,24 @@
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // Map injectée par rarity-map.js
     const RARITY_OF_CARD = window.RARITY_OF_CARD || {};
-    const CATALOG_SIZE   = window.CATALOG_SIZE   || 128;
+const CATALOG_SIZE   = window.CATALOG_SIZE   || 128;
+
+// ...
+function deriveRarityCounters(idsMap){
+  let leg = 0, exo = 0;
+  for (const rawId of idsMap.keys()){
+    const id = String(rawId).trim().toUpperCase(); // normaliser les IDs collection
+    const r = RARITY_OF_CARD[id];
+    if (!r) { /* console.warn('ID inconnu:', rawId, '→', id); */ continue; }
+    if (r === 'légendaire') leg++;
+    if (r === 'exotique')   exo++;
+  }
+  return { legendaries: leg, exotics: exo };
+}
+
+const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? CATALOG_SIZE;
+
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
