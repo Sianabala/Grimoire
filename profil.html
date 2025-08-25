@@ -215,12 +215,7 @@
       // Raretés
       { id:'chanceux', name:'Chanceux', ico:'🌟', desc:'Trouver 1 légendaire',                 test:s=> (s.legendaries||0) >= 1 },
       { id:'benisdesneuf', name:'Bénis des Neuf', ico:'✨', desc:'Trouver 1 exotique',         test:s=> (s.exotics||0) >= 1 },
-      { id:'chasseur', name:'Chasseur de trésors', ico:'💎', desc:'10 légendaires/exotiques',  test:s=> ((s.legendaries||0)+(s.exotics||0)) >= 10 },
-
-      // Engagement
-      { id:'fidele', name:'Fidèle', ico:'📅', desc:'7 connexions consécutives',                test:s=> (s.loginStreak||0) >= 7 },
-      { id:'veteran', name:'Vétéran', ico:'🗓️', desc:'100 jours connectés',                   test:s=> (s.daysLogged||0) >= 100 },
-      { id:'streamerfan', name:'Streamer Fan', ico:'⭐', desc:'Ouvrir 1 pack Premium',          test:s=> (s.premiumOpened||0) >= 1 },
+      { id:'chasseur', name:'Chasseur de trésors', ico:'💎', desc:'10 légendaires/exotiques',  test:s=> ((s.legendaries||0)+(s.exotics||0)) >= 10 },    
     ];
 
     function percent(v, total){ total = Math.max(1, total||0); return Math.round((v/total)*100); }
