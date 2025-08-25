@@ -15,7 +15,6 @@
 
   <style>
     :root{
-      /* Palette & tokens cohérents avec index/collection/admin */
       --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
       --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b;
       --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
@@ -168,68 +167,19 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <!-- ⬇️ Embarque la table des raretés (aucun fetch nécessaire) -->
+  <script src="./rarity-map.js"></script>
+
   <script type="module">
-    // === Firebase (aligné avec l’approche modules v10 de admin.html) ===
-    // cf. admin.html pour la même structure d'init & imports  :contentReference[oaicite:3]{index=3}
+    // === Firebase (modules v10) ===
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// --- Normalisation des libellés de rareté ---
-const RARITY_MAP = new Map([
-  ['légendaire','légendaire'],
-  ['legendary','légendaire'],
-  ['exotic','exotique'],
-  ['exotique','exotique'],
-  ['rare','rare'],
-  ['peu commune','peu commune'],
-  ['uncommon','peu commune'],
-  ['commune','commune'],
-  ['common','commune'],
-]);
-const normRarity = (r) => RARITY_MAP.get(String(r||'').trim().toLowerCase()) || String(r||'').trim().toLowerCase();
+    // Map injectée par rarity-map.js
+    const RARITY_OF_CARD = window.RARITY_OF_CARD || {};
+    const CATALOG_SIZE   = window.CATALOG_SIZE   || 128;
 
-// --- Construire un dictionnaire id -> rareté à partir des catalogues ---
-let RARITY_OF_CARD = Object.create(null);
-
-async function fetchFirst(paths){
-  for (const u of paths){
-    try{
-      const res = await fetch(u);
-      if (res.ok) return await res.json();
-      console.warn('[Catalog] fetch failed', u, res.status);
-    }catch(e){ console.warn('[Catalog] error', u, e); }
-  }
-  return null;
-}
-
-async function loadCatalogs(){
-  // Essaie plusieurs emplacements possibles
-  const nl = await fetchFirst([
-    './nouvelle-lumiere.json','/nouvelle-lumiere.json',
-    './data/nouvelle-lumiere.json','/data/nouvelle-lumiere.json'
-  ]);
-  const tw = await fetchFirst([
-    './twitch.json','/twitch.json',
-    './data/twitch.json','/data/twitch.json'
-  ]);
-
-  const catalogs = [];
-  if (nl && Array.isArray(nl.cards)) catalogs.push(nl.cards);
-  if (tw && Array.isArray(tw.cards)) catalogs.push(tw.cards);
-
-  for (const cards of catalogs.flat()){
-    const id = String(cards.id).trim().toUpperCase();          // ⟵ normalisation ID
-    const r  = normRarity(cards.rarity);
-    RARITY_OF_CARD[id] = r;
-  }
-
-  console.info('[Catalog] total cards loaded:', Object.keys(RARITY_OF_CARD).length);
-}
-await loadCatalogs();
-
-
-    
     const firebaseConfig = {
       apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
       authDomain: 'legends-collection.firebaseapp.com',
@@ -254,24 +204,22 @@ await loadCatalogs();
     }
 
     // === Badges (définition) ===
-    // Conditions basées sur des champs du doc joueur (avec défauts robustes)
-    // Tu peux ajuster les clés pour coller 100% à ta structure Firestore.
     const BADGES = [
       // Progression
-      { id:'explorateur', name:'Explorateur', ico:'🧭', desc:'Avoir 10 cartes différentes',   test:s=> (s.uniques||0) >= 10 },
-      { id:'collectionneur', name:'Collectionneur', ico:'📚', desc:'50% de la collection',    test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 50 },
-      { id:'archiviste', name:'Archiviste', ico:'🏛️', desc:'100% de la collection',          test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 100 },
+      { id:'explorateur',   name:'Explorateur',          ico:'🧭',    desc:'Avoir 10 cartes différentes',   test:s=> (s.uniques||0) >= 10 },
+      { id:'collectionneur',name:'Collectionneur',       ico:'📚',    desc:'50% de la collection',         test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 50 },
+      { id:'archiviste',    name:'Archiviste',           ico:'🏛️',    desc:'100% de la collection',        test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 100 },
 
       // Packs
-      { id:'curieux', name:'Curieux', ico:'📦', desc:'Ouvrir un premier pack',                 test:s=> (s.packsOpened||0) >= 1 },
-      { id:'addict', name:'Addict', ico:'📦📦', desc:'Ouvrir 50 packs',                        test:s=> (s.packsOpened||0) >= 50 },
-      { id:'accro', name:'Accro', ico:'📦📦📦', desc:'Ouvrir 100 packs',                      test:s=> (s.packsOpened||0) >= 100 },
-      { id:'inarretable', name:'Inarrêtable', ico:'🌀', desc:'Ouvrir 200 packs',               test:s=> (s.packsOpened||0) >= 200 },
+      { id:'curieux',       name:'Curieux',              ico:'📦',    desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
+      { id:'addict',        name:'Addict',               ico:'📦📦',   desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
+      { id:'accro',         name:'Accro',                ico:'📦📦📦', desc:'Ouvrir 100 packs',             test:s=> (s.packsOpened||0) >= 100 },
+      { id:'inarretable',   name:'Inarrêtable',          ico:'🌀',    desc:'Ouvrir 200 packs',             test:s=> (s.packsOpened||0) >= 200 },
 
       // Raretés
-      { id:'chanceux', name:'Chanceux', ico:'🌟', desc:'Trouver 1 légendaire',                 test:s=> (s.legendaries||0) >= 1 },
-      { id:'benisdesneuf', name:'Bénis des Neuf', ico:'✨', desc:'Trouver 1 exotique',         test:s=> (s.exotics||0) >= 1 },
-      { id:'chasseur', name:'Chasseur de trésors', ico:'💎', desc:'10 légendaires/exotiques',  test:s=> ((s.legendaries||0)+(s.exotics||0)) >= 10 },    
+      { id:'chanceux',      name:'Chanceux',             ico:'🌟',    desc:'Trouver 1 légendaire',         test:s=> (s.legendaries||0) >= 1 },
+      { id:'benisdesneuf',  name:'Bénis des Neuf',       ico:'✨',    desc:'Trouver 1 exotique',           test:s=> (s.exotics||0) >= 1 },
+      { id:'chasseur',      name:'Chasseur de trésors',  ico:'💎',    desc:'10 légendaires/exotiques',     test:s=> ((s.legendaries||0)+(s.exotics||0)) >= 10 },
     ];
 
     function percent(v, total){ total = Math.max(1, total||0); return Math.round((v/total)*100); }
@@ -319,93 +267,75 @@ await loadCatalogs();
       }
 
       syncBadge.textContent = 'Sync…';
-      // Avatar Twitch si déjà stocké, sinon initiales
       avatarEl.textContent = '👤';
 
       const ref = doc(db,'players',user.uid);
       const snap = await getDoc(ref);
 
-      // Structure robuste : on tolère des champs manquants
-   // data = snap.exists() ? snap.data() : {}  (garde ta ligne existante)
-const data = snap.exists()? snap.data() : {};
+      const data = snap.exists()? snap.data() : {};
 
-// --- Agréger les IDs possédés quel que soit le stockage ---
-// Supporte : data.collection {id: qty}, data.collections.{NL,TW}, data.cardsOwned [id] ou [{id,qty}]
-function collectOwnedIds(d){
-  const ids = new Map(); // id -> qty
-
-  if (d.collection && typeof d.collection === 'object'){
-    for (const [id, qty] of Object.entries(d.collection)) ids.set(id, (ids.get(id)||0)+Number(qty||0));
-  }
-  if (d.collections && typeof d.collections === 'object'){
-    for (const setObj of Object.values(d.collections)){
-      if (setObj && typeof setObj === 'object'){
-        for (const [id, qty] of Object.entries(setObj)) ids.set(id, (ids.get(id)||0)+Number(qty||0));
+      // Agréger les IDs possédés (accepte plusieurs schémas de stockage)
+      function collectOwnedIds(d){
+        const ids = new Map(); // id -> qty
+        if (d.collection && typeof d.collection === 'object'){
+          for (const [id, qty] of Object.entries(d.collection)) ids.set(id, (ids.get(id)||0)+Number(qty||0));
+        }
+        if (d.collections && typeof d.collections === 'object'){
+          for (const setObj of Object.values(d.collections)){
+            if (setObj && typeof setObj === 'object'){
+              for (const [id, qty] of Object.entries(setObj)) ids.set(id, (ids.get(id)||0)+Number(qty||0));
+            }
+          }
+        }
+        if (Array.isArray(d.cardsOwned)){
+          for (const entry of d.cardsOwned){
+            if (typeof entry === 'string') ids.set(entry, (ids.get(entry)||0)+1);
+            else if (entry && entry.id) ids.set(entry.id, (ids.get(entry.id)||0)+Number(entry.qty||1));
+          }
+        }
+        return ids;
       }
-    }
-  }
-  if (Array.isArray(d.cardsOwned)){
-    for (const entry of d.cardsOwned){
-      if (typeof entry === 'string') ids.set(entry, (ids.get(entry)||0)+1);
-      else if (entry && entry.id) ids.set(entry.id, (ids.get(entry.id)||0)+Number(entry.qty||1));
-    }
-  }
-  return ids;
-}
 
-const owned = collectOwnedIds(data);
-const derivedUniques = owned.size;
+      const owned = collectOwnedIds(data);
+      const derivedUniques = owned.size;
 
-// --- Compter légendaires/exotiques à partir des catalogues chargés ---
-function deriveRarityCounters(idsMap){
-  let leg = 0, exo = 0;
-  for (const rawId of idsMap.keys()){
-    const id = String(rawId).trim().toUpperCase();   // ⟵ normalisation ID
-    const r = RARITY_OF_CARD[id];
-    if (!r) {
-      // console.warn('Unknown card id:', rawId);
-      continue;
-    }
-    if (r === 'légendaire') leg++;
-    if (r === 'exotique')   exo++;
-  }
-  return { legendaries: leg, exotics: exo };
-}
+      // Compter légendaires/exotiques depuis la map embarquée
+      function deriveRarityCounters(idsMap){
+        let leg = 0, exo = 0;
+        for (const rawId of idsMap.keys()){
+          const id = String(rawId).trim().toUpperCase();
+          const r = RARITY_OF_CARD[id];
+          if (!r) continue;
+          if (r === 'légendaire') leg++;
+          if (r === 'exotique')   exo++;
+        }
+        return { legendaries: leg, exotics: exo };
+      }
+      const fallbackRarity = deriveRarityCounters(owned);
 
-const fallbackRarity = deriveRarityCounters(owned);
+      const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? CATALOG_SIZE;
 
-// --- Total du pool (par défaut 128 = 76 NL + 52 TW) ---
-const CATALOG_SIZE = Object.keys(RARITY_OF_CARD).length;
-const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? (CATALOG_SIZE || 128);
-
-
-const profile = {
-  pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
-  level:  data.level  || 0,
-  xp:     data.xp     || 0,
-  xpToLevel: data.xpToLevel || 100,
-  stats: {
-    uniques: derivedUniques,
-    totalCards: TOTAL_CARDS,
-    packsOpened: data.packsOpened ?? data.stats?.packsOpened ?? 0,
-
-    // On prend ce qui existe en base, sinon la dérivation sûre
-    legendaries:
-      data.legendaries ?? data.stats?.legendaries ??
-      data.rarityCounts?.legendary ?? data.rarityCounts?.légendaire ??
-      fallbackRarity.legendaries,
-
-    exotics:
-      data.exotics ?? data.stats?.exotics ??
-      data.rarityCounts?.exotic ?? data.rarityCounts?.exotique ??
-      fallbackRarity.exotics,
-
-    premiumOpened: data.premiumOpened ?? data.stats?.premiumOpened ?? 0,
-  },
-  badges: data.badges || {}
-};
-
-
+      const profile = {
+        pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
+        level:  data.level  || 0,
+        xp:     data.xp     || 0,
+        xpToLevel: data.xpToLevel || 100,
+        stats: {
+          uniques: derivedUniques,
+          totalCards: TOTAL_CARDS,
+          packsOpened: data.packsOpened ?? data.stats?.packsOpened ?? 0,
+          legendaries:
+            data.legendaries ?? data.stats?.legendaries ??
+            data.rarityCounts?.legendary ?? data.rarityCounts?.légendaire ??
+            fallbackRarity.legendaries,
+          exotics:
+            data.exotics ?? data.stats?.exotics ??
+            data.rarityCounts?.exotic ?? data.rarityCounts?.exotique ??
+            fallbackRarity.exotics,
+          premiumOpened: data.premiumOpened ?? data.stats?.premiumOpened ?? 0,
+        },
+        badges: data.badges || {}
+      };
 
       // UI Infos joueur
       usernameEl.textContent = profile.pseudo;
@@ -437,7 +367,6 @@ const profile = {
             await setDoc(ref, { badges: newBadges, createdAt: now, updatedAt: now }, { merge:true });
           }
           toast(`+${toUnlock.length} badge${toUnlock.length>1?'s':''} débloqué${toUnlock.length>1?'s':''} !`);
-          // Recharge avec timestamps réels (facultatif : on peut relire le doc)
           const snap2 = await getDoc(ref);
           profile.badges = (snap2.exists()? snap2.data().badges : newBadges) || newBadges;
         }catch(e){
