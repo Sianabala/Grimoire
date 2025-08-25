@@ -441,12 +441,77 @@ body.guest #guest-cta { display: block !important; }
 
 body.logged-in #guest-cta { display: none !important; }
 
+                                          /* --- Topbar sticky --- */
+.site-header{
+  position: sticky; top: 0; z-index: 120;
+  background: linear-gradient(180deg, rgba(11,15,26,.85), rgba(11,15,26,.70));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.site-header-row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap: 12px; padding: 10px 0;
+}
+.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); font-weight:900; letter-spacing:.2px }
+.brand-logo{ width:28px; height:28px; border-radius:8px; box-shadow: 0 0 12px rgba(124,92,255,.28) }
+.nav-links{ display:flex; gap:14px; align-items:center }
+.nav-links a{ color:var(--muted); text-decoration:none; font-weight:700 }
+.nav-links a:hover{ color:var(--text) }
+
+.twitch-cta{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px;
+  text-decoration:none; color:#0b0f1a; background:var(--accent);
+  border:1px solid transparent; box-shadow: var(--shadow-sm);
+  font-weight:900;
+}
+.twitch-cta:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(124,92,255,.28) }
+.twitch-cta .live-dot{
+  width:10px; height:10px; border-radius:999px; background:#8b8b8b; box-shadow: 0 0 0 0 rgba(239,68,68,0);
+}
+.twitch-cta.live .live-dot{
+  background: var(--danger);
+  animation: livePulse 1.2s ease-in-out infinite;
+}
+@keyframes livePulse{
+  0%{ box-shadow:0 0 0 0 rgba(239,68,68,.55) }
+  70%{ box-shadow:0 0 0 8px rgba(239,68,68,0) }
+  100%{ box-shadow:0 0 0 0 rgba(239,68,68,0) }
+}
+.viewer-count{ font-weight:800; background:rgba(0,0,0,.15); color:#fff; padding:2px 8px; border-radius:999px }
+
+/* Décaler ta mini barre utilisateur pour éviter le chevauchement */
+#user-bar{ top: calc(12px + var(--site-header-h, 0px)) !important; }
+
                                           
   </style>
 </head>
 <body>
-  <div class="aura" aria-hidden="true"></div>
+ 
+  <!-- Topbar / Site Header -->
+<header class="site-header" role="banner" aria-label="Grimoire navigation">
+  <div class="site-header-row container">
+    <a class="brand" href="/" aria-label="Accueil Grimoire">
+      <img class="brand-logo" src="https://i.goopics.net/07jxhq.png" alt="" />
+      <span class="brand-name">Grimoire</span>
+    </a>
 
+    <nav class="nav-links" aria-label="Liens principaux">
+      <a href="/collection.html">Collection</a>
+      <a href="#" id="nav-rules">Règles</a>
+    </nav>
+
+    <a id="twitch-link" class="twitch-cta" href="https://twitch.tv/Siana_TV" target="_blank" rel="noopener">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span id="twitch-status-label">Twitch</span>
+      <span id="twitch-viewers" class="viewer-count" hidden></span>
+    </a>
+  </div>
+</header>
+
+  
+  <div class="aura" aria-hidden="true"></div>
+  
   <!-- Barre utilisateur -->
   <div id="user-bar" style="display:none; position:fixed; top:12px; right:12px; background:rgba(11,15,26,0.85); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:8px 14px; display:flex; align-items:center; gap:10px; z-index:100; box-shadow:0 4px 14px rgba(0,0,0,.45)">
     <img id="user-avatar" src="" alt="Avatar Twitch" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
@@ -1205,6 +1270,59 @@ rulesBtn?.addEventListener('click', openRules);
 rulesClose?.addEventListener('click', closeRules);
 rulesModal?.querySelector('.backdrop')?.addEventListener('click', closeRules);
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && !rulesModal.hidden) closeRules(); });
+
+
+    // --- Topbar Twitch wiring
+const TWITCH_CHANNEL = 'Siana_TV'; // ← adapte si besoin
+const TWITCH_URL = `https://twitch.tv/${TWITCH_CHANNEL}`;
+const twitchLink = document.getElementById('twitch-link');
+const twitchLabel = document.getElementById('twitch-status-label');
+const twitchViewers = document.getElementById('twitch-viewers');
+twitchLink?.setAttribute('href', TWITCH_URL);
+
+// Mesure la hauteur du header pour décaler #user-bar
+(function syncHeaderHeight(){
+  const h = document.querySelector('.site-header')?.getBoundingClientRect().height || 0;
+  document.documentElement.style.setProperty('--site-header-h', `${Math.round(h)}px`);
+})();
+
+// Ouvre le même modal "Règles" depuis le header (si tu l’as implémenté)
+document.getElementById('nav-rules')?.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if (typeof openRules === 'function') openRules();
+});
+
+// --- Statut LIVE (optionnel):
+// Si tu exposes un endpoint qui renvoie { live: boolean, viewers?: number },
+// définis window.TWITCH_STATUS_ENDPOINT = '/api/twitch/status' AVANT ce script.
+// Sinon, on affiche juste "Twitch" sans badge LIVE.
+async function updateTwitchStatus(){
+  const endpoint = window.TWITCH_STATUS_ENDPOINT || null;
+  if (!endpoint){
+    twitchLabel.textContent = 'Twitch';
+    return;
+  }
+  try{
+    const res = await fetch(endpoint, { cache:'no-store' });
+    const data = await res.json();
+    const live = !!data.live;
+    twitchLink.classList.toggle('live', live);
+    twitchLabel.textContent = live ? 'EN DIRECT' : 'Twitch';
+    if (live && Number.isFinite(data.viewers)){
+      twitchViewers.hidden = false;
+      twitchViewers.textContent = `${data.viewers} viewers`;
+    } else {
+      twitchViewers.hidden = true;
+    }
+  }catch(e){
+    // en cas d’erreur, fallback neutre
+    twitchLink.classList.remove('live');
+    twitchLabel.textContent = 'Twitch';
+    twitchViewers.hidden = true;
+  }
+}
+updateTwitchStatus();
+setInterval(updateTwitchStatus, 60_000);
 
     
   </script>
