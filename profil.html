@@ -187,34 +187,45 @@ const RARITY_MAP = new Map([
   ['commune','commune'],
   ['common','commune'],
 ]);
-
 const normRarity = (r) => RARITY_MAP.get(String(r||'').trim().toLowerCase()) || String(r||'').trim().toLowerCase();
 
 // --- Construire un dictionnaire id -> rareté à partir des catalogues ---
 let RARITY_OF_CARD = Object.create(null);
 
-async function loadCatalogs(){
-  // ⚠️ Chemins à ajuster selon l’emplacement réel de tes JSON côté site.
-  // Si tu les mets à la racine du projet, garde './...'.
-  const urls = ['./nouvelle-lumiere.json','./twitch.json'];
-
-  for (const u of urls){
+async function fetchFirst(paths){
+  for (const u of paths){
     try{
       const res = await fetch(u);
-      if(!res.ok){ console.warn('Catalog fetch failed:', u, res.status); continue; }
-      const json = await res.json();
-      (json.cards||[]).forEach(c=>{
-        RARITY_OF_CARD[c.id] = normRarity(c.rarity);
-      });
-    }catch(e){
-      console.warn('Catalog load error:', u, e);
-    }
+      if (res.ok) return await res.json();
+      console.warn('[Catalog] fetch failed', u, res.status);
+    }catch(e){ console.warn('[Catalog] error', u, e); }
   }
-
-  // Vérification rapide en console
-  // console.log('RARITY_OF_CARD sample:', Object.entries(RARITY_OF_CARD).slice(0,5));
+  return null;
 }
 
+async function loadCatalogs(){
+  // Essaie plusieurs emplacements possibles
+  const nl = await fetchFirst([
+    './nouvelle-lumiere.json','/nouvelle-lumiere.json',
+    './data/nouvelle-lumiere.json','/data/nouvelle-lumiere.json'
+  ]);
+  const tw = await fetchFirst([
+    './twitch.json','/twitch.json',
+    './data/twitch.json','/data/twitch.json'
+  ]);
+
+  const catalogs = [];
+  if (nl && Array.isArray(nl.cards)) catalogs.push(nl.cards);
+  if (tw && Array.isArray(tw.cards)) catalogs.push(tw.cards);
+
+  for (const cards of catalogs.flat()){
+    const id = String(cards.id).trim().toUpperCase();          // ⟵ normalisation ID
+    const r  = normRarity(cards.rarity);
+    RARITY_OF_CARD[id] = r;
+  }
+
+  console.info('[Catalog] total cards loaded:', Object.keys(RARITY_OF_CARD).length);
+}
 await loadCatalogs();
 
 
@@ -254,7 +265,7 @@ await loadCatalogs();
       // Packs
       { id:'curieux', name:'Curieux', ico:'📦', desc:'Ouvrir un premier pack',                 test:s=> (s.packsOpened||0) >= 1 },
       { id:'addict', name:'Addict', ico:'📦📦', desc:'Ouvrir 50 packs',                        test:s=> (s.packsOpened||0) >= 50 },
-      { id:'addict', name:'Accro', ico:'📦📦📦', desc:'Ouvrir 100 packs',                      test:s=> (s.packsOpened||0) >= 100 },
+      { id:'accro', name:'Accro', ico:'📦📦📦', desc:'Ouvrir 100 packs',                      test:s=> (s.packsOpened||0) >= 100 },
       { id:'inarretable', name:'Inarrêtable', ico:'🌀', desc:'Ouvrir 200 packs',               test:s=> (s.packsOpened||0) >= 200 },
 
       // Raretés
@@ -348,10 +359,11 @@ const derivedUniques = owned.size;
 // --- Compter légendaires/exotiques à partir des catalogues chargés ---
 function deriveRarityCounters(idsMap){
   let leg = 0, exo = 0;
-  for (const id of idsMap.keys()){
-    const r = RARITY_OF_CARD[id] || null;
+  for (const rawId of idsMap.keys()){
+    const id = String(rawId).trim().toUpperCase();   // ⟵ normalisation ID
+    const r = RARITY_OF_CARD[id];
     if (!r) {
-      // console.warn('Unknown card id (no rarity in catalogs):', id);
+      // console.warn('Unknown card id:', rawId);
       continue;
     }
     if (r === 'légendaire') leg++;
@@ -359,10 +371,13 @@ function deriveRarityCounters(idsMap){
   }
   return { legendaries: leg, exotics: exo };
 }
+
 const fallbackRarity = deriveRarityCounters(owned);
 
 // --- Total du pool (par défaut 128 = 76 NL + 52 TW) ---
-const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? 128;
+const CATALOG_SIZE = Object.keys(RARITY_OF_CARD).length;
+const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? (CATALOG_SIZE || 128);
+
 
 const profile = {
   pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
