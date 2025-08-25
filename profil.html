@@ -184,6 +184,37 @@
   import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+   // === TOTAL aligné avec index.html ===
+// Reprend les mêmes endpoints que sur index (remplace si besoin par tes chemins réels)
+const SETS_FOR_TOTAL = [
+  '/data/sets/nouvelle-lumiere.json',
+  '/data/sets/twitch.json',
+];
+
+async function getTotalUniqueFromSets(){
+  try{
+    const all = [];
+    for (const url of SETS_FOR_TOTAL){
+      try{
+        const res = await fetch(url, { cache: 'no-store' });
+        if(!res.ok) { console.warn('[Profil] total fetch fail', url, res.status); continue; }
+        const json = await res.json();
+        // index filtre (c.id && c.name) → on applique la même règle
+        const arr = (json.cards || []).filter(c => c.id && c.name);
+        for (const c of arr){ all.push(String(c.id).trim().toUpperCase()); }
+      }catch(e){
+        console.warn('[Profil] total fetch error', url, e);
+      }
+    }
+    const totalUnique = (new Set(all)).size;
+    return totalUnique || null;
+  }catch(e){
+    console.warn('[Profil] total computation fallback:', e);
+    return null;
+  }
+}
+
+   
   // Map & taille injectées par le <script> précédent
   const RARITY_OF_CARD = window.RARITY_OF_CARD || {};
   const CATALOG_SIZE   = window.CATALOG_SIZE   || 128;
@@ -324,8 +355,10 @@
 
     const fallbackRarity = deriveRarityCounters(owned);
 
-    // ⚠️ DÉFINIR TOTAL_CARDS **APRÈS** avoir 'data'
-    const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? CATALOG_SIZE;
+  // Aligne le total avec index.html (fallback sur la map inline si les JSON ne répondent pas)
+const totalFromSets = await getTotalUniqueFromSets();
+const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? totalFromSets ?? CATALOG_SIZE;
+
 
     // (facultatif) logs debug
     // console.log("Owned IDs =", Array.from(owned.keys()));
