@@ -630,7 +630,7 @@ function setGuestMode(isGuest){
 }
 
     
- // ⚠️ Mode login 100% redirect (fiable mobile / anti-popup)
+// Login 100% redirect (fiable mobile / anti-popup)
 loginBtn.addEventListener('click', async ()=>{
   try {
     console.log('[DEBUG] Click login -> REDIRECT');
@@ -640,6 +640,7 @@ loginBtn.addEventListener('click', async ()=>{
     alert('Erreur de connexion Twitch (redirect): ' + (e?.message || e));
   }
 });
+
 
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
   console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
