@@ -18,18 +18,18 @@
   color: #9aa6be;
 }
 
-/* Peu commune - vert */
+/* Peu commune - bleu */
 .tag.uncommon {
-  background: rgba(52, 211, 153, 0.15);
-  border-color: rgba(52, 211, 153, 0.4);
-  color: #34d399;
-}
-
-/* Rare - bleu */
-.tag.rare {
   background: rgba(59, 130, 246, 0.15);
   border-color: rgba(59, 130, 246, 0.4);
   color: #3b82f6;
+}
+
+/* Rare - vert */
+.tag.rare {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #34d399;
 }
 
 /* Légendaire - violet */
