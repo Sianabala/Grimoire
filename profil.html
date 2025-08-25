@@ -316,17 +316,24 @@
 
       // Compter légendaires/exotiques depuis la map embarquée
       function deriveRarityCounters(idsMap){
-        let leg = 0, exo = 0;
-        for (const rawId of idsMap.keys()){
-          const id = String(rawId).trim().toUpperCase();
-          const r = RARITY_OF_CARD[id];
-          if (!r) continue;
-          if (r === 'légendaire') leg++;
-          if (r === 'exotique')   exo++;
-        }
-        return { legendaries: leg, exotics: exo };
-      }
+  let leg = 0, exo = 0;
+  for (const rawId of idsMap.keys()){
+    const id = String(rawId).trim().toUpperCase(); // normalisation
+    const r = RARITY_OF_CARD[id];
+    if (!r) {
+      console.warn("ID inconnu ou non mappé:", rawId, "après normalisation:", id);
+      continue;
+    }
+    if (r === 'légendaire') leg++;
+    if (r === 'exotique')   exo++;
+  }
+  return { legendaries: leg, exotics: exo };
+}
+
       const fallbackRarity = deriveRarityCounters(owned);
+console.log("Owned IDs =", Array.from(owned.keys()));
+console.log("Counters dérivés =", fallbackRarity);
+console.log("Total Cards =", TOTAL_CARDS, "Uniques =", derivedUniques);
 
       const TOTAL_CARDS = data.totalCards ?? data.stats?.totalCards ?? CATALOG_SIZE;
 
