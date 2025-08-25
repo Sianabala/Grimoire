@@ -6,10 +6,10 @@
   <title>Grimoire · Admin</title>
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
-   <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
+  <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
   <link rel="icon" type="image/png" sizes="32x32" href="https://i.goopics.net/aksxey.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
-<link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
+  <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
   <style>
     :root{
       --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
@@ -68,66 +68,76 @@
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
     pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#9aa6be;font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: var(--ring)}
     .btn-group{display:flex;gap:8px;flex-wrap:wrap}
-  
-  .qty{ width:90px }
+
+    .qty{ width:90px }
+
+    /* ======= NEW: Stats badges ======= */
+    .statsbar{ gap:8px; flex-wrap:wrap }
+    .stat{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      box-shadow: var(--shadow-sm);
+      font-weight:700; font-size:13px;
+      white-space:nowrap;
+    }
+    .stat b{ font-size:14px; letter-spacing:.2px }
+    /* ================================= */
 
     @media (max-width: 640px){
-  .container{ padding:12px; }
-  .row{ gap:10px; }
-  .title{ font-size:18px; }
+      .container{ padding:12px; }
+      .row{ gap:10px; }
+      .title{ font-size:18px; }
 
-  .grid{ grid-template-columns: repeat(4, 1fr); gap:12px; }
-  .panel .hd{ padding:14px; }
-  .panel .bd{ padding:14px; }
+      .grid{ grid-template-columns: repeat(4, 1fr); gap:12px; }
+      .panel .hd{ padding:14px; }
+      .panel .bd{ padding:14px; }
 
-  .btn{ padding:12px 16px; font-size:14px; }
-  .pill{ padding:4px 10px; font-size:12px; }
-  .input{ padding:10px 12px; font-size:14px; }
-}
-@media (max-width: 960px){
-  .grid{ grid-template-columns: repeat(6, 1fr); }
-}
+      .btn{ padding:12px 16px; font-size:14px; }
+      .pill{ padding:4px 10px; font-size:12px; }
+      .input{ padding:10px 12px; font-size:14px; }
+    }
+    @media (max-width: 960px){
+      .grid{ grid-template-columns: repeat(6, 1fr); }
+    }
 
+    /* Bouton flottant 'Haut de page' */
+    .backtotop{
+      position: fixed;
+      right: clamp(12px, 3vw, 24px);
+      bottom: calc(clamp(12px, 3vw, 24px) + env(safe-area-inset-bottom));
+      z-index: 800;
+      width: 44px; height: 44px;
+      display: grid; place-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      opacity: 0; pointer-events: none; transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .backtotop::after{
+      content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.25));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+    }
+    .backtotop:hover{ box-shadow: 0 8px 20px rgba(124,92,255,.25); border-color: rgba(255,255,255,.28); }
+    .backtotop:active{ transform: translateY(0); }
+    .backtotop:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+    .backtotop.show{ opacity: 1; pointer-events: auto; transform: translateY(0); }
 
-/* Bouton flottant 'Haut de page' */
-.backtotop{
-  position: fixed;
-  right: clamp(12px, 3vw, 24px);
-  bottom: calc(clamp(12px, 3vw, 24px) + env(safe-area-inset-bottom));
-  z-index: 800; /* au-dessus de l'UI, cohérent avec la collection */
-  width: 44px; height: 44px;
-  display: grid; place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  color: var(--text);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  opacity: 0; pointer-events: none; transform: translateY(8px);
-  transition: opacity .2s ease, transform .2s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.backtotop::after{
-  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.25));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
-}
-.backtotop:hover{ box-shadow: 0 8px 20px rgba(124,92,255,.25); border-color: rgba(255,255,255,.28); }
-.backtotop:active{ transform: translateY(0); }
-.backtotop:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
-.backtotop.show{ opacity: 1; pointer-events: auto; transform: translateY(0); }
-
-/* Motion réduite */
-@media (prefers-reduced-motion: reduce){
-  .backtotop{ transition: none; }
-}
-
-    
+    @media (prefers-reduced-motion: reduce){
+      .backtotop{ transition: none; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="container row" style="justify-content:space-between">
+    <div class="container" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
@@ -135,6 +145,21 @@
           <div class="subtitle">Gestion des joueurs & récompenses</div>
         </div>
       </div>
+
+      <!-- NEW: Global stats shown at the very top -->
+      <div id="global-stats" class="row statsbar" aria-live="polite">
+        <div class="stat" title="Somme des packs ouverts par tous les joueurs">
+          📦 Ouverts : <b id="packsOpenedCounter">0</b>
+        </div>
+        <!-- Astuce : si tu veux afficher aussi le total distribué (ouverts + en stock), dé-commente le badge ci-dessous -->
+        <!-- <div class="stat" title="Packs distribués = ouverts + en stock (solde)">
+          🎁 Distribués : <b id="packsDistributedCounter">0</b>
+        </div> -->
+        <div class="stat" title="Nombre total de joueurs chargés">
+          👥 Joueurs : <b id="playersCounter">0</b>
+        </div>
+      </div>
+
       <div class="row">
         <a href="/index.html" class="btn ghost pill">← Retour</a>
         <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
@@ -180,12 +205,10 @@
         <div class="bd"><pre id="diag" class="diag"></pre></div>
       </section>
 
-      </div>
+    </div>
   </main>
 
-
-  
-  <script type="module">  
+  <script type="module">
     // Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -213,6 +236,14 @@
     const adminUI = document.getElementById('admin-ui');
     const logoutBtn = document.getElementById('btn-logout');
 
+    // NEW: Stat elements
+    const elPacksOpened = document.getElementById('packsOpenedCounter');
+    const elPlayersCnt  = document.getElementById('playersCounter');
+    const elPacksDistrib= document.getElementById('packsDistributedCounter'); // peut être null si badge commenté
+
+    // NEW: helpers
+    const nfmt = (n)=> (Number.isFinite(n) ? n.toLocaleString('fr-FR') : '0');
+
     // ⚠️ Remplace par ton UID si tu veux une whitelist locale en plus du rôle Firestore
     const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
 
@@ -226,7 +257,15 @@
 
     onAuthStateChanged(auth, async (user)=>{
       logoutBtn.style.display = user ? '' : 'none';
-      if(!user){ gateMsg.innerHTML = 'Non connecté. <a href="/index.html" class="btn pill ghost" style="margin-left:8px">Se connecter</a>'; adminUI.style.display='none'; return; }
+      if(!user){ 
+        gateMsg.innerHTML = 'Non connecté. <a href="/index.html" class="btn pill ghost" style="margin-left:8px">Se connecter</a>'; 
+        adminUI.style.display='none'; 
+        // reset stats
+        if(elPacksOpened) elPacksOpened.textContent='0';
+        if(elPlayersCnt)  elPlayersCnt.textContent='0';
+        if(elPacksDistrib) elPacksDistrib.textContent='0';
+        return; 
+      }
 
       // Vérifie droits admin : via UID OU via champ isAdmin/role sur doc joueur
       let allowByUid = ADMIN_UIDS.includes(user.uid);
@@ -267,115 +306,139 @@
         catch { qRef = query(collection(db,'players'), limit(200)); }
         const snap = await getDocs(qRef);
         lastPlayers = snap.docs.map(d=> ({ uid:d.id, ...d.data() }));
+
+        // NEW: update global stats (top of page)
+        updateGlobalStats(lastPlayers);
+
         renderPlayers(lastPlayers);
         diag.textContent = 'Joueurs chargés: '+lastPlayers.length;
-      }catch(e){ playersWrap.innerHTML='<div class="subtitle">Erreur de chargement</div>'; diag.textContent = 'Erreur loadPlayers: '+(e?.message||e); }
+      }catch(e){ 
+        playersWrap.innerHTML='<div class="subtitle">Erreur de chargement</div>'; 
+        diag.textContent = 'Erreur loadPlayers: '+(e?.message||e); 
+      }
+    }
+
+    // NEW: compute & set top counters
+    function updateGlobalStats(list){
+      const playersCount = Array.isArray(list) ? list.length : 0;
+      let totalOpened = 0;
+      let totalBalance = 0;
+
+      for (const p of (list||[])){
+        totalOpened += (p?.stats?.packsOpened || 0);
+        const std = (p?.packBalances?.standard || 0);
+        const prem = (p?.packBalances?.premium || 0);
+        totalBalance += std + prem;
+      }
+      const totalDistributed = totalOpened + totalBalance;
+
+      if(elPlayersCnt)   elPlayersCnt.textContent   = nfmt(playersCount);
+      if(elPacksOpened)  elPacksOpened.textContent  = nfmt(totalOpened);
+      if(elPacksDistrib) elPacksDistrib.textContent = nfmt(totalDistributed);
     }
 
     function renderPlayers(list){
-  const term = (search.value||'').toLowerCase();
-  const filtered = list.filter(p=>{
-    const dn = (p.displayName||'').toLowerCase();
-    return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
-  });
-  playersWrap.innerHTML = '';
-  for(const p of filtered){
-    const std = (p.packBalances?.standard)||0;
-    const prem = (p.packBalances?.premium)||0;
-    const el = document.createElement('div'); el.className='card';
-    el.innerHTML = `
-      <div class="row space">
-        <div>
-          <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
-          <div class="k">UID: <span class="v">${p.uid}</span></div>
-          <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
-          <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
-          <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
-          <div class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
-        </div>
-        <div class="btn-group">
-          <button class="btn ghost pill" data-act="view">Voir</button>
+      const term = (search.value||'').toLowerCase();
+      const filtered = list.filter(p=>{
+        const dn = (p.displayName||'').toLowerCase();
+        return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
+      });
+      playersWrap.innerHTML = '';
+      for(const p of filtered){
+        const std = (p.packBalances?.standard)||0;
+        const prem = (p.packBalances?.premium)||0;
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <div class="row space">
+            <div>
+              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+              <div class="k">UID: <span class="v">${p.uid}</span></div>
+              <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
+              <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
+              <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
+              <div class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
+            </div>
+            <div class="btn-group">
+              <button class="btn ghost pill" data-act="view">Voir</button>
 
-          <button class="btn warn pill" data-act="add-std">+1 Standard</button>
-          <input class="input qty" data-qty="std" type="number" min="1" placeholder="Qté">
-          <button class="btn warn pill" data-act="add-std-custom">Ajouter</button>
+              <button class="btn warn pill" data-act="add-std">+1 Standard</button>
+              <input class="input qty" data-qty="std" type="number" min="1" placeholder="Qté">
+              <button class="btn warn pill" data-act="add-std-custom">Ajouter</button>
 
-          <button class="btn success pill" data-act="add-prem">+1 Premium</button>
-          <input class="input qty" data-qty="prem" type="number" min="1" placeholder="Qté">
-          <button class="btn success pill" data-act="add-prem-custom">Ajouter</button>
+              <button class="btn success pill" data-act="add-prem">+1 Premium</button>
+              <input class="input qty" data-qty="prem" type="number" min="1" placeholder="Qté">
+              <button class="btn success pill" data-act="add-prem-custom">Ajouter</button>
 
-          <button class="btn danger pill" data-act="reset">Réinitialiser</button>
-        </div>
-      </div>`;
+              <button class="btn danger pill" data-act="reset">Réinitialiser</button>
+            </div>
+          </div>`;
 
-    el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
-    el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
+        el.querySelector('[data-act="view"]').addEventListener('click', ()=> viewPlayer(p.uid));
+        el.querySelector('[data-act="reset"]').addEventListener('click', ()=> resetPlayer(p.uid));
 
-    const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
-    const qtyStd = el.querySelector('[data-qty="std"]');
-    const qtyPrem = el.querySelector('[data-qty="prem"]');
+        const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
+        const qtyStd = el.querySelector('[data-qty="std"]');
+        const qtyPrem = el.querySelector('[data-qty="prem"]');
 
-    el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',1));
-    el.querySelector('[data-act="add-std-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard', getQty(qtyStd)));
+        el.querySelector('[data-act="add-std"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard',1));
+        el.querySelector('[data-act="add-std-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_standard','Pack Standard', getQty(qtyStd)));
 
-    el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',1));
-    el.querySelector('[data-act="add-prem-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium', getQty(qtyPrem)));
+        el.querySelector('[data-act="add-prem"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium',1));
+        el.querySelector('[data-act="add-prem-custom"]').addEventListener('click', ()=> grantPack(p.uid,'pack_premium','Pack Premium', getQty(qtyPrem)));
 
-    playersWrap.appendChild(el);
-  }
-}
-
+        playersWrap.appendChild(el);
+      }
+    }
 
     async function viewPlayer(uid){
-  detailWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
-  try{
-    const snap = await getDoc(doc(db,'players',uid));
-    if(!snap.exists()){ detailWrap.innerHTML = '<div class="subtitle">Profil introuvable.</div>'; return; }
-    const p = snap.data();
-    const uniques = Object.keys(p.collection||{});
-    const inbox = Array.isArray(p.rewardsInbox)? p.rewardsInbox.slice() : [];
-    const rewards = inbox.filter(r=>!(r?.type==='pack_standard' || r?.type==='pack_premium' || r?.type==='standard' || r?.type==='premium'));
-    const packsInInbox = inbox.filter(r=> (r?.type==='pack_standard' || r?.type==='pack_premium'));
-    const std = (p.packBalances?.standard)||0;
-    const prem = (p.packBalances?.premium)||0;
-    detailWrap.innerHTML = `
-      <div class="row space">
-        <div>
-          <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
-          <div class="k">UID: <span class="v" id="detail-uid">${uid}</span></div>
-        </div>
-        <div class="btn-group">
-          <button class="btn warn pill" id="btn-std">+1 Standard</button>
-          <input class="input qty" id="qty-std" type="number" min="1" placeholder="Qté">
-          <button class="btn warn pill" id="btn-std-custom">Ajouter</button>
+      detailWrap.innerHTML = '<div class="subtitle">Chargement…</div>';
+      try{
+        const snap = await getDoc(doc(db,'players',uid));
+        if(!snap.exists()){ detailWrap.innerHTML = '<div class="subtitle">Profil introuvable.</div>'; return; }
+        const p = snap.data();
+        const uniques = Object.keys(p.collection||{});
+        const inbox = Array.isArray(p.rewardsInbox)? p.rewardsInbox.slice() : [];
+        const rewards = inbox.filter(r=>!(r?.type==='pack_standard' || r?.type==='pack_premium' || r?.type==='standard' || r?.type==='premium'));
+        const packsInInbox = inbox.filter(r=> (r?.type==='pack_standard' || r?.type==='pack_premium'));
+        const std = (p.packBalances?.standard)||0;
+        const prem = (p.packBalances?.premium)||0;
+        detailWrap.innerHTML = `
+          <div class="row space">
+            <div>
+              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+              <div class="k">UID: <span class="v" id="detail-uid">${uid}</span></div>
+            </div>
+            <div class="btn-group">
+              <button class="btn warn pill" id="btn-std">+1 Standard</button>
+              <input class="input qty" id="qty-std" type="number" min="1" placeholder="Qté">
+              <button class="btn warn pill" id="btn-std-custom">Ajouter</button>
 
-          <button class="btn success pill" id="btn-prem">+1 Premium</button>
-          <input class="input qty" id="qty-prem" type="number" min="1" placeholder="Qté">
-          <button class="btn success pill" id="btn-prem-custom">Ajouter</button>
+              <button class="btn success pill" id="btn-prem">+1 Premium</button>
+              <input class="input qty" id="qty-prem" type="number" min="1" placeholder="Qté">
+              <button class="btn success pill" id="btn-prem-custom">Ajouter</button>
 
-          <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
-        </div>
-      </div>
-      <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs ouverts <span class="v">${p.stats?.packsOpened||0}</span></div>
-      <div style="margin-top:10px" class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
-      <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
-      ${packsInInbox.length ? `<div style="margin-top:14px" class="row"><button class="btn pill" id="btn-migrate">Convertir les packs du coffre → solde</button><span class="k">(${packsInInbox.length} à convertir)</span></div>` : ''}
-      <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
-      <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
-      <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
-      <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
-    `;
-    const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
-    document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
-    document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',1));
-    document.getElementById('btn-std-custom').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard', getQty(document.getElementById('qty-std'))));
-    document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',1));
-    document.getElementById('btn-prem-custom').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium', getQty(document.getElementById('qty-prem'))));
-    const mig = document.getElementById('btn-migrate');
-    if(mig) mig.addEventListener('click', ()=> migratePacksFromInbox(uid));
-  }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
-}
-
+              <button class="btn danger pill" id="btn-reset">Réinitialiser</button>
+            </div>
+          </div>
+          <div style="margin-top:10px" class="k">Niveau <span class="v">${p.level||1}</span> — XP <span class="v">${p.xp||0}</span> — Packs ouverts <span class="v">${p.stats?.packsOpened||0}</span></div>
+          <div style="margin-top:10px" class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
+          <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
+          ${packsInInbox.length ? `<div style="margin-top:14px" class="row"><button class="btn pill" id="btn-migrate">Convertir les packs du coffre → solde</button><span class="k">(${packsInInbox.length} à convertir)</span></div>` : ''}
+          <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
+          <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
+          <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
+          <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
+        `;
+        const getQty = (inp)=>{ const n=parseInt(inp?.value,10); return Number.isFinite(n) && n>0 ? n : 1; };
+        document.getElementById('btn-reset').addEventListener('click', ()=> resetPlayer(uid));
+        document.getElementById('btn-std').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard',1));
+        document.getElementById('btn-std-custom').addEventListener('click', ()=> grantPack(uid,'pack_standard','Pack Standard', getQty(document.getElementById('qty-std'))));
+        document.getElementById('btn-prem').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium',1));
+        document.getElementById('btn-prem-custom').addEventListener('click', ()=> grantPack(uid,'pack_premium','Pack Premium', getQty(document.getElementById('qty-prem'))));
+        const mig = document.getElementById('btn-migrate');
+        if(mig) mig.addEventListener('click', ()=> migratePacksFromInbox(uid));
+      }catch(e){ detailWrap.innerHTML = '<div class="subtitle">Erreur de chargement du profil.</div>'; diag.textContent = 'viewPlayer: '+(e?.message||e); }
+    }
 
     async function resetPlayer(uid){
       if(!confirm('Réinitialiser la progression de ce joueur ?')) return;
@@ -391,7 +454,7 @@
         });
         toast('Progression réinitialisée');
         viewPlayer(uid); // refresh
-        loadPlayers();
+        loadPlayers();   // rafraîchit aussi les stats globales
       }catch(e){ toast('Erreur: '+(e?.message||e)); }
     }
 
@@ -427,7 +490,7 @@
       // refresh si on regarde ce joueur
       const uidShown = (document.getElementById('detail-uid')||{}).textContent;
       if(uidShown === uid){ viewPlayer(uid); }
-      loadPlayers();
+      loadPlayers(); // met aussi à jour les compteurs en haut
     }
 
     async function migratePacksFromInbox(uid){
@@ -461,139 +524,136 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
 
-
     // --- Mini outils pour le panneau "Configuration & Diagnostic"
-let currentUser = null; // capture l'utilisateur pour les tests
+    let currentUser = null; // capture l'utilisateur pour les tests
 
-// alimente currentUser dans ton onAuthStateChanged déjà existant :
-const _origAuthCb = onAuthStateChanged; // (pas réellement nécessaire si tu modifies directement le callback existant)
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user || null;
-  // le reste de ta logique d'accès admin reste inchangé
-});
+    // alimente currentUser dans ton onAuthStateChanged déjà existant :
+    const _origAuthCb = onAuthStateChanged; // (pas réellement nécessaire si tu modifies directement le callback existant)
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user || null;
+      // le reste de ta logique d'accès admin reste inchangé
+    });
 
-// helpers d'affichage
-const diagLog = document.getElementById('diag-log');
-function printDiag(line){ if(diagLog) diagLog.textContent += (line + '\n'); }
-function clearDiag(){ if(diagLog) diagLog.textContent = ''; }
+    // helpers d'affichage
+    const diagLog = document.getElementById('diag-log');
+    function printDiag(line){ if(diagLog) diagLog.textContent += (line + '\n'); }
+    function clearDiag(){ if(diagLog) diagLog.textContent = ''; }
 
-// petite version locale des raretés pour les tests de tirage
-const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
-function weightedRandomRarity(){
-  const total = Object.values(RARITY_WEIGHTS).reduce((a,b)=>a+b,0);
-  let r = Math.random() * total;
-  for(const [rar, w] of Object.entries(RARITY_WEIGHTS)){ if((r -= w) < 0) return rar; }
-  return RARITY.COMMON;
-}
-const ensureAtLeastRare = ()=> RARITY.RARE;
+    // petite version locale des raretés pour les tests de tirage
+    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+    const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
+    function weightedRandomRarity(){
+      const total = Object.values(RARITY_WEIGHTS).reduce((a,b)=>a+b,0);
+      let r = Math.random() * total;
+      for(const [rar, w] of Object.entries(RARITY_WEIGHTS)){ if((r -= w) < 0) return rar; }
+      return RARITY.COMMON;
+    }
+    const ensureAtLeastRare = ()=> RARITY.RARE;
 
-// listeners
-const btnCfg  = document.getElementById('btn-test-config');
-const btnAuth = document.getElementById('btn-test-auth');
-const btnDraw = document.getElementById('btn-test-draws');
-const btnPrem = document.getElementById('btn-test-premium');
-const btnFS   = document.getElementById('btn-test-firestore');
-const btnCP   = document.getElementById('btn-test-cloud-priority');
+    // listeners
+    const btnCfg  = document.getElementById('btn-test-config');
+    const btnAuth = document.getElementById('btn-test-auth');
+    const btnDraw = document.getElementById('btn-test-draws');
+    const btnPrem = document.getElementById('btn-test-premium');
+    const btnFS   = document.getElementById('btn-test-firestore');
+    const btnCP   = document.getElementById('btn-test-cloud-priority');
 
-btnCfg?.addEventListener('click', ()=>{
-  clearDiag();
-  const checks = [
-    ['apiKey ok', !!firebaseConfig.apiKey],
-    ['authDomain ok', !!firebaseConfig.authDomain],
-    ['projectId ok', !!firebaseConfig.projectId],
-    ['appId ok', !!firebaseConfig.appId],
-  ];
-  for(const [name, ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
-  printDiag('\nConfig OK si toutes les coches sont vertes.');
-});
+    btnCfg?.addEventListener('click', ()=>{
+      clearDiag();
+      const checks = [
+        ['apiKey ok', !!firebaseConfig.apiKey],
+        ['authDomain ok', !!firebaseConfig.authDomain],
+        ['projectId ok', !!firebaseConfig.projectId],
+        ['appId ok', !!firebaseConfig.appId],
+      ];
+      for(const [name, ok] of checks){ printDiag((ok?'✅':'❌')+' '+name); }
+      printDiag('\nConfig OK si toutes les coches sont vertes.');
+    });
 
-btnAuth?.addEventListener('click', ()=>{
-  clearDiag();
-  if(currentUser){
-    printDiag('Connecté ✅');
-    printDiag('uid: '+currentUser.uid);
-    printDiag('displayName: '+(currentUser.displayName||'(—)'));
-    printDiag('email: '+(currentUser.email||'(—)'));
-    printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
-  } else {
-    printDiag('Non connecté ❌');
-  }
-});
+    btnAuth?.addEventListener('click', ()=>{
+      clearDiag();
+      if(currentUser){
+        printDiag('Connecté ✅');
+        printDiag('uid: '+currentUser.uid);
+        printDiag('displayName: '+(currentUser.displayName||'(—)'));
+        printDiag('email: '+(currentUser.email||'(—)'));
+        printDiag('providerId: '+(currentUser.providerData?.[0]?.providerId||'(—)'));
+      } else {
+        printDiag('Non connecté ❌');
+      }
+    });
 
-btnDraw?.addEventListener('click', ()=>{
-  clearDiag();
-  const N = 10000;
-  const counts = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
-  for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
-  const pct=x=>(100*x/N).toFixed(2)+'%';
-  printDiag(`Distribution (~60/25/10/4/1) sur ${N} tirages:`);
-  for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
-    printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
-  }
-});
+    btnDraw?.addEventListener('click', ()=>{
+      clearDiag();
+      const N = 10000;
+      const counts = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
+      for(let i=0;i<N;i++){ counts[weightedRandomRarity()]++; }
+      const pct=x=>(100*x/N).toFixed(2)+'%';
+      printDiag(`Distribution (~60/25/10/4/1) sur ${N} tirages:`);
+      for(const r of [RARITY.COMMON,RARITY.UNCOMMON,RARITY.RARE,RARITY.LEGENDARY,RARITY.EXOTIC]){
+        printDiag(String(r).padEnd(12,' ')+': '+String(counts[r]).padStart(5,' ')+'  ('+pct(counts[r])+')');
+      }
+    });
 
-btnPrem?.addEventListener('click', ()=>{
-  clearDiag();
-  const P=1000; let ok=0,fail=0;
-  for(let p=0;p<P;p++){
-    const idx=Math.floor(Math.random()*5);
-    const pulls = Array.from({length:5}, (_,i)=> i===idx ? ensureAtLeastRare() : weightedRandomRarity());
-    if(pulls.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
-  }
-  printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`);
-  printDiag(fail===0 ? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Au moins un pack Premium n’a pas respecté la garantie.');
-});
+    btnPrem?.addEventListener('click', ()=>{
+      clearDiag();
+      const P=1000; let ok=0,fail=0;
+      for(let p=0;p<P;p++){
+        const idx=Math.floor(Math.random()*5);
+        const pulls = Array.from({length:5}, (_,i)=> i===idx ? ensureAtLeastRare() : weightedRandomRarity());
+        if(pulls.some(r=> r===RARITY.RARE || r===RARITY.LEGENDARY || r===RARITY.EXOTIC)) ok++; else fail++;
+      }
+      printDiag(`Test Premium garanti sur ${P} packs -> OK: ${ok}  FAIL: ${fail}`);
+      printDiag(fail===0 ? '✅ Tous les packs Premium contiennent ≥ 1 Rare.' : '❌ Au moins un pack Premium n’a pas respecté la garantie.');
+    });
 
-btnFS?.addEventListener('click', async ()=>{
-  clearDiag();
-  if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
-  try{
-    const now=Date.now();
-    await updateDoc(doc(db,'players',currentUser.uid), { _rtTest: now, updatedAt: serverTimestamp() });
-    const back = await getDoc(doc(db,'players',currentUser.uid));
-    printDiag('Firestore round-trip OK, _rtTest=' + back.data()._rtTest);
-  }catch(e){
-    printDiag('❌ Firestore round-trip échoué: '+(e?.message||e));
-  }
-});
+    btnFS?.addEventListener('click', async ()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester Firestore.'); return; }
+      try{
+        const now=Date.now();
+        await updateDoc(doc(db,'players',currentUser.uid), { _rtTest: now, updatedAt: serverTimestamp() });
+        const back = await getDoc(doc(db,'players',currentUser.uid));
+        printDiag('Firestore round-trip OK, _rtTest=' + back.data()._rtTest);
+      }catch(e){
+        printDiag('❌ Firestore round-trip échoué: '+(e?.message||e));
+      }
+    });
 
-btnCP?.addEventListener('click', async ()=>{
-  clearDiag();
-  if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la lecture cloud.'); return; }
-  try{
-    const snap = await getDoc(doc(db,'players',currentUser.uid));
-    if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
-    printDiag('✅ Lecture cloud réussie (doc présent).');
-  }catch(e){
-    printDiag('❌ Erreur lecture cloud: '+(e?.message||e));
-  }
-});
+    btnCP?.addEventListener('click', async ()=>{
+      clearDiag();
+      if(!currentUser){ printDiag('⚠️ Connecte-toi avec Twitch pour tester la lecture cloud.'); return; }
+      try{
+        const snap = await getDoc(doc(db,'players',currentUser.uid));
+        if(!snap.exists()){ printDiag('ℹ️ Aucun doc cloud.'); return; }
+        printDiag('✅ Lecture cloud réussie (doc présent).');
+      }catch(e){
+        printDiag('❌ Erreur lecture cloud: '+(e?.message||e));
+      }
+    });
 
-// === Bouton 'Haut de page' (admin) ===
-const btnTop = document.getElementById('btn-top');
+    // === Bouton 'Haut de page' (admin) ===
+    const btnTop = document.getElementById('btn-top');
 
-// Afficher/Masquer selon le scroll (seuil = 400px)
-let rafId = null;
-window.addEventListener('scroll', ()=>{
-  if (rafId) return;
-  rafId = requestAnimationFrame(()=>{
-    const shouldShow = window.scrollY > 400;
-    btnTop.classList.toggle('show', shouldShow);
-    rafId = null;
-  });
-});
+    // Afficher/Masquer selon le scroll (seuil = 400px)
+    let rafId = null;
+    window.addEventListener('scroll', ()=>{
+      if (rafId) return;
+      rafId = requestAnimationFrame(()=>{
+        const shouldShow = window.scrollY > 400;
+        btnTop.classList.toggle('show', shouldShow);
+        rafId = null;
+      });
+    });
 
-// Click = remonter en haut (respecte prefers-reduced-motion)
-btnTop.addEventListener('click', ()=>{
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-});
-
-    
+    // Click = remonter en haut (respecte prefers-reduced-motion)
+    btnTop.addEventListener('click', ()=>{
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
 
   </script>
-      <button id="btn-top" class="backtotop" type="button" aria-label="Revenir en haut" title="Haut de page">↑</button>
+  <button id="btn-top" class="backtotop" type="button" aria-label="Revenir en haut" title="Haut de page">↑</button>
 
 </body>
 </html>
