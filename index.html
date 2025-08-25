@@ -441,7 +441,17 @@ body.guest #guest-cta { display: block !important; }
 
 body.logged-in #guest-cta { display: none !important; }
 
-                                          /* --- Topbar sticky --- */
+
+/* Par défaut, on ne montre pas les CTA du header pour éviter le flash au chargement */
+.hero-header .hero-actions{ display:none; }
+
+/* Quand l’utilisateur est connecté, on les affiche */
+body.logged-in .hero-header .hero-actions{ 
+  display:flex; 
+}
+
+  
+/* --- Topbar sticky --- */
 .site-header{
   position: sticky; top: 0; z-index: 120;
   background: linear-gradient(180deg, rgba(11,15,26,.85), rgba(11,15,26,.70));
