@@ -185,32 +185,7 @@
 
 
   
-  <script type="module">
-       // Active le debug seulement en local
-const IS_DEV = ['localhost','127.0.0.1'].includes(location.hostname);
-
-// Utilise dbg(...) au lieu de console.log(...) dans tout le code
-const dbg = (...args) => { if (IS_DEV) console.debug('[DEBUG]', ...args); };
-
-// Option de “mute” des logs hérités déjà écrits en console.log("[DEBUG] ...")
-if (!IS_DEV) {
-  const origError = console.error;   // on garde les erreurs !
-  const origWarn  = console.warn;    // on garde les warnings utiles
-  // On neutralise uniquement le bruit
-  console.debug = () => {};
-  // Si tu as beaucoup de console.log pour du debug, tu peux les no-op aussi :
-  const origLog = console.log;
-  console.log = (...a) => {
-    // Laisse passer les vrais logs importants (ex: sans tag [DEBUG])
-    if (a[0] && typeof a[0] === 'string' && a[0].startsWith('[DEBUG]')) return;
-    origLog(...a);
-  };
-  // On laisse console.error / console.warn intactes
-  console.error = origError;
-  console.warn  = origWarn;
-}
-
-    
+  <script type="module">  
     // Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
