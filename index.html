@@ -770,7 +770,14 @@ function setGuestMode(isGuest){
   const poFx    = document.getElementById('po-confetti');
   const ctxFx   = poFx.getContext('2d');
   const CARD_BACK_URL = 'https://i.goopics.net/5vn5ys.png'; // 🆕 verso demandé
-  let skipRequested = false; if (poSkip) { poSkip.addEventListener('click', ()=>{ skipRequested = true; }); }
+  let skipRequested = false; 
+    if (poSkip) { poSkip.addEventListener('click', ()=>{ skipRequested = true; }); }
+
+// --- Timings de fin d’ouverture
+const FINAL_PAUSE_AFTER_LAST_REVEAL = 1600; // ms – laisse le joueur voir ses cartes
+const FINAL_PAUSE_AFTER_SKIP = 250;         // ms – si "Passer l’animation"
+
+    
   function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
   function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
   function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
@@ -860,7 +867,13 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
         const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
         if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
-    await setupClickReveal(); await wait(skipRequested ? 0 : 280); hideOverlay(); }
+   await setupClickReveal();
+
+// ⏸️ Garde les cartes à l’écran un peu plus longtemps après la DERNIÈRE révélation
+const pause = skipRequested ? FINAL_PAUSE_AFTER_SKIP : FINAL_PAUSE_AFTER_LAST_REVEAL;
+await wait(pause);
+hideOverlay();
+ }
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
   async function openPack({type='standard', setId} = {}){
