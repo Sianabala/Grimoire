@@ -167,10 +167,25 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- ⬇️ Embarque la table des raretés (aucun fetch nécessaire) -->
-  <script src="./rarity-map.js"></script>
+  <script>
+  // Map des raretés embarquée (128 cartes)
+  const RARITY_OF_CARD = {
+    "NL-001": "commune", "NL-002": "commune", "NL-003": "commune",
+    "NL-004": "commune", "NL-005": "légendaire",
+    // ... ⚠️ ici tu ajoutes toutes les entrées de nouvelle-lumiere.json et twitch.json ...
+    // exemple :
+    // "TW-001": "commune", "TW-002": "rare", ..., "TW-052": "exotique"
+  };
 
-  <script type="module">
+  const CATALOG_SIZE = Object.keys(RARITY_OF_CARD).length;
+
+  // exposer en global pour le script module
+  window.RARITY_OF_CARD = RARITY_OF_CARD;
+  window.CATALOG_SIZE   = CATALOG_SIZE;
+</script>
+
+  
+   <script type="module">
     // === Firebase (modules v10) ===
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
