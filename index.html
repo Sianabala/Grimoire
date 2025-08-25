@@ -924,59 +924,94 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     toast((type==='premium' ? '💎 Premium' : '🎴 Standard')+' — '+(SETS.find(s=>s.id===setId)?.name||'Set')+' ouvert !');
   }
 
-  // --- Auth state
-  onAuthStateChanged(auth, async (user) => {
-    currentUser = user || null;
-    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-    loginBtn.style.display = currentUser ? 'none' : '';
-    logoutBtn.style.display = currentUser ? '' : 'none';
-    adminBtn.style.display = 'none';
-    const nameBox = document.getElementById('user-display-name');
-    const userBar = document.getElementById('user-bar');
-    const userName = document.getElementById('user-name');
-    const userAvatar = document.getElementById('user-avatar');
-    if (!currentUser) {
-  if (nameBox) nameBox.style.display = 'none';
-  if (userBar) userBar.style.display = 'none';
-  setAdminUIVisible(false);
-  document.body.className = 'guest';   // <<< AJOUT
-  setGuestMode(true); 
-  refreshPackUI();
-  return;
+// --- Auth state
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user || null;
+  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+
+  // UI header buttons
+  loginBtn.style.display  = currentUser ? 'none' : '';
+  logoutBtn.style.display = currentUser ? ''    : 'none';
+  adminBtn.style.display  = 'none';
+
+  const nameBox  = document.getElementById('user-display-name');
+  const userBar  = document.getElementById('user-bar');
+  const userName = document.getElementById('user-name');
+  const userAvatar = document.getElementById('user-avatar');
+
+  if (!currentUser) {
+    if (nameBox) nameBox.style.display = 'none';
+    if (userBar) userBar.style.display = 'none';
+    setAdminUIVisible(false);
+    document.body.className = 'guest';
+    setGuestMode(true);
+    refreshPackUI();         // n’affiche pas de packs en mode invité
+    return;
+  }
+
+  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+
+  // Affichage pseudo + barre user
+  let pseudo = data?.displayName || currentUser.displayName || '';
+  if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
+  if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
+  if (userBar && userName && userAvatar) {
+    userName.textContent = pseudo;
+    userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png';
+    userBar.style.display = 'flex';
+  }
+
+  // Admin
+  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+  const isAdmin = allowByUid || allowByRole;
+  if (isAdmin) adminBtn.style.display = '';
+  setAdminUIVisible(isAdmin);
+
+  // Mode connecté
+  document.body.className = 'logged-in';
+  setGuestMode(false);
+});
+
+
+// --- Cloud bootstrap
+async function loadOrCreatePlayerDoc(user){
+  playerDocRef = doc(db,'players',user.uid);
+  const snap = await getDoc(playerDocRef);
+
+  if(!snap.exists()){
+    const base = {
+      displayName: user.displayName||'',
+      photoURL: user.photoURL||'',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      stats: { packsOpened: 0 },
+      collection: {},
+      level: 1,
+      xp: 0,
+      rewardsInbox: [],
+      packBalances: { standard: 0, premium: 0 }   // valeur par défaut pour NOUVEAU joueur
+    };
+    await setDoc(playerDocRef, base);
+    updateLocalFromCloud(base);                   // ← recharge l’UI depuis le cloud
+    return base;
+  }
+
+  const data = snap.data();
+
+  // Backfill si le champ n’existe pas (ne touche pas aux autres champs)
+  if (!data.packBalances){
+    try { await updateDoc(playerDocRef, {
+      packBalances: { standard: 0, premium: 0 },
+      updatedAt: serverTimestamp()
+    }); } catch {}
+  }
+
+  updateLocalFromCloud(data);                     // ← recharge l’UI depuis le cloud
+  try { await updateDoc(playerDocRef,{ updatedAt: serverTimestamp() }); } catch {}
+  return data;
 }
 
-    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-    let pseudo = data?.displayName || currentUser.displayName || '';
-    if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
-    if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
-    if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
-    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-const isAdmin = allowByUid || allowByRole;
-
-if (isAdmin) adminBtn.style.display = '';
-setAdminUIVisible(isAdmin);
-document.body.className = 'logged-in';
-    setGuestMode(false);
-  });
-
-  // --- Cloud bootstrap
-  async function loadOrCreatePlayerDoc(user){
-    playerDocRef = doc(db,'players',user.uid);
-    const snap = await getDoc(playerDocRef);
-    if(!snap.exists()){
-      const base = { displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[], packBalances:{standard:0,premium:0} };
-      await setDoc(playerDocRef, base);
-      updateLocalFromCloud(base);
-      return base;
-    }
-    const data = snap.data();
-    // Backfill packBalances si manquant
-    if(!data.packBalances){ try{ await updateDoc(playerDocRef,{ packBalances:{standard:0,premium:0}, updatedAt:serverTimestamp() }); }catch{} }
-    updateLocalFromCloud(data);
-    try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
-    return data;
-  }
 
   // --- UI Sets + Chooser
   const setsWrap = document.getElementById('sets');
