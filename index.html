@@ -518,6 +518,12 @@ body.logged-in #guest-cta { display: none !important; }
           <div class="footerbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
             <button id="btn-claim-rewards" class="btn pill">🎁 Réclamer mes récompenses de niveau</button>
             <span id="packs-balance-badge" class="badge" style="display:none">Packs dispo : —</span>
+
+            <!-- 👇 Nouveau : bouton règles -->
+  <button id="btn-rules" class="btn ghost pill" aria-haspopup="dialog" aria-controls="rules-modal">
+    ℹ️ Règles & Packs
+  </button>
+</div>
           </div>
         </div>
       </section>
@@ -573,13 +579,67 @@ body.logged-in #guest-cta { display: none !important; }
           <button id="pc-standard" class="btn pill">🎴 Standard</button>
           <button id="pc-premium" class="btn pill ghost">💎 Premium</button>
         </div>
-        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs)</div>
+        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs) </div>
         <div class="row" style="justify-content:flex-end">
           <button id="pc-cancel" class="btn ghost pill">Annuler</button>
         </div>
       </div>
     </div>
 
+<div id="rules-modal" hidden>
+  <div class="backdrop" style="position:fixed; inset:0; background: rgba(4,6,12,.72); backdrop-filter: blur(4px)"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-title"
+       style="position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+              width:min(640px,92vw); border-radius:18px; background: linear-gradient(180deg,#0f172a,#0b1120);
+              border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); padding:18px; z-index:80">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px">
+      <h4 id="rules-title" style="margin:0; font-size:18px">Règles & Comment obtenir des packs</h4>
+      <button id="rules-close" class="btn ghost pill" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="subtitle" style="margin-bottom:10px">
+      Tout ce qu’il faut savoir pour gagner et ouvrir des packs.
+    </div>
+
+    <div style="display:grid; gap:10px">
+      <div class="stat">
+        <div class="v" style="font-size:16px">Façons d’obtenir des packs</div>
+        <ul style="margin:8px 0 0 18px">
+          <li><strong>Récompenses de niveau</strong> : gagne de l’XP en ouvrant des packs → certaines étapes donnent des packs.</li>
+          <li><strong>Événements / Streams</strong> : packs offerts pendant des moments clés en live (drops, défis, giveaways).</li>
+          <li><strong>Packs Premium</strong> : débloqués via soutien (ex : 5 subs) et événements spéciaux.</li>
+          <li><strong>Admin</strong> : des packs peuvent être crédités ponctuellement par l’admin.</li>
+        </ul>
+      </div>
+
+      <div class="stat">
+        <div class="v" style="font-size:16px">Différences Standard vs Premium</div>
+        <ul style="margin:8px 0 0 18px">
+          <li><strong>Standard</strong> : 5 cartes aléatoires (toutes raretés possibles).</li>
+          <li><strong>Premium</strong> : 5 cartes dont <em>≥ 1 Rare</em> minimum garanti.</li>
+        </ul>
+      </div>
+
+      <div class="stat">
+        <div class="v" style="font-size:16px">Raretés & chances (indicatif)</div>
+        <ul style="margin:8px 0 0 18px">
+          <li>Commune 60% · Peu commune 25% · Rare 10% · Légendaire 4% · Exotique 1%</li>
+        </ul>
+      </div>
+
+      <div class="stat">
+        <div class="v" style="font-size:16px">Conseils</div>
+        <ul style="margin:8px 0 0 18px">
+          <li>Vérifie ton solde ici : <span class="badge">Packs dispo</span>.</li>
+          <li>Réclame tes récompenses de niveau dès qu’elles clignotent.</li>
+          <li>Surveille les annonces en stream pour les packs bonus.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
   </main>
 
   <script type="module">
@@ -1122,6 +1182,27 @@ function setAdminUIVisible(isAdmin){
   const diagPanel = document.getElementById('admin-diag');
   if (diagPanel) diagPanel.style.display = isAdmin ? '' : 'none';
 }
+
+    // --- Rules modal
+const rulesBtn   = document.getElementById('btn-rules');
+const rulesModal = document.getElementById('rules-modal');
+const rulesClose = document.getElementById('rules-close');
+
+function openRules(){
+  if(!rulesModal) return;
+  rulesModal.hidden = false;
+  // focus trap basique
+  setTimeout(()=> rulesClose?.focus(), 0);
+}
+function closeRules(){
+  if(!rulesModal) return;
+  rulesModal.hidden = true;
+}
+
+rulesBtn?.addEventListener('click', openRules);
+rulesClose?.addEventListener('click', closeRules);
+rulesModal?.querySelector('.backdrop')?.addEventListener('click', closeRules);
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && !rulesModal.hidden) closeRules(); });
 
     
   </script>
