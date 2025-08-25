@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grimoire · Profil</title>
+
+  <!-- Harmonisation -->
+  <link rel="stylesheet" href="/rarities.css">
+  <link rel="stylesheet" href="/mobile.css">
+  <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.goopics.net/aksxey.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
+  <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
+
+  <style>
+    :root{
+      /* Palette & tokens cohérents avec index/collection/admin */
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b;
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+        radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+        linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
+    }
+
+    header{position:sticky; top:0; z-index:10; backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
+    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    nav a{color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:12px}
+    nav a[aria-current="page"]{ background:rgba(255,255,255,.06) }
+    nav a:hover{ background: rgba(255,255,255,.08) }
+
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
+    .title{font-size:22px;font-weight:900}
+    .subtitle{font-size:12px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+    @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
+
+    .panel{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid rgba(255,255,255,.06); border-radius:var(--radius-lg);
+      box-shadow:var(--shadow); position:relative; overflow:clip
+    }
+    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
+    .panel .bd{padding:18px 20px}
+    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+
+    .statline{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+    .avatar{ width:56px; height:56px; border-radius:14px; background:#0e1423; border:1px solid rgba(255,255,255,.10); overflow:hidden; display:grid; place-items:center; font-weight:900 }
+    .user-meta .name{ font-weight:900; letter-spacing:.2px; }
+    .user-meta .k{ font-size:12px; color: var(--muted) }
+
+    .xpwrap{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+    .xpbar{ height:12px; border-radius:999px; background:#0e1423; border:1px solid rgba(255,255,255,.08); overflow:hidden; flex:1; min-width:180px }
+    .xpbar .fill{ height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow: inset 0 0 18px rgba(124,92,255,.35); transition: width .25s ease }
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+
+    /* Badges */
+    .badges{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px }
+    .badge-card{
+      position:relative; border-radius:14px; padding:12px;
+      background: linear-gradient(180deg,#0f1324,#0a0f1e);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 6px 20px rgba(0,0,0,.35);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      cursor: default;
+    }
+    .badge-card:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(124,92,255,.18) }
+    .badge-ico{ font-size:28px; line-height:1; }
+    .badge-name{ font-weight:800; margin-top:6px }
+    .badge-desc{ font-size:12px; color: var(--muted); margin-top:4px; min-height:30px }
+    .badge-state{ position:absolute; top:10px; right:10px; font-size:12px; }
+    .badge-card.locked{ filter: grayscale(.3) opacity(.8) }
+    .badge-card.locked::after{
+      content:""; position:absolute; inset:0; border-radius:inherit; background: rgba(0,0,0,.35);
+    }
+    .badge-card .date{ font-size:11px; color: var(--muted); margin-top:6px }
+
+    .toast{
+      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      background: rgba(18,24,41,.92); color: var(--text); border:1px solid rgba(255,255,255,.12);
+      padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50;
+      opacity:0; transition: opacity .2s ease, transform .2s ease
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
+
+    @media (max-width: 640px){
+      .container{ padding:12px; }
+      .title{ font-size:18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row" style="justify-content:space-between">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Grimoire</div>
+          <div class="subtitle">Profil & Badges</div>
+        </div>
+      </div>
+      <nav class="row" style="gap:10px">
+        <a href="/index.html">← Retour</a>
+        <a href="/collection.html">Collection</a>
+        <a href="/profil.html" aria-current="page">Profil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Profil joueur -->
+    <section class="panel" style="grid-column:span 12; margin-bottom:16px">
+      <div class="hd">
+        <h3>Infos joueur</h3>
+        <span id="sync" class="pill">Chargement…</span>
+      </div>
+      <div class="bd">
+        <div class="statline">
+          <div id="avatar" class="avatar" aria-hidden="true">👤</div>
+          <div class="user-meta">
+            <div class="name" id="username">—</div>
+            <div class="k">Niveau <strong id="level">0</strong> · <span id="xpLabel">0 XP</span></div>
+          </div>
+        </div>
+        <div class="xpwrap" style="margin-top:12px">
+          <div class="xpbar" aria-label="Progression vers le prochain niveau">
+            <div class="fill" id="xpFill" style="width:0%"></div>
+          </div>
+          <span class="pill" id="xpPct">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges -->
+    <section class="panel" style="grid-column:span 12">
+      <div class="hd">
+        <h3>Badges</h3>
+        <span class="subtitle">Débloque-les en jouant, collectionnant et en te connectant régulièrement.</span>
+      </div>
+      <div class="bd">
+        <div id="badges" class="badges"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module">
+    // === Firebase (aligné avec l’approche modules v10 de admin.html) ===
+    // cf. admin.html pour la même structure d'init & imports  :contentReference[oaicite:3]{index=3}
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+      authDomain: 'legends-collection.firebaseapp.com',
+      projectId: 'legends-collection',
+      storageBucket: 'legends-collection.firebasestorage.app',
+      messagingSenderId: '133783086150',
+      appId: '1:133783086150:web:762f209f7f778ef83a1647'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    try { await setPersistence(auth, browserLocalPersistence); } catch {}
+
+    // --- UI helpers ---
+    const $ = (sel)=> document.querySelector(sel);
+    const toastEl = $('#toast');
+    function toast(msg, ms=1800){
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(()=> toastEl.classList.remove('show'), ms);
+    }
+
+    // === Badges (définition) ===
+    // Conditions basées sur des champs du doc joueur (avec défauts robustes)
+    // Tu peux ajuster les clés pour coller 100% à ta structure Firestore.
+    const BADGES = [
+      // Progression
+      { id:'explorateur', name:'Explorateur', ico:'🧭', desc:'Avoir 10 cartes différentes',   test:s=> (s.uniques||0) >= 10 },
+      { id:'collectionneur', name:'Collectionneur', ico:'📚', desc:'50% de la collection',    test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 50 },
+      { id:'archiviste', name:'Archiviste', ico:'🏛️', desc:'100% de la collection',          test:s=> percent((s.uniques||0),(s.totalCards||200)) >= 100 },
+
+      // Packs
+      { id:'curieux', name:'Curieux', ico:'📦', desc:'Ouvrir un premier pack',                 test:s=> (s.packsOpened||0) >= 1 },
+      { id:'addict', name:'Addict', ico:'📦📦', desc:'Ouvrir 50 packs',                        test:s=> (s.packsOpened||0) >= 50 },
+      { id:'inarretable', name:'Inarrêtable', ico:'🌀', desc:'Ouvrir 200 packs',               test:s=> (s.packsOpened||0) >= 200 },
+
+      // Raretés
+      { id:'chanceux', name:'Chanceux', ico:'🌟', desc:'Trouver 1 légendaire',                 test:s=> (s.legendaries||0) >= 1 },
+      { id:'benisdesneuf', name:'Bénis des Neuf', ico:'✨', desc:'Trouver 1 exotique',         test:s=> (s.exotics||0) >= 1 },
+      { id:'chasseur', name:'Chasseur de trésors', ico:'💎', desc:'10 légendaires/exotiques',  test:s=> ((s.legendaries||0)+(s.exotics||0)) >= 10 },
+
+      // Engagement
+      { id:'fidele', name:'Fidèle', ico:'📅', desc:'7 connexions consécutives',                test:s=> (s.loginStreak||0) >= 7 },
+      { id:'veteran', name:'Vétéran', ico:'🗓️', desc:'100 jours connectés',                   test:s=> (s.daysLogged||0) >= 100 },
+      { id:'streamerfan', name:'Streamer Fan', ico:'⭐', desc:'Ouvrir 1 pack Premium',          test:s=> (s.premiumOpened||0) >= 1 },
+    ];
+
+    function percent(v, total){ total = Math.max(1, total||0); return Math.round((v/total)*100); }
+
+    // Rendu badge
+    function renderBadges(container, defs, ownedMap){
+      container.innerHTML = '';
+      defs.forEach(b=>{
+        const unlocked = !!ownedMap[b.id];
+        const date = ownedMap[b.id]?.acquiredAt ? new Date(ownedMap[b.id].acquiredAt.seconds*1000) : null;
+
+        const card = document.createElement('div');
+        card.className = 'badge-card'+(unlocked?'':' locked');
+        card.innerHTML = `
+          <div class="badge-state">${unlocked? 'Débloqué' : 'Verrouillé'}</div>
+          <div class="badge-ico" aria-hidden="true">${b.ico}</div>
+          <div class="badge-name">${b.name}</div>
+          <div class="badge-desc">${b.desc}</div>
+          ${unlocked && date ? `<div class="date">Débloqué le ${date.toLocaleDateString()}</div>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // App
+    const usernameEl = $('#username');
+    const levelEl    = $('#level');
+    const xpLabelEl  = $('#xpLabel');
+    const xpFillEl   = $('#xpFill');
+    const xpPctEl    = $('#xpPct');
+    const avatarEl   = $('#avatar');
+    const syncBadge  = $('#sync');
+    const badgesWrap = $('#badges');
+
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user){
+        syncBadge.textContent = 'Hors ligne';
+        usernameEl.textContent = 'Invité';
+        levelEl.textContent = '0';
+        xpLabelEl.textContent = '0 XP';
+        xpFillEl.style.width = '0%';
+        xpPctEl.textContent = '0%';
+        renderBadges(badgesWrap, BADGES, {});
+        return;
+      }
+
+      syncBadge.textContent = 'Sync…';
+      // Avatar Twitch si déjà stocké, sinon initiales
+      avatarEl.textContent = '👤';
+
+      const ref = doc(db,'players',user.uid);
+      const snap = await getDoc(ref);
+
+      // Structure robuste : on tolère des champs manquants
+      const data = snap.exists()? snap.data() : {};
+      const profile = {
+        pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
+        level:  data.level  || 0,
+        xp:     data.xp     || 0,
+        xpToLevel: data.xpToLevel || 100,
+        // Stats utiles aux badges
+        stats: {
+          uniques: data.uniques ?? data.stats?.uniques ?? 0,
+          totalCards: data.totalCards ?? data.stats?.totalCards ?? 200, // adapte si besoin
+          packsOpened: data.packsOpened ?? data.stats?.packsOpened ?? 0,
+          legendaries: data.legendaries ?? data.stats?.legendaries ?? 0,
+          exotics: data.exotics ?? data.stats?.exotics ?? 0,
+          loginStreak: data.loginStreak ?? data.stats?.loginStreak ?? 0,
+          daysLogged: data.daysLogged ?? data.stats?.daysLogged ?? 0,
+          premiumOpened: data.premiumOpened ?? data.stats?.premiumOpened ?? 0,
+        },
+        badges: data.badges || {} // { [id]: { acquiredAt: Timestamp } }
+      };
+
+      // UI Infos joueur
+      usernameEl.textContent = profile.pseudo;
+      levelEl.textContent = String(profile.level);
+      xpLabelEl.textContent = `${profile.xp} XP`;
+      const p = Math.max(0, Math.min(100, Math.round((profile.xp / Math.max(1,profile.xpToLevel)) * 100)));
+      xpFillEl.style.width = p + '%';
+      xpPctEl.textContent = p + '%';
+
+      // Évalue badges à déverrouiller
+      const toUnlock = [];
+      for(const b of BADGES){
+        const ok = b.test(profile.stats);
+        const already = !!profile.badges[b.id];
+        if(ok && !already){
+          toUnlock.push(b.id);
+        }
+      }
+
+      // Persist nouveaux badges si besoin
+      if(toUnlock.length){
+        const newBadges = { ...(profile.badges || {}) };
+        const now = serverTimestamp();
+        toUnlock.forEach(id => { newBadges[id] = { acquiredAt: now }; });
+        try{
+          if(snap.exists()){
+            await updateDoc(ref, { badges: newBadges, updatedAt: now });
+          }else{
+            await setDoc(ref, { badges: newBadges, createdAt: now, updatedAt: now }, { merge:true });
+          }
+          toast(`+${toUnlock.length} badge${toUnlock.length>1?'s':''} débloqué${toUnlock.length>1?'s':''} !`);
+          // Recharge avec timestamps réels (facultatif : on peut relire le doc)
+          const snap2 = await getDoc(ref);
+          profile.badges = (snap2.exists()? snap2.data().badges : newBadges) || newBadges;
+        }catch(e){
+          console.error(e);
+          toast('Erreur lors de la mise à jour des badges');
+        }
+      }
+
+      // Rendu badges
+      renderBadges(badgesWrap, BADGES, profile.badges || {});
+      syncBadge.textContent = 'En ligne';
+    });
+  </script>
+</body>
+</html>
