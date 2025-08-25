@@ -270,25 +270,52 @@
       const snap = await getDoc(ref);
 
       // Structure robuste : on tolère des champs manquants
-      const data = snap.exists()? snap.data() : {};
-      const profile = {
-        pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
-        level:  data.level  || 0,
-        xp:     data.xp     || 0,
-        xpToLevel: data.xpToLevel || 100,
-        // Stats utiles aux badges
-        stats: {
-          uniques: data.uniques ?? data.stats?.uniques ?? 0,
-          totalCards: data.totalCards ?? data.stats?.totalCards ?? 200, // adapte si besoin
-          packsOpened: data.packsOpened ?? data.stats?.packsOpened ?? 0,
-          legendaries: data.legendaries ?? data.stats?.legendaries ?? 0,
-          exotics: data.exotics ?? data.stats?.exotics ?? 0,
-          loginStreak: data.loginStreak ?? data.stats?.loginStreak ?? 0,
-          daysLogged: data.daysLogged ?? data.stats?.daysLogged ?? 0,
-          premiumOpened: data.premiumOpened ?? data.stats?.premiumOpened ?? 0,
-        },
-        badges: data.badges || {} // { [id]: { acquiredAt: Timestamp } }
-      };
+     const data = snap.exists()? snap.data() : {};
+
+// Fallbacks intelligents sur les noms usuels
+const rarityCounts = data.rarityCounts || data.stats?.rarityCounts || {};
+const uniquesRaw   = data.uniques ?? data.uniqueCards ?? data.stats?.uniques ?? data.stats?.uniqueCards;
+
+// -> si tu as la collection { [cardId]: count }, on peut dériver le nombre d'uniques
+const derivedUniques = (() => {
+  if (uniquesRaw != null) return Number(uniquesRaw);
+  if (data.collection && typeof data.collection === 'object') {
+    return Object.keys(data.collection).length;
+  }
+  return 0;
+})();
+
+const profile = {
+  pseudo: data.pseudo || user.displayName || user.email || 'Joueur',
+  level:  data.level  || 0,
+  xp:     data.xp     || 0,
+  xpToLevel: data.xpToLevel || 100,
+  stats: {
+    // Uniques: priorise un champ déjà calculé, sinon dérive depuis la collection
+    uniques: derivedUniques,
+    totalCards: data.totalCards ?? data.stats?.totalCards ?? 200,
+
+    // Packs ouverts
+    packsOpened: data.packsOpened ?? data.stats?.packsOpened ?? 0,
+
+    // Légendaires / Exotiques: accepte plusieurs schémas
+    legendaries: data.legendaries
+      ?? data.stats?.legendaries
+      ?? rarityCounts.legendary
+      ?? rarityCounts.legendaire /* si tu as utilisé FR */
+      ?? 0,
+
+    exotics: data.exotics
+      ?? data.stats?.exotics
+      ?? rarityCounts.exotic
+      ?? rarityCounts.exotique /* FR */
+      ?? 0,
+
+    // Premium
+    premiumOpened: data.premiumOpened ?? data.stats?.premiumOpened ?? 0,
+  },
+  badges: data.badges || {}
+};
 
       // UI Infos joueur
       usernameEl.textContent = profile.pseudo;
