@@ -727,8 +727,7 @@ body.logged-in .hero-header .hero-actions{
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
 
-  console.log('[DEBUG] Initialisation Firebase');
-  const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -768,9 +767,7 @@ function setGuestMode(isGuest){
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
   loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
-  console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
-
-  // --- Rarity constants
+// --- Rarity constants
   const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
   const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
   const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
@@ -809,16 +806,14 @@ function setGuestMode(isGuest){
     ALL_CARDS = []; Object.keys(CARD_SETS).forEach(k=> delete CARD_SETS[k]);
     for(const s of SETS){
       try{
-        console.log('[DEBUG] Load set JSON:', s.json);
-        const res = await fetch(s.json, {cache:'no-store'});
+const res = await fetch(s.json, {cache:'no-store'});
         const data = await res.json();
         const arr = (data.cards||[]).filter(c=>c.id&&c.name).map(c=>({ id:c.id, name:c.name, set:(c.set||s.name), rarity: mapRarity(c.rarity), image:(c.image||'') }));
         CARD_SETS[s.id] = arr.length? arr : FALLBACK[s.id] || [];
       }catch(e){ console.warn('[DEBUG] Set fallback for', s.id, e); CARD_SETS[s.id] = FALLBACK[s.id] || []; }
       ALL_CARDS = ALL_CARDS.concat(CARD_SETS[s.id]);
     }
-    console.log('[DEBUG] Sets chargés ->', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
-  }
+}
 
   // --- Local/state (mode déconnecté uniquement)
   const LS_KEY = 'grimoire.alpha.collection.v2_6';
@@ -1073,8 +1068,7 @@ hideOverlay();
   // --- Auth state
   onAuthStateChanged(auth, async (user) => {
     currentUser = user || null;
-    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-    loginBtn.style.display = currentUser ? 'none' : '';
+loginBtn.style.display = currentUser ? 'none' : '';
     logoutBtn.style.display = currentUser ? '' : 'none';
     adminBtn.style.display = 'none';
     const nameBox = document.getElementById('user-display-name');
@@ -1202,8 +1196,7 @@ document.body.className = 'logged-in';
     updateRewardButton([]);
     refreshPackUI();
 
-    console.log('[DEBUG] App prête. Cartes disponibles par set:', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
-  }
+}
 
   init();
 
