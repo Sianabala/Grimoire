@@ -630,18 +630,8 @@ function setGuestMode(isGuest){
 }
 
     
-// Login 100% redirect (fiable mobile / anti-popup)
-loginBtn.addEventListener('click', async ()=>{
-  try {
-    console.log('[DEBUG] Click login -> REDIRECT');
-    await signInWithRedirect(auth, twitchProvider);
-  } catch (e) {
-    console.error(e);
-    alert('Erreur de connexion Twitch (redirect): ' + (e?.message || e));
-  }
-});
-
-
+  const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
+  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
   console.log('[DEBUG] Auth mode: POPUP (no redirect handler)');
   try{ const redirRes = await getRedirectResult(auth); if(redirRes){ const cred = OAuthProvider.credentialFromResult(redirRes); await trySavePseudonymFromCredential(cred, redirRes.user); } }catch(e){ console.warn('[DEBUG] getRedirectResult failed', e); }
@@ -934,106 +924,59 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
     toast((type==='premium' ? '💎 Premium' : '🎴 Standard')+' — '+(SETS.find(s=>s.id===setId)?.name||'Set')+' ouvert !');
   }
 
-// --- Auth state
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user || null;
-  console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
-
-  // UI header buttons
-  loginBtn.style.display  = currentUser ? 'none' : '';
-  logoutBtn.style.display = currentUser ? ''    : 'none';
-  adminBtn.style.display  = 'none';
-
-  const nameBox  = document.getElementById('user-display-name');
-  const userBar  = document.getElementById('user-bar');
-  const userName = document.getElementById('user-name');
-  const userAvatar = document.getElementById('user-avatar');
-
-  if (!currentUser) {
-    if (nameBox) nameBox.style.display = 'none';
-    if (userBar) userBar.style.display = 'none';
-    setAdminUIVisible(false);
-    document.body.className = 'guest';
-    setGuestMode(true);
-    return;
-  }
-
-  const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
-
-  // Affichage pseudo + barre user
-  let pseudo = data?.displayName || currentUser.displayName || '';
-  if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
-  if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
-  if (userBar && userName && userAvatar) {
-    userName.textContent = pseudo;
-    userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png';
-    userBar.style.display = 'flex';
-  }
-
-  // Admin
-  const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
-  const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
-  const isAdmin = allowByUid || allowByRole;
-  if (isAdmin) adminBtn.style.display = '';
-  setAdminUIVisible(isAdmin);
-
-  // Mode connecté
-  document.body.className = 'logged-in';
-  setGuestMode(false);
-});
-
-
-// --- Cloud bootstrap
-async function loadOrCreatePlayerDoc(user){
-  playerDocRef = doc(db,'players',user.uid);
-  const snap = await getDoc(playerDocRef);
-
-  if(!snap.exists()){
-    const base = {
-      displayName: user.displayName||'',
-      photoURL: user.photoURL||'',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      stats: { packsOpened: 0 },
-      collection: {},
-      level: 1,
-      xp: 0,
-      rewardsInbox: [],
-      packBalances: { standard: 0, premium: 0 }   // valeur par défaut pour NOUVEAU joueur
-    };
-    await setDoc(playerDocRef, base);
-    updateLocalFromCloud(base);                   // ← recharge l’UI depuis le cloud
-    return base;
-  }
-
-  const data = snap.data();
-
-  // Backfill strict si le champ est réellement manquant / invalide
-const needBackfill =
-  typeof data.packBalances !== 'object' ||
-  typeof data.packBalances.standard !== 'number' ||
-  typeof data.packBalances.premium  !== 'number';
-
-if (needBackfill) {
-  try {
-    await updateDoc(playerDocRef, {
-      packBalances: {
-        standard: Number(data?.packBalances?.standard) || 0,
-        premium:  Number(data?.packBalances?.premium)  || 0,
-      },
-      updatedAt: serverTimestamp()
-    });
-  } catch {}
+  // --- Auth state
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user || null;
+    console.log('[Auth] onAuthStateChanged ->', currentUser ? currentUser.uid : 'null');
+    loginBtn.style.display = currentUser ? 'none' : '';
+    logoutBtn.style.display = currentUser ? '' : 'none';
+    adminBtn.style.display = 'none';
+    const nameBox = document.getElementById('user-display-name');
+    const userBar = document.getElementById('user-bar');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    if (!currentUser) {
+  if (nameBox) nameBox.style.display = 'none';
+  if (userBar) userBar.style.display = 'none';
+  setAdminUIVisible(false);
+  document.body.className = 'guest';   // <<< AJOUT
+  setGuestMode(true); 
+  refreshPackUI();
+  return;
 }
 
-        } catch {}
+    const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
+    let pseudo = data?.displayName || currentUser.displayName || '';
+    if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
+    if (nameBox) { nameBox.style.display = ''; nameBox.textContent = `Connecté en tant que ${pseudo}`; }
+    if (userBar && userName && userAvatar) { userName.textContent = pseudo; userAvatar.src = currentUser.photoURL || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png'; userBar.style.display = 'flex'; }
+    const allowByUid  = ADMIN_UIDS.includes(currentUser.uid);
+const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
+const isAdmin = allowByUid || allowByRole;
+
+if (isAdmin) adminBtn.style.display = '';
+setAdminUIVisible(isAdmin);
+document.body.className = 'logged-in';
+    setGuestMode(false);
+  });
+
+  // --- Cloud bootstrap
+  async function loadOrCreatePlayerDoc(user){
+    playerDocRef = doc(db,'players',user.uid);
+    const snap = await getDoc(playerDocRef);
+    if(!snap.exists()){
+      const base = { displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[], packBalances:{standard:0,premium:0} };
+      await setDoc(playerDocRef, base);
+      updateLocalFromCloud(base);
+      return base;
+    }
+    const data = snap.data();
+    // Backfill packBalances si manquant
+    if(!data.packBalances){ try{ await updateDoc(playerDocRef,{ packBalances:{standard:0,premium:0}, updatedAt:serverTimestamp() }); }catch{} }
+    updateLocalFromCloud(data);
+    try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
+    return data;
   }
-
-  updateLocalFromCloud(data);                     // ← recharge l’UI depuis le cloud
-  try { await updateDoc(playerDocRef,{ updatedAt: serverTimestamp() }); } catch {}
-  return data;
-}
-
 
   // --- UI Sets + Chooser
   const setsWrap = document.getElementById('sets');
@@ -1111,6 +1054,7 @@ if (needBackfill) {
 
     // bouton en état 0 avant la première synchro cloud
     updateRewardButton([]);
+    refreshPackUI();
 
     console.log('[DEBUG] App prête. Cartes disponibles par set:', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
   }
