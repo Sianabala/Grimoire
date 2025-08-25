@@ -945,7 +945,6 @@ onAuthStateChanged(auth, async (user) => {
     setAdminUIVisible(false);
     document.body.className = 'guest';
     setGuestMode(true);
-    refreshPackUI();         // n’affiche pas de packs en mode invité
     return;
   }
 
@@ -999,12 +998,25 @@ async function loadOrCreatePlayerDoc(user){
 
   const data = snap.data();
 
-  // Backfill si le champ n’existe pas (ne touche pas aux autres champs)
-  if (!data.packBalances){
-    try { await updateDoc(playerDocRef, {
-      packBalances: { standard: 0, premium: 0 },
+  // Backfill strict si le champ est réellement manquant / invalide
+const needBackfill =
+  typeof data.packBalances !== 'object' ||
+  typeof data.packBalances.standard !== 'number' ||
+  typeof data.packBalances.premium  !== 'number';
+
+if (needBackfill) {
+  try {
+    await updateDoc(playerDocRef, {
+      packBalances: {
+        standard: Number(data?.packBalances?.standard) || 0,
+        premium:  Number(data?.packBalances?.premium)  || 0,
+      },
       updatedAt: serverTimestamp()
-    }); } catch {}
+    });
+  } catch {}
+}
+
+        } catch {}
   }
 
   updateLocalFromCloud(data);                     // ← recharge l’UI depuis le cloud
@@ -1089,7 +1101,6 @@ async function loadOrCreatePlayerDoc(user){
 
     // bouton en état 0 avant la première synchro cloud
     updateRewardButton([]);
-    refreshPackUI();
 
     console.log('[DEBUG] App prête. Cartes disponibles par set:', Object.fromEntries(Object.entries(CARD_SETS).map(([k,v])=>[k,v.length])));
   }
