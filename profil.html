@@ -174,6 +174,19 @@
   import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+const LS_VERSION_KEY = 'grimoire.alpha.version';
+const CURRENT_LS_VERSION = 3; // incrémente si tu modifie l’architecture
+
+const last = Number(localStorage.getItem(LS_VERSION_KEY)||0);
+if (last !== CURRENT_LS_VERSION){
+  // Exemple : on ne garde que la collection/stats si tu veux
+  // localStorage.removeItem('grimoire.alpha.collection.v2_5');
+  // localStorage.removeItem('grimoire.alpha.stats.v2_5');
+  // localStorage.removeItem('grimoire.alpha.profile.v2_5');
+  localStorage.setItem(LS_VERSION_KEY, String(CURRENT_LS_VERSION));
+}
+
+    
   // ---- Config identique
   const firebaseConfig = {
     apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
@@ -278,7 +291,36 @@
 
     return { uniques, totalUnique, completionPct, byRarity, legendaryOwned, exoticOwned };
   }
+    
+// Version du “schéma de badges” pour forcer une resync quand la logique change
+const BADGE_SCHEMA_VERSION = 2;
 
+    // Calcule l’état “attendu” des badges à partir des stats courantes
+function computeExpectedBadges(sharedStats){
+  // sharedStats = { completionPct, uniques, totalUnique, byRarity, legendaryOwned, exoticOwned, packsOpened }
+  const expected = {};
+  for(const b of BADGES){
+    if (b.test(sharedStats)) {
+      expected[b.id] = { acquiredAt: serverTimestamp() };
+    }
+  }
+  return expected;
+}
+
+// Compare badges Cloud vs badges attendus
+function diffBadges(currentBadges={}, expectedBadges={}){
+  const toAdd = [];
+  const toRemove = [];
+  for(const id of Object.keys(currentBadges)){
+    if(!(id in expectedBadges)) toRemove.push(id);
+  }
+  for(const id of Object.keys(expectedBadges)){
+    if(!(id in currentBadges)) toAdd.push(id);
+  }
+  return { toAdd, toRemove };
+}
+
+    
   // ---- Badges (branchés sur les nouveaux champs calculés)
   const BADGES = [
     // Progression (par % sur uniques/totalUnique)
@@ -416,37 +458,60 @@
     // Badges existants
     let ownedBadges = data.badges || {};
 
-    // Déterminer les nouveaux badges
-    const toUnlock = [];
-    for(const b of BADGES){
-      const ok = b.test(sharedStats);
-      const already = !!ownedBadges[b.id];
-      if(ok && !already) toUnlock.push(b.id);
+   // 1) Calculs partagés (tu as déjà progress = computeProgress({ collection, cardPools }))
+const sharedStats = {
+  ...progress,
+  packsOpened: stats.packsOpened // si tu as une source packsOpened côté cloud, garde-la ici
+};
+
+// 2) Badges actuels en base
+let ownedBadges = data.badges || {};
+
+// 3) Badges attendus selon la logique courante
+const expected = computeExpectedBadges(sharedStats);
+
+// 4) Diff (ajouts/suppressions)
+const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
+
+// 5) Faut-il écrire (ajout/suppression/version) ?
+const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
+
+if (toAdd.length || toRemove.length || needsVersionBump) {
+  const now = serverTimestamp();
+  const finalBadges = { ...ownedBadges };
+
+  // retirer les badges obsolètes
+  for(const id of toRemove){ delete finalBadges[id]; }
+  // ajouter ceux manquants
+  for(const id of toAdd){ finalBadges[id] = { acquiredAt: now }; }
+
+  try{
+    await updateDoc(ref, {
+      badges: finalBadges,
+      badgeSchemaVersion: BADGE_SCHEMA_VERSION,
+      updatedAt: now
+    });
+
+    if (toAdd.length || toRemove.length) {
+      const plus = toAdd.length ? `+${toAdd.length}` : '';
+      const moins = toRemove.length ? `-${toRemove.length}` : '';
+      toast(`Badges resynchronisés ${[plus,moins].filter(Boolean).join(' / ')}`);
     }
 
-    // Persister si nouveaux badges
-    if(toUnlock.length){
-      const now = serverTimestamp();
-      const newBadges = { ...ownedBadges };
-      toUnlock.forEach(id => { newBadges[id] = { acquiredAt: now }; });
-      try{
-        if(snap.exists()){
-          await updateDoc(ref, { badges: newBadges, updatedAt: now });
-        }else{
-          await setDoc(ref, { badges: newBadges, createdAt: now, updatedAt: now }, { merge:true });
-        }
-        toast(`+${toUnlock.length} badge${toUnlock.length>1?'s':''} débloqué${toUnlock.length>1?'s':''} !`);
-        const snap2 = await getDoc(ref);
-        ownedBadges = (snap2.exists()? snap2.data().badges : newBadges) || newBadges;
-      }catch(e){
-        console.error(e);
-        toast('Erreur lors de la mise à jour des badges');
-      }
-    }
+    // relire pour l’affichage
+    const snap2 = await getDoc(ref);
+    ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
 
-    draw(sharedStats, ownedBadges);
-    syncBadge.textContent = 'En ligne';
-  });
+  }catch(e){
+    console.error(e);
+    toast('Erreur lors de la resynchronisation des badges');
+  }
+}
+
+// 6) Rendu UI (toujours à la fin)
+renderBadges(badgesWrap, BADGES, ownedBadges || {});
+syncBadge.textContent = 'En ligne';
+
 
   function draw(sharedStats, ownedBadges){
     renderBadges(badgesWrap, BADGES, ownedBadges || {});
