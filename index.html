@@ -283,9 +283,7 @@
       radial-gradient(120px 80px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
       linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); color:#e8ecf3; font-weight:900; letter-spacing:.02em; text-transform:uppercase; border-radius:20px; }
     .po-card[aria-pressed="true"] .veil{ display:none; }
-
-// puis tu continues ton flux existant (tirage, rendu des .po-card, etc.)
-                                          
+                                       
 /* Art du pack pendant l'animation */
 .po-pack-art{
   position:absolute; inset:10px;
@@ -906,16 +904,35 @@ async function snapshotOwnedBeforeOpening(){
 await snapshotOwnedBeforeOpening();
 
 // -- Afficher le visuel du set sur le pack
+// -- Afficher le visuel du set sur le pack
 const body = poPack.querySelector('.po-pack-body');
 let art = body.querySelector('.po-pack-art');
-if(!art){
-art = document.createElement('div');
-art.className = 'po-pack-art';
-// on place l’art AVANT la gloss pour que la brillance agisse dessus
-body.insertBefore(art, body.firstChild);
+if (!art) {
+  art = document.createElement('div');
+  art.className = 'po-pack-art';
+  // ✅ Styles inline au cas où le CSS a été ignoré
+  art.style.position = 'absolute';
+  art.style.inset = '10px';
+  art.style.borderRadius = '14px';
+  art.style.backgroundRepeat = 'no-repeat';
+  art.style.backgroundPosition = 'center';
+  art.style.backgroundSize = 'contain';
+  art.style.border = '1px solid rgba(255,255,255,.10)';
+  art.style.boxShadow = 'inset 0 0 30px rgba(0,0,0,.35)';
+  art.style.pointerEvents = 'none';
+
+  // on place l’art AVANT la gloss pour que la brillance agisse dessus
+  body.insertBefore(art, body.firstChild);
 }
+
 const currentSet = SETS.find(s => s.id === setId);
-art.style.backgroundImage = currentSet?.img ? `url('${currentSet.img.replaceAll("'","\\'")}')` : 'none';
+art.style.backgroundImage = currentSet?.img
+  ? `url('${(currentSet.img || "").replaceAll("'", "\\'")}')`
+  : 'none';
+
+// (facultatif) debug rapide
+console.debug('[pack-art]', { setId, img: currentSet?.img, applied: getComputedStyle(art).backgroundImage });
+
                                                  
     const shine = poPack.querySelector('.po-pack-shine'); overlay.onpointermove = (e)=> { 
       const r = poPack.getBoundingClientRect(); if (shine) { shine.style.setProperty('--mx', ((e.clientX - r.left)/r.width*100)+'%'); shine.style.setProperty('--my', ((e.clientY - r.top)/r.height*100)+'%'); } }; poPack.style.animation = 'poShake .5s linear'; await wait(skipRequested ? 0 : 520); 
