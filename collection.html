@@ -301,7 +301,8 @@
       <nav class="row" style="gap:10px">
         <a href="/" aria-label="Retour au jeu">← Retour au jeu</a>
         <a href="/collection.html" aria-current="page">Collection</a>
-        <a href="/profil.html" aria-current="page">Profil</a>
+        <a href="/profil.html">Profil</a>
+
       </nav>
     </div>
   </header>
@@ -350,7 +351,7 @@
 
           
           <select id="ownedFilter" class="input select" aria-label="Filtrer par possession">
-            <option value="">Possées ou non possédées</option>
+            <option value="">Possédées ou non possédées</option>
             <option value="owned">Uniquement possédées</option>
             <option value="missing">Uniquement non possédées</option>
           </select>
@@ -558,6 +559,39 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
       for(const s of sets){ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; setFilter.appendChild(opt); }
     }
 
+// Agrège la collection depuis différents schémas possibles (collection, collections par set, tableau cardsOwned)
+function collectOwned(d){
+  const out = {};
+  // 1) Objet plat { id: qty }
+  if (d && d.collection && typeof d.collection === 'object'){
+    for (const [id, qty] of Object.entries(d.collection)){
+      out[id] = (out[id] || 0) + Number(qty || 0);
+    }
+  }
+  // 2) Par sets: { collections: { setName: { id: qty } } }
+  if (d && d.collections && typeof d.collections === 'object'){
+    for (const setObj of Object.values(d.collections)){
+      if (setObj && typeof setObj === 'object'){
+        for (const [id, qty] of Object.entries(setObj)){
+          out[id] = (out[id] || 0) + Number(qty || 0);
+        }
+      }
+    }
+  }
+  // 3) Tableau (strings ou objets {id, qty})
+  if (d && Array.isArray(d.cardsOwned)){
+    for (const entry of d.cardsOwned){
+      if (typeof entry === 'string'){
+        out[entry] = (out[entry] || 0) + 1;
+      } else if (entry && entry.id){
+        out[entry.id] = (out[entry.id] || 0) + Number(entry.qty || 1);
+      }
+    }
+  }
+  return out;
+}
+
+    
     // Auth + synchro Cloud → Local
     onAuthStateChanged(auth, async (user)=>{
       elSync.textContent = user? 'Cloud ✓' : 'Local';
@@ -566,17 +600,28 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
         try {
           const snap=await getDoc(doc(db,'players',user.uid));
           if(snap.exists()){
-            const data=snap.data();
-            collection={...(data.collection||{})};
-            stats.packsOpened=data.stats?.packsOpened||stats.packsOpened||0;
-            profile.level=data.level||profile.level||1;
-            profile.xp=data.xp||profile.xp||0;
-            save(LS_KEY,collection); save(LS_STATS,stats); save(LS_PROFILE,profile);
-            console.log('[DEBUG] Aucun doc cloud — affichage local');
-            toast('✅ Synchro Cloud appliquée');
+            const data = snap.data();
+
+// Agrégation unifiée (mêmes règles que sur profil.html)
+collection = collectOwned(data);
+
+// Stats annexes
+stats.packsOpened = (data.stats?.packsOpened ?? data.packsOpened ?? stats.packsOpened ?? 0);
+profile.level     = (data.level ?? profile.level ?? 1);
+profile.xp        = (data.xp    ?? profile.xp    ?? 0);
+
+// Persistance locale
+save(LS_KEY, collection);
+save(LS_STATS, stats);
+save(LS_PROFILE, profile);
+
+console.log('[DEBUG] Synchro Cloud appliquée');
+toast('✅ Synchro Cloud appliquée');
+
           } else {
-            log('[DEBUG] Aucun doc cloud — affichage local');
+            console.log('[DEBUG] Aucun doc cloud — affichage local');
           }
+
           render();
         } catch(e){ console.error(e); }
       } else {
@@ -650,8 +695,9 @@ const enabled = new Set(
       }
 
       // Stats
-      const uniques = Object.keys(collection).length;
-      const totalUnique = new Set(CARD_POOLS.map(c=>c.id)).size;
+     const allIds = new Set(CARD_POOLS.map(c=>c.id));
+      const uniques = Object.keys(collection).filter(id => allIds.has(id)).length;
+      const totalUnique = allIds.size;
       const completion = totalUnique? Math.round(100*uniques/totalUnique):0;
       const totalCards = Object.values(collection).reduce((s,n)=>s+(n||0),0);
       const byR = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
