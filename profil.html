@@ -168,136 +168,127 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- === LOGIQUE ALIGNEE AVEC collection.html === -->
-  <script type="module">
-  // Firebase (modules v10, comme collection.html)
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+ <script type="module">
+// Firebase (modules v10, comme collection.html)
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const LS_VERSION_KEY = 'grimoire.alpha.version';
-const CURRENT_LS_VERSION = 3; // incrémente si tu modifie l’architecture
+const CURRENT_LS_VERSION = 3; // incrémente si tu modifies l’architecture
 
 const last = Number(localStorage.getItem(LS_VERSION_KEY)||0);
 if (last !== CURRENT_LS_VERSION){
-  // Exemple : on ne garde que la collection/stats si tu veux
   // localStorage.removeItem('grimoire.alpha.collection.v2_5');
   // localStorage.removeItem('grimoire.alpha.stats.v2_5');
   // localStorage.removeItem('grimoire.alpha.profile.v2_5');
   localStorage.setItem(LS_VERSION_KEY, String(CURRENT_LS_VERSION));
 }
 
-    
-  // ---- Config identique
-  const firebaseConfig = {
-    apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
-    authDomain: 'legends-collection.firebaseapp.com',
-    projectId: 'legends-collection',
-    storageBucket: 'legends-collection.firebasestorage.app',
-    messagingSenderId: '133783086150',
-    appId: '1:133783086150:web:762f209f7f778ef83a1647'
+// ---- Config identique
+const firebaseConfig = {
+  apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+  authDomain: 'legends-collection.firebaseapp.com',
+  projectId: 'legends-collection',
+  storageBucket: 'legends-collection.firebasestorage.app',
+  messagingSenderId: '133783086150',
+  appId: '1:133783086150:web:762f209f7f778ef83a1647'
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+try { await setPersistence(auth, browserLocalPersistence); } catch {}
+
+const twitchProvider = new OAuthProvider('oidc.twitch');
+try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
+
+// ---- Raretés + mapping (même normalisation que collection.html)
+const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
+function mapRarity(r){
+  const x=(r||'').toLowerCase();
+  if(x==='common'||x==='commune') return RARITY.COMMON;
+  if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
+  if(x==='rare') return RARITY.RARE;
+  if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
+  if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
+  return RARITY.COMMON;
+}
+
+// ---- Chargement dynamique des sets (identique aux chemins de collection.html)
+const SET_FILES = [
+  '/data/sets/nouvelle-lumiere.json',
+  '/data/sets/twitch.json',
+];
+
+async function loadCardSets(){
+  const out = [];
+  for (const url of SET_FILES){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      const setName =
+        data?.set || data?.name ||
+        (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière' :
+         url.includes('twitch') ? 'Twitch' : 'Set inconnu');
+
+      if(!Array.isArray(data?.cards)) continue;
+      out.push(...data.cards.map(c=>({
+        id: c.id,
+        name: c.name,
+        set: c.set || setName,
+        rarity: mapRarity(c.rarity),
+        image: c.image || ''
+      })));
+    }catch(e){
+      console.warn('[profil] loadCardSets fail', url, e);
+    }
+  }
+  return out;
+}
+
+// ---- LocalStorage (mêmes clés)
+const LS_KEY='grimoire.alpha.collection.v2_5';
+const LS_STATS='grimoire.alpha.stats.v2_5';
+const LS_PROFILE='grimoire.alpha.profile.v2_5';
+function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
+function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+// ---- Compute centralisé
+function computeProgress({ collection, cardPools }){
+  const allIds = new Set(cardPools.map(c=>c.id));
+  const totalUnique = allIds.size;
+
+  const ownedIds = Object.keys(collection).filter(id => allIds.has(id));
+  const uniques = ownedIds.length;
+
+  const completionPct = totalUnique ? Math.round(100 * uniques / totalUnique) : 0;
+
+  const byRarity = {
+    [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0
   };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-  try { await setPersistence(auth, browserLocalPersistence); } catch {}
-
-  const twitchProvider = new OAuthProvider('oidc.twitch');
-  try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
-
-  // ---- Raretés + mapping (même normalisation que collection.html)
-  const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-  function mapRarity(r){
-    const x=(r||'').toLowerCase();
-    if(x==='common'||x==='commune') return RARITY.COMMON;
-    if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
-    if(x==='rare') return RARITY.RARE;
-    if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
-    if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
-    return RARITY.COMMON;
+  for(const id of ownedIds){
+    const qty = collection[id] || 0;
+    const card = cardPools.find(c => c.id === id);
+    if(card) byRarity[card.rarity] += qty;
   }
 
-  // ---- Chargement dynamique des sets (identique aux chemins de collection.html)
-  const SET_FILES = [
-    '/data/sets/nouvelle-lumiere.json',
-    '/data/sets/twitch.json',
-  ];
+  const legendaryOwned = ownedIds.some(id => {
+    const card = cardPools.find(c=>c.id===id);
+    return card && card.rarity === RARITY.LEGENDARY && (collection[id]||0) > 0;
+  });
+  const exoticOwned = ownedIds.some(id => {
+    const card = cardPools.find(c=>c.id===id);
+    return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;
+  });
 
-  async function loadCardSets(){
-    const out = [];
-    for (const url of SET_FILES){
-      try{
-        const res = await fetch(url, { cache:'no-store' });
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        const setName =
-          data?.set || data?.name ||
-          (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière' :
-           url.includes('twitch') ? 'Twitch' : 'Set inconnu');
+  return { uniques, totalUnique, completionPct, byRarity, legendaryOwned, exoticOwned };
+}
 
-        if(!Array.isArray(data?.cards)) continue;
-        out.push(...data.cards.map(c=>({
-          id: c.id,
-          name: c.name,
-          set: c.set || setName,
-          rarity: mapRarity(c.rarity),
-          image: c.image || ''
-        })));
-      }catch(e){
-        console.warn('[profil] loadCardSets fail', url, e);
-      }
-    }
-    return out;
-  }
-
-  // ---- LocalStorage (mêmes clés)
-  const LS_KEY='grimoire.alpha.collection.v2_5';
-  const LS_STATS='grimoire.alpha.stats.v2_5';
-  const LS_PROFILE='grimoire.alpha.profile.v2_5';
-  function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
-  function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
-
-  // ---- Compute centralisé (copie conforme avec le même esprit que collection)
-  function computeProgress({ collection, cardPools }){
-    // Unique catalogue
-    const allIds = new Set(cardPools.map(c=>c.id));
-    const totalUnique = allIds.size;
-
-    // Uniques possédées (par ID, pas par quantités)
-    const ownedIds = Object.keys(collection).filter(id => allIds.has(id));
-    const uniques = ownedIds.length;
-
-    // % complétion
-    const completionPct = totalUnique ? Math.round(100 * uniques / totalUnique) : 0;
-
-    // Répartition par rareté (par quantités réelles)
-    const byRarity = {
-      [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0
-    };
-    for(const id of ownedIds){
-      const qty = collection[id] || 0;
-      const card = cardPools.find(c => c.id === id);
-      if(card) byRarity[card.rarity] += qty;
-    }
-
-    // Présence au moins 1 Légendaire/Exotique (peu importe la quantité)
-    const legendaryOwned = ownedIds.some(id => {
-      const card = cardPools.find(c=>c.id===id);
-      return card && card.rarity === RARITY.LEGENDARY && (collection[id]||0) > 0;
-    });
-    const exoticOwned = ownedIds.some(id => {
-      const card = cardPools.find(c=>c.id===id);
-      return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;
-    });
-
-    return { uniques, totalUnique, completionPct, byRarity, legendaryOwned, exoticOwned };
-  }
-    
-// Version du “schéma de badges” pour forcer une resync quand la logique change
+// ---- Version de schéma badges + helpers de resync
 const BADGE_SCHEMA_VERSION = 2;
 
-    // Calcule l’état “attendu” des badges à partir des stats courantes
 function computeExpectedBadges(sharedStats){
-  // sharedStats = { completionPct, uniques, totalUnique, byRarity, legendaryOwned, exoticOwned, packsOpened }
   const expected = {};
   for(const b of BADGES){
     if (b.test(sharedStats)) {
@@ -306,8 +297,6 @@ function computeExpectedBadges(sharedStats){
   }
   return expected;
 }
-
-// Compare badges Cloud vs badges attendus
 function diffBadges(currentBadges={}, expectedBadges={}){
   const toAdd = [];
   const toRemove = [];
@@ -320,204 +309,180 @@ function diffBadges(currentBadges={}, expectedBadges={}){
   return { toAdd, toRemove };
 }
 
-    
-  // ---- Badges (branchés sur les nouveaux champs calculés)
-  const BADGES = [
-    // Progression (par % sur uniques/totalUnique)
-    { id:'explorateur',    name:'Explorateur',         ico:'🧭',  desc:'Avoir 10 cartes différentes',   test:s=> s.uniques >= 10 },
-    { id:'collectionneur', name:'Collectionneur',      ico:'📚',  desc:'50% de la collection',         test:s=> s.completionPct >= 50 },
-    { id:'archiviste',     name:'Archiviste',          ico:'🏛️',  desc:'100% de la collection',        test:s=> s.completionPct >= 100 },
+// ---- Badges
+const BADGES = [
+  { id:'explorateur',    name:'Explorateur',         ico:'🧭',  desc:'Avoir 10 cartes différentes',   test:s=> s.uniques >= 10 },
+  { id:'collectionneur', name:'Collectionneur',      ico:'📚',  desc:'50% de la collection',         test:s=> s.completionPct >= 50 },
+  { id:'archiviste',     name:'Archiviste',          ico:'🏛️',  desc:'100% de la collection',        test:s=> s.completionPct >= 100 },
 
-    // Packs (stats cloud si dispo, sinon 0)
-    { id:'curieux',        name:'Curieux',             ico:'📦',  desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
-    { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
-    { id:'accro',          name:'Accro',               ico:'📦📦📦',desc:'Ouvrir 100 packs',             test:s=> (s.packsOpened||0) >= 100 },
-    { id:'inarretable',    name:'Inarrêtable',         ico:'🌀',  desc:'Ouvrir 200 packs',             test:s=> (s.packsOpened||0) >= 200 },
+  { id:'curieux',        name:'Curieux',             ico:'📦',  desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
+  { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
+  { id:'accro',          name:'Accro',               ico:'📦📦📦',desc:'Ouvrir 100 packs',             test:s=> (s.packsOpened||0) >= 100 },
+  { id:'inarretable',    name:'Inarrêtable',         ico:'🌀',  desc:'Ouvrir 200 packs',             test:s=> (s.packsOpened||0) >= 200 },
 
-    // Raretés (présence)
-    { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
-    { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
-    { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
-  ];
+  { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
+  { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
+  { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
+];
 
-  // ---- UI helpers
-  const $ = (sel)=> document.querySelector(sel);
-  const toastEl = $('#toast');
-  function toast(msg, ms=1800){
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    setTimeout(()=> toastEl.classList.remove('show'), ms);
-  }
-  function renderBadges(container, defs, ownedMap){
-    container.innerHTML = '';
-    defs.forEach(b=>{
-      const unlocked = !!ownedMap[b.id];
-      const date = ownedMap[b.id]?.acquiredAt ? new Date(ownedMap[b.id].acquiredAt.seconds*1000) : null;
+// ---- UI helpers
+const $ = (sel)=> document.querySelector(sel);
+const toastEl = $('#toast');
+function toast(msg, ms=1800){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), ms);
+}
+function renderBadges(container, defs, ownedMap){
+  container.innerHTML = '';
+  defs.forEach(b=>{
+    const unlocked = !!ownedMap[b.id];
+    const date = ownedMap[b.id]?.acquiredAt ? new Date(ownedMap[b.id].acquiredAt.seconds*1000) : null;
 
-      const card = document.createElement('div');
-      card.className = 'badge-card'+(unlocked?'':' locked');
-      card.innerHTML = `
-        <div class="badge-state">${unlocked? 'Débloqué' : 'Verrouillé'}</div>
-        <div class="badge-ico" aria-hidden="true">${b.ico}</div>
-        <div class="badge-name">${b.name}</div>
-        <div class="badge-desc">${b.desc}</div>
-        ${unlocked && date ? `<div class="date">Débloqué le ${date.toLocaleDateString()}</div>` : ''}
-      `;
-      container.appendChild(card);
-    });
-  }
+    const card = document.createElement('div');
+    card.className = 'badge-card'+(unlocked?'':' locked');
+    card.innerHTML = `
+      <div class="badge-state">${unlocked? 'Débloqué' : 'Verrouillé'}</div>
+      <div class="badge-ico" aria-hidden="true">${b.ico}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      ${unlocked && date ? `<div class="date">Débloqué le ${date.toLocaleDateString()}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
 
-  // ---- Refs DOM
-  const usernameEl = $('#username');
-  const levelEl    = $('#level');
-  const xpLabelEl  = $('#xpLabel');
-  const xpFillEl   = $('#xpFill');
-  const xpPctEl    = $('#xpPct');
-  const avatarEl   = $('#avatar');
-  const syncBadge  = $('#sync');
-  const badgesWrap = $('#badges');
+// ---- Refs DOM
+const usernameEl = $('#username');
+const levelEl    = $('#level');
+const xpLabelEl  = $('#xpLabel');
+const xpFillEl   = $('#xpFill');
+const xpPctEl    = $('#xpPct');
+const avatarEl   = $('#avatar');
+const syncBadge  = $('#sync');
+const badgesWrap = $('#badges');
 
-  // ---- Etat
-  let cardPools = [];
-  let collection = loadLS(LS_KEY, {});
-  let stats = loadLS(LS_STATS, { packsOpened: 0 });
-  let profileLS = loadLS(LS_PROFILE, { level:1, xp:0 });
+// ---- Etat
+let cardPools = [];
+let collection = loadLS(LS_KEY, {});
+let stats = loadLS(LS_STATS, { packsOpened: 0 });
+let profileLS = loadLS(LS_PROFILE, { level:1, xp:0 });
 
-  // ---- Orchestration
-  // 1) Charger le catalogue
-  cardPools = await loadCardSets();
+// ---- Orchestration
+// 1) Charger le catalogue
+cardPools = await loadCardSets();
 
-  // 2) Auth & synchro Cloud → Local, puis calcul des stats communes
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){
-      syncBadge.textContent = 'Hors ligne';
-      usernameEl.textContent = 'Invité';
-      levelEl.textContent = String(profileLS.level||0);
-      xpLabelEl.textContent = `${profileLS.xp||0} XP`;
-      const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / Math.max(1,100)) * 100)));
-      xpFillEl.style.width = p + '%';
-      xpPctEl.textContent = p + '%';
-
-      const progress = computeProgress({ collection, cardPools });
-      draw(progress, {});
-      return;
-    }
-
-    syncBadge.textContent = 'Sync…';
-    avatarEl.textContent = '👤';
-
-    const ref = doc(db,'players',user.uid);
-    const snap = await getDoc(ref);
-    const data = snap.exists()? snap.data() : {};
-
-    // Récup collection (divers schémas)
-    function collectOwned(d){
-      const ids = {};
-      if (d.collection && typeof d.collection === 'object'){
-        for (const [id, qty] of Object.entries(d.collection)) ids[id]=Number(qty||0);
-      }
-      if (d.collections && typeof d.collections === 'object'){
-        for (const setObj of Object.values(d.collections)){
-          if (setObj && typeof setObj === 'object'){
-            for (const [id, qty] of Object.entries(setObj)) ids[id]=(ids[id]||0)+Number(qty||0);
-          }
-        }
-      }
-      if (Array.isArray(d.cardsOwned)){
-        for (const entry of d.cardsOwned){
-          if (typeof entry === 'string') ids[entry]=(ids[entry]||0)+1;
-          else if (entry && entry.id) ids[entry.id]=(ids[entry.id]||0)+Number(entry.qty||1);
-        }
-      }
-      return ids;
-    }
-
-    collection = collectOwned(data);
-    stats.packsOpened = data.packsOpened ?? data.stats?.packsOpened ?? stats.packsOpened ?? 0;
-    profileLS.level = data.level ?? profileLS.level ?? 1;
-    profileLS.xp    = data.xp    ?? profileLS.xp    ?? 0;
-
-    saveLS(LS_KEY, collection); saveLS(LS_STATS, stats); saveLS(LS_PROFILE, profileLS);
-
-    // UI Infos joueur
-    usernameEl.textContent = data.pseudo || user.displayName || user.email || 'Joueur';
+// 2) Auth & synchro Cloud → Local, puis calcul des stats communes
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    syncBadge.textContent = 'Hors ligne';
+    usernameEl.textContent = 'Invité';
     levelEl.textContent = String(profileLS.level||0);
     xpLabelEl.textContent = `${profileLS.xp||0} XP`;
-    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / Math.max(1, data.xpToLevel||100)) * 100)));
+    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / Math.max(1,100)) * 100)));
     xpFillEl.style.width = p + '%';
     xpPctEl.textContent = p + '%';
 
     const progress = computeProgress({ collection, cardPools });
+    draw({ ...progress, packsOpened: stats.packsOpened }, {}); // rendu (tout verrouillé si pas de badges)
+    return;
+  }
 
-    // Fusion des stats utiles pour badges
-    const sharedStats = {
-      ...progress,
-      packsOpened: stats.packsOpened
-    };
+  syncBadge.textContent = 'Sync…';
+  avatarEl.textContent = '👤';
 
-    // Badges existants
-    let ownedBadges = data.badges || {};
+  const ref = doc(db,'players',user.uid);
+  const snap = await getDoc(ref);
+  const data = snap.exists()? snap.data() : {};
 
-   // 1) Calculs partagés (tu as déjà progress = computeProgress({ collection, cardPools }))
-const sharedStats = {
-  ...progress,
-  packsOpened: stats.packsOpened // si tu as une source packsOpened côté cloud, garde-la ici
-};
-
-// 2) Badges actuels en base
-let ownedBadges = data.badges || {};
-
-// 3) Badges attendus selon la logique courante
-const expected = computeExpectedBadges(sharedStats);
-
-// 4) Diff (ajouts/suppressions)
-const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
-
-// 5) Faut-il écrire (ajout/suppression/version) ?
-const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
-
-if (toAdd.length || toRemove.length || needsVersionBump) {
-  const now = serverTimestamp();
-  const finalBadges = { ...ownedBadges };
-
-  // retirer les badges obsolètes
-  for(const id of toRemove){ delete finalBadges[id]; }
-  // ajouter ceux manquants
-  for(const id of toAdd){ finalBadges[id] = { acquiredAt: now }; }
-
-  try{
-    await updateDoc(ref, {
-      badges: finalBadges,
-      badgeSchemaVersion: BADGE_SCHEMA_VERSION,
-      updatedAt: now
-    });
-
-    if (toAdd.length || toRemove.length) {
-      const plus = toAdd.length ? `+${toAdd.length}` : '';
-      const moins = toRemove.length ? `-${toRemove.length}` : '';
-      toast(`Badges resynchronisés ${[plus,moins].filter(Boolean).join(' / ')}`);
+  // Récup collection (divers schémas)
+  function collectOwned(d){
+    const ids = {};
+    if (d.collection && typeof d.collection === 'object'){
+      for (const [id, qty] of Object.entries(d.collection)) ids[id]=Number(qty||0);
     }
-
-    // relire pour l’affichage
-    const snap2 = await getDoc(ref);
-    ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
-
-  }catch(e){
-    console.error(e);
-    toast('Erreur lors de la resynchronisation des badges');
+    if (d.collections && typeof d.collections === 'object'){
+      for (const setObj of Object.values(d.collections)){
+        if (setObj && typeof setObj === 'object'){
+          for (const [id, qty] of Object.entries(setObj)) ids[id]=(ids[id]||0)+Number(qty||0);
+        }
+      }
+    }
+    if (Array.isArray(d.cardsOwned)){
+      for (const entry of d.cardsOwned){
+        if (typeof entry === 'string') ids[entry]=(ids[entry]||0)+1;
+        else if (entry && entry.id) ids[entry.id]=(ids[entry.id]||0)+Number(entry.qty||1);
+      }
+    }
+    return ids;
   }
+
+  collection = collectOwned(data);
+  stats.packsOpened = data.packsOpened ?? data.stats?.packsOpened ?? stats.packsOpened ?? 0;
+  profileLS.level = data.level ?? profileLS.level ?? 1;
+  profileLS.xp    = data.xp    ?? profileLS.xp    ?? 0;
+
+  saveLS(LS_KEY, collection); saveLS(LS_STATS, stats); saveLS(LS_PROFILE, profileLS);
+
+  // UI Infos joueur
+  usernameEl.textContent = data.pseudo || user.displayName || user.email || 'Joueur';
+  levelEl.textContent = String(profileLS.level||0);
+  xpLabelEl.textContent = `${profileLS.xp||0} XP`;
+  const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / Math.max(1, data.xpToLevel||100)) * 100)));
+  xpFillEl.style.width = p + '%';
+  xpPctEl.textContent = p + '%';
+
+  const progress = computeProgress({ collection, cardPools });
+
+  // Fusion des stats utiles pour badges
+  const sharedStats = { ...progress, packsOpened: stats.packsOpened };
+
+  // Badges existants
+  let ownedBadges = data.badges || {};
+
+  // === Resynchronisation automatique ===
+  const expected = computeExpectedBadges(sharedStats);
+  const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
+  const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
+
+  if (toAdd.length || toRemove.length || needsVersionBump) {
+    const now = serverTimestamp();
+    const finalBadges = { ...ownedBadges };
+
+    for(const id of toRemove){ delete finalBadges[id]; }
+    for(const id of toAdd){ finalBadges[id] = { acquiredAt: now }; }
+
+    try{
+      if (snap.exists()) {
+        await updateDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, updatedAt: now });
+      } else {
+        await setDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, createdAt: now, updatedAt: now }, { merge: true });
+      }
+
+      if (toAdd.length || toRemove.length) {
+        const plus = toAdd.length ? `+${toAdd.length}` : '';
+        const moins = toRemove.length ? `-${toRemove.length}` : '';
+        toast(`Badges resynchronisés ${[plus,moins].filter(Boolean).join(' / ')}`);
+      }
+
+      const snap2 = await getDoc(ref);
+      ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
+    }catch(e){
+      console.error(e);
+      toast('Erreur lors de la resynchronisation des badges');
+    }
+  }
+
+  draw(sharedStats, ownedBadges);
+  syncBadge.textContent = 'En ligne';
+}); // <<< FIN onAuthStateChanged (manquait dans ta version)
+
+// ---- Rendu
+function draw(sharedStats, ownedBadges){
+  renderBadges(badgesWrap, BADGES, ownedBadges || {});
+  // console.log('[profil] stats', sharedStats, 'badges', ownedBadges);
 }
+</script>
 
-// 6) Rendu UI (toujours à la fin)
-renderBadges(badgesWrap, BADGES, ownedBadges || {});
-syncBadge.textContent = 'En ligne';
-
-
-  function draw(sharedStats, ownedBadges){
-    renderBadges(badgesWrap, BADGES, ownedBadges || {});
-    // (Optionnel) log debug :
-    // console.log('[profil] stats partagées', sharedStats);
-  }
-  </script>
 </body>
 </html>
