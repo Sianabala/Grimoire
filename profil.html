@@ -323,6 +323,9 @@ const BADGES = [
   { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
   { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
   { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
+
+  { id:'apprenti',       name:'Apprenti',         ico:'📖',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
+  { id:'gardienconfirme',name:'Gardien confirmé', ico:'🛡️',  desc:'Atteindre le niveau 20',  
 ];
 
 // ---- UI helpers
