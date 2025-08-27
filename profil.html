@@ -319,11 +319,12 @@ const BADGES = [
   { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
   { id:'accro',          name:'Accro',               ico:'📦📦📦',desc:'Ouvrir 100 packs',             test:s=> (s.packsOpened||0) >= 100 },
   { id:'inarretable',    name:'Inarrêtable',         ico:'🌀',  desc:'Ouvrir 200 packs',             test:s=> (s.packsOpened||0) >= 200 },
+  { id:'paaaaacks',    name:'Des paaaaacks',         ico:'🌀🌀',  desc:'Ouvrir 500 packs',             test:s=> (s.packsOpened||0) >= 500 },
 
   { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
   { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
   { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
-  { id:'chasseur',       name:'La brillance', ico:'💎',  desc:'10 exotiques',     test:s=> ((s.byRarity['exotique']||0)) >= 10 },
+  { id:'brillance',       name:'La brillance', ico:'💎',  desc:'Trouver 10 exotiques',     test: s => ((s.byRarity[RARITY.EXOTIC]||0)) >= 10 },
 
   { id:'apprenti',       name:'Apprenti',         ico:'📖',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
   { id:'gardienconfirme',name:'Gardien confirmé', ico:'🛡️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||6) >= 20 },
