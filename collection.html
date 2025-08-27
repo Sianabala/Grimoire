@@ -405,6 +405,20 @@
 
   
   <script type="module">
+
+    // -- Couper tous les logs qui contiennent "[DEBUG]" --
+{
+  const wrap = (orig) => (...args) => {
+    const first = (typeof args[0] === 'string') ? args[0] : '';
+    if (first.includes('[DEBUG]')) return; // on n'affiche pas
+    orig(...args);
+  };
+  console.log   = wrap(console.log.bind(console));
+  console.warn  = wrap(console.warn.bind(console));
+  console.info  = wrap((console.info || console.log).bind(console));
+  console.debug = wrap((console.debug || console.log).bind(console));
+}
+
     console.log('[DEBUG][collection] script chargé');
 
     // Firebase
