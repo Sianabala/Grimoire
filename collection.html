@@ -405,19 +405,20 @@
 
   
   <script type="module">
-
-    // -- Couper tous les logs qui contiennent "[DEBUG]" --
+  // --- SILENCE des logs "[DEBUG]" ---
+// Doit être la première ligne du <script type="module">
 {
   const wrap = (orig) => (...args) => {
-    const first = (typeof args[0] === 'string') ? args[0] : '';
-    if (first.includes('[DEBUG]')) return; // on n'affiche pas
+    const s0 = typeof args[0] === 'string' ? args[0] : '';
+    if (s0.includes('[DEBUG]')) return;  // n'affiche pas ces messages
     orig(...args);
   };
   console.log   = wrap(console.log.bind(console));
-  console.warn  = wrap(console.warn.bind(console));
-  console.info  = wrap((console.info || console.log).bind(console));
+  console.info  = wrap((console.info  || console.log).bind(console));
+  console.warn  = wrap((console.warn  || console.log).bind(console));
   console.debug = wrap((console.debug || console.log).bind(console));
 }
+
 
     console.log('[DEBUG][collection] script chargé');
 
