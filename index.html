@@ -1109,22 +1109,46 @@ document.body.className = 'logged-in';
   });
 
   // --- Cloud bootstrap
-  async function loadOrCreatePlayerDoc(user){
-    playerDocRef = doc(db,'players',user.uid);
-    const snap = await getDoc(playerDocRef);
-    if(!snap.exists()){
-      const base = { displayName:user.displayName||'', photoURL:user.photoURL||'', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), stats:{packsOpened:0}, collection:{}, level:1, xp:0, rewardsInbox:[], packBalances:{standard:0,premium:0} };
-      await setDoc(playerDocRef, base);
-      updateLocalFromCloud(base);
-      return base;
-    }
-    const data = snap.data();
-    // Backfill packBalances si manquant
-    if(!data.packBalances){ try{ await updateDoc(playerDocRef,{ packBalances:{standard:0,premium:0}, updatedAt:serverTimestamp() }); }catch{} }
-    updateLocalFromCloud(data);
-    try{ await updateDoc(playerDocRef,{updatedAt:serverTimestamp()}); }catch{}
-    return data;
+ import { setDoc, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+async function loadOrCreatePlayerDoc(user){
+  playerDocRef = doc(db,'players',user.uid);
+
+  // 1) Lis l’existant
+  const snap = await getDoc(playerDocRef);
+  if (!snap.exists()) {
+    // 2) Premier login : on crée un doc MINIMAL en merge (n’écrase jamais rien)
+    const base = {
+      displayName: user.displayName || '',
+      photoURL: user.photoURL || '',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      // ⚠️ NE PAS mettre packBalances ici
+      // ⚠️ NE PAS réinitialiser stats ici
+      // Tu peux garder des valeurs par défaut côté UI uniquement
+    };
+    await setDoc(playerDocRef, base, { merge: true }); // merge = pas d’écrasement
+    updateLocalFromCloud({
+      collection: {},
+      stats: { packsOpened: 0 },
+      level: 1,
+      xp: 0,
+      rewardsInbox: [],
+      // packBalances est volontairement omis : l’UI affichera 0 sans l’écrire
+    });
+    return (await getDoc(playerDocRef)).data() || base;
   }
+
+  // 3) Doc existant : on NE TOUCHE PAS aux soldes ici
+  const data = snap.data() || {};
+  updateLocalFromCloud(data);
+
+  // 4) Ping de fraîcheur (facultatif) — n’écrase aucun champ sensible
+  try { await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); } catch {}
+
+  return data;
+}
+
 
   // --- UI Sets + Chooser
   const setsWrap = document.getElementById('sets');
