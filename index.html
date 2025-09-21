@@ -688,6 +688,15 @@ body.logged-in .hero-header .hero-actions{
 const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+    
+    // Persistance locale (évite les déconnexions inattendues entre onglets)
+try { await setPersistence(auth, browserLocalPersistence); } catch(e){ console.warn('[AUTH] setPersistence', e); }
+
+// Alerte si la page est ouverte en file:// (Firebase Auth ne fonctionne pas dans ce contexte)
+if (location.protocol === 'file:') {
+  alert("Cette page est ouverte en 'file://'. Lance-la via un serveur local (ex: 'npm serve', 'vite', ou Firebase Hosting) pour que la connexion fonctionne.");
+}
+
 
   // --- Auth provider (Twitch via OIDC)
   const twitchProvider = new OAuthProvider('oidc.twitch');
