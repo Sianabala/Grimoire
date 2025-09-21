@@ -1109,8 +1109,6 @@ document.body.className = 'logged-in';
   });
 
   // --- Cloud bootstrap
- import { setDoc, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
 async function loadOrCreatePlayerDoc(user){
   playerDocRef = doc(db,'players',user.uid);
 
