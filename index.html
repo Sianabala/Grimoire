@@ -707,6 +707,32 @@ if (location.protocol === 'file:') {
   async function saveDisplayNameIfAny(user, nick){ if(!user || !nick) return; playerDocRef = playerDocRef || doc(db,'players',user.uid); try{ await setDoc(playerDocRef, { displayName: nick, displayNameLower: nick.toLowerCase(), updatedAt: serverTimestamp() }, { merge:true }); console.log('[DEBUG] Pseudo enregistré:', nick); }catch(e){ console.warn('saveDisplayNameIfAny failed', e); } }
   async function trySavePseudonymFromCredential(cred, user){ if(!user) return; let nick = user.displayName || ''; if(!nick && cred?.idToken){ const claims = decodeJwtPayload(cred.idToken); nick = claims.preferred_username || claims.nickname || ''; } await saveDisplayNameIfAny(user, nick); }
 
+function decodeJwtPayload(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  return JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+}
+
+async function saveTwitchIdIfAny(user, cred) {
+  try {
+    if (!user || !cred?.idToken) return;
+    const claims = decodeJwtPayload(cred.idToken);
+    const twitchId = claims?.sub || claims?.twitch_user_id || null;
+    if (!twitchId) return;
+
+    const ref = doc(db, 'players', user.uid);
+    await setDoc(ref, {
+      twitchId,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    console.log('[AUTH] twitchId enregistré pour', user.displayName, ':', twitchId);
+  } catch (e) {
+    console.warn('[AUTH] saveTwitchIdIfAny failed', e);
+  }
+}
+
+    
   // --- UI buttons
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
@@ -732,7 +758,13 @@ function setGuestMode(isGuest){
 
     
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
-  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
+  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); 
+  const result = await signInWithPopup(auth, twitchProvider); 
+  const cred = OAuthProvider.credentialFromResult(result); 
+  await trySavePseudonymFromCredential(cred, result.user); } 
+  await saveTwitchIdIfAny(result.user, cred);
+
+  catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 // --- Rarity constants
   const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
