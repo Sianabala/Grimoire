@@ -747,11 +747,11 @@ function setGuestMode(isGuest){
 // === Anniversaire (Europe/Paris) ===
 const BIRTHDAY_DATE_ISO = '2025-09-24'; // ✅ aujourd’hui
 const BIRTHDAY_COLLECTOR = {
-  id: 'collector-bday-2025',
-  name: "Souvenir d'Anniversaire 2025",
-  set: "Événement Anniversaire",
-  rarity: RARITY.RARE, // garde 'rare' pour compat UI/tri
-  image: 'https://i.goopics.net/e69ph5.png', // remplace par ton visuel
+  id: '32ans',
+  name: "Souvenir d'anniversaire",
+  set: "Événements & Spéciales",
+  rarity: RARITY.EXOTIC,
+  image: 'https://i.goopics.net/e69ph5.png', 
 };
 
 function isBirthdayToday() {
@@ -1103,9 +1103,14 @@ async function openBirthdayPack({ setId } = {}) {
       if (availablePremium <= 0) throw new Error('Aucun pack Premium disponible (requis pour l’Anniversaire)');
       balances.premium = availablePremium - 1;
 
-       // Cartes tirées (dans la collection “normale”)
+      // Cartes tirées (collection "normale")
       const newCollection = { ...(cur.collection || {}) };
       for (const c of cards) newCollection[c.id] = (newCollection[c.id] || 0) + 1;
+      
+      // Collector → collection spéciale
+      const newSpecials = { ...(cur.specialCollection || {}) };
+      newSpecials[BIRTHDAY_COLLECTOR.id] =
+        (newSpecials[BIRTHDAY_COLLECTOR.id] || 0) + 1;
       
       // Collector Anniversaire → dans une collection dédiée
       const newSpecials = { ...(cur.specialCollection || {}) };
