@@ -218,6 +218,7 @@ function mapRarity(r){
 const SET_FILES = [
   '/data/sets/nouvelle-lumiere.json',
   '/data/sets/twitch.json',
+  '/data/sets/speciales.json',
 ];
 
 async function loadCardSets(){
@@ -286,7 +287,7 @@ function computeProgress({ collection, cardPools }){
 }
 
 // ---- Version de schéma badges + helpers de resync
-const BADGE_SCHEMA_VERSION = 2;
+const BADGE_SCHEMA_VERSION = 3;
 
 function computeExpectedBadges(sharedStats){
   const expected = {};
@@ -328,6 +329,8 @@ const BADGES = [
 
   { id:'apprenti',       name:'Apprenti',         ico:'📖',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
   { id:'gardienconfirme',name:'Gardien confirmé', ico:'🛡️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||6) >= 20 },
+  { id:'anniv2025',  name:'Anniversaire 2025',  ico:'🎂',  desc:'Présent(e) au stream Anniversaire 2025',  test: s => !!s.hasAnniv2025
+},
 ];
 
 // ---- UI helpers
@@ -419,6 +422,12 @@ onAuthStateChanged(auth, async (user)=>{
         else if (entry && entry.id) ids[entry.id]=(ids[entry.id]||0)+Number(entry.qty||1);
       }
     }
+    // 4) Collection spéciale (collectors / événements)
+    if (d.specialCollection && typeof d.specialCollection === 'object'){
+      for (const [id, qty] of Object.entries(d.specialCollection)){
+        ids[id] = (ids[id] || 0) + Number(qty || 0);
+      }
+    }
     return ids;
   }
 
@@ -440,6 +449,10 @@ onAuthStateChanged(auth, async (user)=>{
   const progress = computeProgress({ collection, cardPools });
 
   // Fusion des stats utiles pour badges
+  const hasAnniv2025 =
+  (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
+  (collection[ANNIV2025_ID] || 0) > 0;
+  
   const sharedStats = { ...progress, packsOpened: stats.packsOpened };
 
   // Badges existants
