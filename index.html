@@ -787,7 +787,8 @@ function weightedPickRarity(weights) {
   // --- Sets (2 sets visibles au lancement)
   const SETS = [
   { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:"https://i.goopics.net/ilm7lk.png" },
-  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:"https://i.goopics.net/wnhrl2.png" }
+  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:"https://i.goopics.net/wnhrl2.png" },
+  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:"https://i.goopics.net/lni3ic.png", comingSoon:true }
 ];
 
   // --- Pools par set + pool combiné
@@ -1395,41 +1396,58 @@ if (pcBirthday) {
     openBirthdayPack({ setId: currentSetId });
   });
 }
+function openChooser(setId){
+  const s = SETS.find(x=>x.id===setId);
+  if (s?.comingSoon) {
+    toast('🚧 Ce set arrive bientôt !');
+    return; // on n’ouvre pas le modal
+  }
+  currentSetId = setId;
+  pcSetName.textContent = s?.name || '—';
+  chooser.hidden = false;
+  refreshPackUI();
+}
 
+    
   chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
-  function renderSets(){
-    setsWrap.innerHTML='';
-    for(const s of SETS){
-      const count = (CARD_SETS[s.id]||[]).length || 0;
+ function renderSets(){
+  setsWrap.innerHTML='';
+  for(const s of SETS){
+    const count = (CARD_SETS[s.id]||[]).length || 0;
+    const disabled = !!s.comingSoon;
 
-      const el = document.createElement('div');
-      el.className='set';
-      el.innerHTML = `
-        <div class="cover">
-          <img src="${s.img}" alt="Visuel du set ${s.name}">
-          <div class="overlay">
-            <div>
-              <div class="name">${s.name}</div>
-              <div class="meta">${count} cartes</div>
-            </div>
-            <button class="btn pill" aria-label="Ouvrir ${s.name}">Ouvrir</button>
+    const el = document.createElement('div');
+    el.className='set';
+    el.innerHTML = `
+      <div class="cover">
+        <img src="${s.img}" alt="Visuel du set ${s.name}">
+        <div class="overlay">
+          <div>
+            <div class="name">${s.name}</div>
+            <div class="meta">${disabled ? 'en préparation' : count + ' cartes'}</div>
           </div>
+          <button class="btn pill ${disabled ? 'ghost' : ''}" ${disabled ? 'disabled aria-disabled="true" title="Bientôt disponible"' : ''} aria-label="${disabled ? 'Bientôt' : 'Ouvrir '+s.name}">
+            ${disabled ? '🚧 Bientôt' : 'Ouvrir'}
+          </button>
         </div>
-        <div class="stats-row">
-          <span class="tag"><span class="dot"></span>Set disponible</span>
-          <span class="subtitle">Clique sur Ouvrir pour choisir Standard/Premium</span>
-        </div>
-      `;
+      </div>
+      <div class="stats-row">
+        <span class="tag"><span class="dot"></span>${disabled ? 'Set à venir' : 'Set disponible'}</span>
+        <span class="subtitle">${disabled ? 'Ouverture bientôt disponible' : 'Clique sur Ouvrir pour choisir Standard/Premium'}</span>
+      </div>
+    `;
 
-      const openBtn = el.querySelector('button');
+    const openBtn = el.querySelector('button');
+    if (!disabled){
       openBtn.addEventListener('click', ()=> openChooser(s.id));
       el.querySelector('.cover').addEventListener('click', ()=> openChooser(s.id));
-
-      setsWrap.appendChild(el);
     }
-    refreshPackUI();
+    setsWrap.appendChild(el);
   }
+  refreshPackUI();
+}
+
 
   // --- Toast helper
   function toast(msg,ms=1800){ let t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=> t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(),200); }, ms); }
