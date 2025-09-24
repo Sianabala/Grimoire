@@ -608,10 +608,15 @@ body.logged-in .hero-header .hero-actions{
         <h4 id="pc-title">Choisis le niveau du pack</h4>
         <div class="subtitle" id="pc-sub">Set sélectionné : <span id="pc-set-name">—</span></div>
         <div class="row">
-          <button id="pc-standard" class="btn pill">🎴 Standard</button>
-          <button id="pc-premium" class="btn pill ghost">💎 Premium</button>
-        </div>
-        <div class="subtitle" style="margin-top:10px">Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs) </div>
+  <button id="pc-standard" class="btn pill">🎴 Standard</button>
+  <button id="pc-premium" class="btn pill ghost">💎 Premium</button>
+  <button id="pc-birthday" class="btn pill" style="display:none">🎂 Anniversaire (aujourd’hui)</button>
+</div>
+<div class="subtitle" style="margin-top:10px">
+  Premium : 5 cartes dont ≥ 1 Rare mini (débloqué avec 5 subs) · 
+  <span id="pc-birthday-hint" style="display:none">🎉 Bonus XP ×2 + carte collector exclusive aujourd’hui</span>
+</div>
+
         <div class="row" style="justify-content:flex-end">
           <button id="pc-cancel" class="btn ghost pill">Annuler</button>
         </div>
@@ -739,6 +744,48 @@ function setGuestMode(isGuest){
   const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
   const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
 
+// === Anniversaire (Europe/Paris) ===
+const BIRTHDAY_DATE_ISO = '2025-09-24'; // ✅ aujourd’hui
+const BIRTHDAY_COLLECTOR = {
+  id: 'collector-bday-2025',
+  name: "Souvenir d'Anniversaire 2025",
+  set: "Événement Anniversaire",
+  rarity: RARITY.RARE, // garde 'rare' pour compat UI/tri
+  image: 'https://i.goopics.net/your-collector.png', // remplace par ton visuel
+};
+
+function isBirthdayToday() {
+  try {
+    const fmt = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const p = fmt.formatToParts(new Date());
+    const today = `${p.find(x=>x.type==='year').value}-${p.find(x=>x.type==='month').value}-${p.find(x=>x.type==='day').value}`;
+    return today === BIRTHDAY_DATE_ISO;
+  } catch {
+    const d = new Date();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${mm}-${dd}` === BIRTHDAY_DATE_ISO;
+  }
+}
+
+// Poids boostés pour l’event (hors slot garanti Rare+)
+const BDAY_WEIGHTS = {
+  [RARITY.COMMON]: 50,
+  [RARITY.UNCOMMON]: 25,
+  [RARITY.RARE]: 15,
+  [RARITY.LEGENDARY]: 7,
+  [RARITY.EXOTIC]: 3,
+};
+
+function weightedPickRarity(weights) {
+  const entries = Object.entries(weights);
+  const total = entries.reduce((s,[,w])=>s+w,0);
+  let r = Math.random()*total;
+  for (const [rar,w] of entries) { if (r < w) return rar; r -= w; }
+  return entries[0][0];
+}
+
+    
   // --- Sets (2 sets visibles au lancement)
   const SETS = [
   { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:"https://i.goopics.net/ilm7lk.png" },
@@ -856,6 +903,20 @@ const res = await fetch(s.json, {cache:'no-store'});
   function pickCardByRarity(rarity, pool){ const p = (pool||[]).filter(c=>c.rarity===rarity); if(p.length===0){ const idx=rarityOrder.indexOf(rarity); for(let j=idx-1;j>=0;j--){ const q=(pool||[]).filter(c=>c.rarity===rarityOrder[j]); if(q.length) return q[Math.floor(Math.random()*q.length)]; } return (pool||ALL_CARDS)[Math.floor(Math.random()*Math.max(1,(pool||ALL_CARDS).length))]; } return p[Math.floor(Math.random()*p.length)]; }
   function ensureAtLeastRare(){ const r=Math.random()*(RARITY_WEIGHTS[RARITY.RARE]+RARITY_WEIGHTS[RARITY.LEGENDARY]+RARITY_WEIGHTS[RARITY.EXOTIC]); const thresholds=[[RARITY.RARE,RARITY_WEIGHTS[RARITY.RARE]],[RARITY.LEGENDARY,RARITY_WEIGHTS[RARITY.LEGENDARY]],[RARITY.EXOTIC,RARITY_WEIGHTS[RARITY.EXOTIC]]]; let sum=0; for(const [rar,w] of thresholds){ sum+=w; if(r<sum) return rar; } return RARITY.RARE; }
 
+function drawBirthdayCards(pool) {
+  const cards = [];
+  // 4 tirages “normaux” (poids boostés)
+  for (let i = 0; i < 4; i++) {
+    const rar = weightedPickRarity(BDAY_WEIGHTS);
+    cards.push(pickCardByRarity(rar, pool));
+  }
+  // 1 tirage garanti ≥ Rare
+  const guaranteed = ensureAtLeastRare();
+  cards.push(pickCardByRarity(guaranteed, pool));
+  return cards;
+}
+
+    
   // --- Overlay animation (inchangé sauf logique verso/face)
   const overlay = document.getElementById('pack-overlay');
   const poPack  = document.getElementById('po-pack');
@@ -1026,6 +1087,60 @@ hideOverlay();
     if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
     if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
 
+async function openBirthdayPack({ setId } = {}) {
+  if (!isBirthdayToday()) { alert("Le pack Anniversaire n'est disponible qu'aujourd'hui."); return; }
+  const pool = CARD_SETS[setId] || ALL_CARDS;
+  if (!pool.length) { alert('Cartes non chargées pour ce set.'); return; }
+  if (!isCloud()) { alert('Connecte-toi avec Twitch pour ouvrir des packs.'); return; }
+
+  const cards = drawBirthdayCards(pool);
+
+  let newDocState = null;
+  try {
+    newDocState = await runTransaction(db, async (trx) => {
+      const snap = await trx.get(playerDocRef);
+      if (!snap.exists()) throw new Error('Profil introuvable');
+      const cur = snap.data() || {};
+
+      // ✅ on consomme 1 Premium pour cet event
+      const balances = { ...(cur.packBalances || {}) };
+      const availablePremium = Math.max(0, balances.premium || 0);
+      if (availablePremium <= 0) throw new Error('Aucun pack Premium disponible (requis pour l’Anniversaire)');
+      balances.premium = availablePremium - 1;
+
+      // Collection (tirages) + collector si manquante
+      const newCollection = { ...(cur.collection || {}) };
+      for (const c of cards) newCollection[c.id] = (newCollection[c.id] || 0) + 1;
+      if (!newCollection[BIRTHDAY_COLLECTOR.id]) newCollection[BIRTHDAY_COLLECTOR.id] = 1;
+
+      // Stats + XP doublée (vs premium)
+      const newStats = { ...(cur.stats || {}), packsOpened: Math.max(0,(cur.stats?.packsOpened||0)) + 1 };
+      let level = cur.level || 1;
+      let xp = (cur.xp || 0) + (xpGainForPack('premium') * 2);
+      let rewards = Array.isArray(cur.rewardsInbox) ? cur.rewardsInbox.slice() : [];
+      let need = xpForLevel(level);
+      while (xp >= need) {
+        xp -= need; level += 1; need = xpForLevel(level);
+        const rw = nextRewardForLevel(level - 1);
+        rewards.push({ id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() });
+      }
+
+      const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, packBalances:balances, updatedAt: serverTimestamp() };
+      trx.set(playerDocRef, newDoc, { merge:true });
+      return newDoc;
+    });
+  } catch (e) {
+    alert(e.message || String(e));
+    return;
+  }
+
+  updateLocalFromCloud(newDocState);
+  await playPackAnimation(cards.concat([BIRTHDAY_COLLECTOR]), setId); // on “montre” aussi la collector
+  renderResults(cards.concat([BIRTHDAY_COLLECTOR]));
+  toast('🎂 Pack Anniversaire ouvert ! (+XP ×2 & collector)');
+}
+
+    
     // Tirage (client) depuis le pool du set
     const cards=[];
     if(type==='premium'){
@@ -1165,6 +1280,10 @@ async function loadOrCreatePlayerDoc(user){
   const pcPremium = document.getElementById('pc-premium');
   const pcCancel = document.getElementById('pc-cancel');
   let currentSetId = null;
+  const pcBirthday = document.getElementById('pc-birthday');
+  const pcBirthdayHint = document.getElementById('pc-birthday-hint');
+
+   
 
   function refreshPackUI(){
     // Met à jour le badge + états des boutons de choix
@@ -1172,6 +1291,20 @@ async function loadOrCreatePlayerDoc(user){
     if(badgeEl){ badgeEl.textContent = `Packs dispo : Standard ×${packBalances.standard} · Premium ×${packBalances.premium}`; badgeEl.style.display = ''; }
     if(pcStandard){ pcStandard.textContent = `🎴 Standard ${packBalances.standard?`(×${packBalances.standard})`:''}`; pcStandard.disabled = packBalances.standard<=0; pcStandard.classList.toggle('ghost', packBalances.standard<=0); pcStandard.title = packBalances.standard<=0 ? 'Aucun pack Standard disponible' : ''; }
     if(pcPremium){ pcPremium.textContent = `💎 Premium ${packBalances.premium?`(×${packBalances.premium})`:''}`; pcPremium.disabled = packBalances.premium<=0; pcPremium.classList.toggle('ghost', packBalances.premium<=0); pcPremium.title = packBalances.premium<=0 ? 'Aucun pack Premium disponible' : ''; }
+    // Bouton Anniversaire (visible uniquement aujourd'hui)
+if (pcBirthday) {
+  const today = isBirthdayToday();
+  pcBirthday.style.display = today ? '' : 'none';
+  if (pcBirthdayHint) pcBirthdayHint.style.display = today ? '' : 'none';
+
+  // Requiert 1 pack Premium disponible
+  pcBirthday.disabled = !(today && packBalances.premium > 0);
+  pcBirthday.classList.toggle('ghost', pcBirthday.disabled);
+  pcBirthday.title = pcBirthday.disabled
+    ? (today ? 'Aucun pack Premium disponible' : "Disponible uniquement aujourd’hui")
+    : 'Ouvrir le Pack Anniversaire (Premium requis)';
+}
+
     // Désactive les boutons "Ouvrir" de chaque set si aucun pack
     const noPacks = (packBalances.standard + packBalances.premium) <= 0;
     document.querySelectorAll('.set .overlay .btn').forEach(btn=>{ btn.disabled = noPacks; btn.classList.toggle('ghost', noPacks); btn.title = noPacks ? 'Aucun pack disponible. Obtiens des packs via admin ou récompenses.' : ''; });
@@ -1183,6 +1316,14 @@ async function loadOrCreatePlayerDoc(user){
   pcStandard.addEventListener('click', ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'standard'); });
   pcPremium.addEventListener('click',  ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'premium');  });
   pcCancel.addEventListener('click', closeChooser);
+    if (pcBirthday) {
+  pcBirthday.addEventListener('click', () => {
+    if (!currentSetId) return;
+    closeChooser();
+    openBirthdayPack({ setId: currentSetId });
+  });
+}
+
   chooser.querySelector('.backdrop').addEventListener('click', closeChooser);
 
   function renderSets(){
