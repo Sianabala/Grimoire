@@ -1082,12 +1082,7 @@ hideOverlay();
  }
 
   // --- Ouverture de pack (bloquée par solde packBalances) ---
-  async function openPack({type='standard', setId} = {}){
-    const pool = CARD_SETS[setId] || ALL_CARDS;
-    if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
-    if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
-
-async function openBirthdayPack({ setId } = {}) {
+ async function openBirthdayPack({ setId } = {}) {
   if (!isBirthdayToday()) { alert("Le pack Anniversaire n'est disponible qu'aujourd'hui."); return; }
   const pool = CARD_SETS[setId] || ALL_CARDS;
   if (!pool.length) { alert('Cartes non chargées pour ce set.'); return; }
@@ -1101,6 +1096,14 @@ async function openBirthdayPack({ setId } = {}) {
       const snap = await trx.get(playerDocRef);
       if (!snap.exists()) throw new Error('Profil introuvable');
       const cur = snap.data() || {};
+      
+      
+      async function openPack({type='standard', setId} = {}){
+    const pool = CARD_SETS[setId] || ALL_CARDS;
+    if(!pool.length){ alert('Cartes non chargées pour ce set.'); return; }
+    if(!isCloud()){ alert('Connecte-toi avec Twitch pour ouvrir des packs (mode cloud).'); return; }
+
+
 
       // ✅ on consomme 1 Premium pour cet event
       const balances = { ...(cur.packBalances || {}) };
@@ -1372,6 +1375,13 @@ if (pcBirthday) {
     renderSets();
     document.getElementById('results').innerHTML = '';
 
+// Ajoute la carte collector dans le catalogue UNIQUEMENT aujourd'hui
+if (isBirthdayToday()) {
+  const already = ALL_CARDS.some(c => c.id === BIRTHDAY_COLLECTOR.id);
+  if (!already) ALL_CARDS.push(BIRTHDAY_COLLECTOR);
+}
+
+    
     // bouton en état 0 avant la première synchro cloud
     updateRewardButton([]);
     refreshPackUI();
