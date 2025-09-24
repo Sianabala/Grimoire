@@ -395,7 +395,7 @@ onAuthStateChanged(auth, async (user)=>{
     xpPctEl.textContent = p + '%';
 
     const progress = computeProgress({ collection, cardPools });
-    draw({ ...progress, packsOpened: stats.packsOpened }, {}); // rendu (tout verrouillé si pas de badges)
+    draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {}); // rendu (tout verrouillé si pas de badges)
     return;
   }
 
@@ -456,7 +456,7 @@ onAuthStateChanged(auth, async (user)=>{
   (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
   (collection[ANNIV2025_ID] || 0) > 0;
   
- const sharedStats = { ...progress, packsOpened: stats.packsOpened, hasAnniv2025 };
+ const sharedStats = { ...progress, packsOpened: stats.packsOpened, level: profileLS.level, hasAnniv2025 };
 
   // Badges existants
   let ownedBadges = data.badges || {};
