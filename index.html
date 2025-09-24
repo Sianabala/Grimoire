@@ -1112,11 +1112,6 @@ async function openBirthdayPack({ setId } = {}) {
       newSpecials[BIRTHDAY_COLLECTOR.id] =
         (newSpecials[BIRTHDAY_COLLECTOR.id] || 0) + 1;
       
-      // Collector Anniversaire → dans une collection dédiée
-      const newSpecials = { ...(cur.specialCollection || {}) };
-      newSpecials[BIRTHDAY_COLLECTOR.id] =
-        (newSpecials[BIRTHDAY_COLLECTOR.id] || 0) + 1;
-
       // Stats + XP doublée (vs premium)
       const newStats = { ...(cur.stats || {}), packsOpened: Math.max(0,(cur.stats?.packsOpened||0)) + 1 };
       let level = cur.level || 1;
