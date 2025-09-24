@@ -462,7 +462,8 @@
     let CARD_POOLS = [];
     const SET_FILES = [
       '/data/sets/nouvelle-lumiere.json',
-      '/data/sets/twitch.json'
+      '/data/sets/twitch.json',
+      '/data/speciales.json'
     ];
 
     const FALLBACK_CARDS = [
@@ -493,11 +494,14 @@
           const data = await res.json();
 
           const setName =
-            data?.set
-              || data?.name
-              || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
-                  : url.includes('twitch') ? 'Twitch'
-                  : 'Set inconnu');
+  (url.includes('speciales') ? 'Événements & Spéciales' : null)
+  || data?.set?.name
+  || data?.set
+  || data?.name
+  || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
+      : url.includes('twitch') ? 'Twitch'
+      : 'Set inconnu');
+
 
           if (!Array.isArray(data?.cards) || !data.cards.length) {
             console.warn('[DEBUG][collection] Fichier sans cartes:', url);
@@ -505,12 +509,13 @@
           }
 
           const mapped = data.cards.map(c => ({
-            id: c.id,
-            name: c.name,
-            set: c.set || setName,
-            rarity: mapRarity(c.rarity),
-            image: c.image || ''
-          }));
+  id: c.id,
+  name: c.name,
+  set: setName,                         // 👈 on fige le set affiché
+  rarity: mapRarity(c.rarity),
+  image: c.image || ''
+}));
+
 
           CARD_POOLS.push(...mapped);
           loadedSets.add(setName);
@@ -603,6 +608,14 @@ function collectOwned(d){
       }
     }
   }
+
+  // 4) Collection spéciale (collectors, événements)
+if (d && d.specialCollection && typeof d.specialCollection === 'object'){
+  for (const [id, qty] of Object.entries(d.specialCollection)){
+    out[id] = (out[id] || 0) + Number(qty || 0);
+  }
+}
+
   return out;
 }
 
