@@ -456,7 +456,7 @@ onAuthStateChanged(auth, async (user)=>{
   (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
   (collection[ANNIV2025_ID] || 0) > 0;
   
-  const sharedStats = { ...progress, packsOpened: stats.packsOpened };
+ const sharedStats = { ...progress, packsOpened: stats.packsOpened, hasAnniv2025 };
 
   // Badges existants
   let ownedBadges = data.badges || {};
