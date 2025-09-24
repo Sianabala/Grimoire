@@ -1103,10 +1103,14 @@ async function openBirthdayPack({ setId } = {}) {
       if (availablePremium <= 0) throw new Error('Aucun pack Premium disponible (requis pour l’Anniversaire)');
       balances.premium = availablePremium - 1;
 
-      // Collection (tirages) + collector si manquante
+       // Cartes tirées (dans la collection “normale”)
       const newCollection = { ...(cur.collection || {}) };
       for (const c of cards) newCollection[c.id] = (newCollection[c.id] || 0) + 1;
-      if (!newCollection[BIRTHDAY_COLLECTOR.id]) newCollection[BIRTHDAY_COLLECTOR.id] = 1;
+      
+      // Collector Anniversaire → dans une collection dédiée
+      const newSpecials = { ...(cur.specialCollection || {}) };
+      newSpecials[BIRTHDAY_COLLECTOR.id] =
+        (newSpecials[BIRTHDAY_COLLECTOR.id] || 0) + 1;
 
       // Stats + XP doublée (vs premium)
       const newStats = { ...(cur.stats || {}), packsOpened: Math.max(0,(cur.stats?.packsOpened||0)) + 1 };
@@ -1120,7 +1124,14 @@ async function openBirthdayPack({ setId } = {}) {
         rewards.push({ id:'rw_'+Date.now()+Math.random().toString(36).slice(2), type:rw.type, label:rw.label, t:Date.now() });
       }
 
-      const newDoc = { stats:newStats, collection:newCollection, level, xp, rewardsInbox:rewards, packBalances:balances, updatedAt: serverTimestamp() };
+      const newDoc = { 
+        stats:newStats, 
+        collection:newCollection, 
+        specialCollection: newSpecials,
+        level, xp, 
+        rewardsInbox:rewards, 
+        packBalances:balances, 
+        updatedAt: serverTimestamp() };
       trx.set(playerDocRef, newDoc, { merge:true });
       return newDoc;
     });
