@@ -898,46 +898,7 @@ const res = await fetch(s.json, {cache:'no-store'});
   function xpForLevel(level){ return 50 * Math.max(1, level); }
   function xpGainForPack(type){ return (type === 'premium') ? 10 : 5; }
   function nextRewardForLevel(level){ if(level===1) return {type:'pack_standard', label:'Pack Standard'}; if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'}; return {type:'pack_standard', label:'Pack Standard'}; }
-
-// === Helpers XP / Niveau existants ===
-function xpForLevel(level){ … }
-function nextRewardForLevel(level){ … }
-
-// === Agrégation de la collection (copié de collection.html)
-function collectOwned(d){
-  const out = {};
-  if (d && d.collection && typeof d.collection === 'object'){
-    for (const [id, qty] of Object.entries(d.collection)){
-      out[id] = (out[id] || 0) + Number(qty || 0);
-    }
-  }
-  if (d && d.collections && typeof d.collections === 'object'){
-    for (const setObj of Object.values(d.collections)){
-      if (setObj && typeof setObj === 'object'){
-        for (const [id, qty] of Object.entries(setObj)){
-          out[id] = (out[id] || 0) + Number(qty || 0);
-        }
-      }
-    }
-  }
-  if (d && Array.isArray(d.cardsOwned)){
-    for (const entry of d.cardsOwned){
-      if (typeof entry === 'string'){
-        out[entry] = (out[entry] || 0) + 1;
-      } else if (entry && entry.id){
-        out[entry.id] = (out[entry.id] || 0) + Number(entry.qty || 1);
-      }
-    }
-  }
-  if (d && d.specialCollection && typeof d.specialCollection === 'object'){
-    for (const [id, qty] of Object.entries(d.specialCollection)){
-      out[id] = (out[id] || 0) + Number(qty || 0);
-    }
-  }
-  return out;
-}
-
-    
+  
   // --- Rendering
   function renderStats(){
   const allIds = new Set(ALL_CARDS.map(c=>c.id));
