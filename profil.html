@@ -204,7 +204,7 @@ try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:emai
 
 // ---- Raretés + mapping (même normalisation que collection.html)
 const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-function mapRarity(r){
+function mapRarity(r){  
   const x=(r||'').toLowerCase();
   if(x==='common'||x==='commune') return RARITY.COMMON;
   if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
@@ -213,6 +213,9 @@ function mapRarity(r){
   if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
   return RARITY.COMMON;
 }
+
+   // 👉 ID de la carte collector Anniversaire 2025
+const ANNIV2025_ID = '32ans';
 
 // ---- Chargement dynamique des sets (identique aux chemins de collection.html)
 const SET_FILES = [
