@@ -844,7 +844,7 @@ const res = await fetch(s.json, {cache:'no-store'});
 
   const isCloud = () => !!currentUser && !!playerDocRef;
   function updateLocalFromCloud(data){
-    collection = { ...(data.collection || {}) };
+    collection = collectOwned(data);
     stats = { packsOpened: data?.stats?.packsOpened || 0 };
     profile = { level: data?.level || 1, xp: data?.xp || 0 };
     packBalances = { standard: data?.packBalances?.standard || 0, premium: data?.packBalances?.premium || 0 };
@@ -862,8 +862,53 @@ const res = await fetch(s.json, {cache:'no-store'});
   function xpGainForPack(type){ return (type === 'premium') ? 10 : 5; }
   function nextRewardForLevel(level){ if(level===1) return {type:'pack_standard', label:'Pack Standard'}; if([2,5,10,15,20].includes(level)) return {type:'pack_premium', label:'Pack Premium'}; return {type:'pack_standard', label:'Pack Standard'}; }
 
+// === Helpers XP / Niveau existants ===
+function xpForLevel(level){ … }
+function nextRewardForLevel(level){ … }
+
+// === Agrégation de la collection (copié de collection.html)
+function collectOwned(d){
+  const out = {};
+  if (d && d.collection && typeof d.collection === 'object'){
+    for (const [id, qty] of Object.entries(d.collection)){
+      out[id] = (out[id] || 0) + Number(qty || 0);
+    }
+  }
+  if (d && d.collections && typeof d.collections === 'object'){
+    for (const setObj of Object.values(d.collections)){
+      if (setObj && typeof setObj === 'object'){
+        for (const [id, qty] of Object.entries(setObj)){
+          out[id] = (out[id] || 0) + Number(qty || 0);
+        }
+      }
+    }
+  }
+  if (d && Array.isArray(d.cardsOwned)){
+    for (const entry of d.cardsOwned){
+      if (typeof entry === 'string'){
+        out[entry] = (out[entry] || 0) + 1;
+      } else if (entry && entry.id){
+        out[entry.id] = (out[entry.id] || 0) + Number(entry.qty || 1);
+      }
+    }
+  }
+  if (d && d.specialCollection && typeof d.specialCollection === 'object'){
+    for (const [id, qty] of Object.entries(d.specialCollection)){
+      out[id] = (out[id] || 0) + Number(qty || 0);
+    }
+  }
+  return out;
+}
+
+    
   // --- Rendering
-  function renderStats(){ const uniqueOwned = Object.keys(collection).length; const totalUnique = new Set(ALL_CARDS.map(c=>c.id)).size; const completion = totalUnique? Math.round((uniqueOwned/totalUnique)*100) : 0; document.getElementById('stat-packs').textContent = stats.packsOpened||0; document.getElementById('stat-uniques').textContent = uniqueOwned; document.getElementById('stat-completion').textContent = completion+"%"; document.getElementById('stat-rank').textContent = rankFromCompletion(completion); const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100))); document.getElementById('stat-level').textContent = level; document.getElementById('stat-xp').textContent = xp; document.getElementById('stat-xp-next').textContent = need; document.getElementById('xp-fill').style.width = pct + '%'; document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label; }
+  function renderStats(){ 
+    const allIds = new Set(ALL_CARDS.map(c=>c.id));
+const uniqueOwned = Object.keys(collection).filter(id => allIds.has(id)).length;
+const totalUnique = allIds.size;
+const completion = totalUnique ? Math.round((uniqueOwned/totalUnique)*100) : 0;
+ 
+    document.getElementById('stat-packs').textContent = stats.packsOpened||0; document.getElementById('stat-uniques').textContent = uniqueOwned; document.getElementById('stat-completion').textContent = completion+"%"; document.getElementById('stat-rank').textContent = rankFromCompletion(completion); const level = profile.level||1; const xp = profile.xp||0; const need = xpForLevel(level); const pct = Math.max(0, Math.min(100, Math.round((xp/need)*100))); document.getElementById('stat-level').textContent = level; document.getElementById('stat-xp').textContent = xp; document.getElementById('stat-xp-next').textContent = need; document.getElementById('xp-fill').style.width = pct + '%'; document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label; }
   function rankFromCompletion(p){ if(p >= 100) return 'Parangon'; if(p >= 90) return 'Exemplaire'; if(p >= 80) return 'Vainqueur'; if(p >= 70) return 'Justicier'; if(p >= 60) return 'Elite'; if(p >= 50) return 'Vétéran'; if(p >= 40) return 'Aventurier'; if(p >= 30) return 'Éclaireur'; if(p >= 20) return 'Initié'; if(p >= 10) return 'Explorateur'; return 'Nouvelle lumière'; }
   function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
 
