@@ -1383,7 +1383,6 @@ if (pcBirthday) {
     document.querySelectorAll('.set .overlay .btn').forEach(btn=>{ btn.disabled = noPacks; btn.classList.toggle('ghost', noPacks); btn.title = noPacks ? 'Aucun pack disponible. Obtiens des packs via admin ou récompenses.' : ''; });
   }
 
-  function openChooser(setId){ currentSetId = setId; const s = SETS.find(x=>x.id===setId); pcSetName.textContent = s?.name || '—'; chooser.hidden = false; refreshPackUI(); }
   function closeChooser(){ chooser.hidden = true; }
   function choosePackOpen(setId, type){ closeChooser(); openPack({ setId, type }); }
   pcStandard.addEventListener('click', ()=>{ if(!currentSetId) return; choosePackOpen(currentSetId,'standard'); });
