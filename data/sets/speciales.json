@@ -1,0 +1,6 @@
+{
+  "set": { "code": "SS", "name": "Super Stream", "total": 100, "version": 1 },
+  "cards": [
+    { "id": "32ans", "name": "Souvenir d'anniversaire", "set": "Twitch", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
+      ]
+}
