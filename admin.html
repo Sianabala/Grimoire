@@ -85,6 +85,15 @@
     .stat b{ font-size:14px; letter-spacing:.2px }
     /* ================================= */
 
+    /* NEW: petit badge d’inactivité dans la liste */
+    .inactive-badge{
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14); font-size:11px; font-weight:700;
+      background:rgba(255,255,255,.04); margin-left:6px;
+    }
+    .inactive-7{ color:#f59e0b }
+    .inactive-30{ color:#ef4444 }
+
     @media (max-width: 640px){
       .container{ padding:12px; }
       .row{ gap:10px; }
@@ -151,10 +160,6 @@
         <div class="stat" title="Somme des packs ouverts par tous les joueurs">
           📦 Ouverts : <b id="packsOpenedCounter">0</b>
         </div>
-        <!-- Astuce : si tu veux afficher aussi le total distribué (ouverts + en stock), dé-commente le badge ci-dessous -->
-        <!-- <div class="stat" title="Packs distribués = ouverts + en stock (solde)">
-          🎁 Distribués : <b id="packsDistributedCounter">0</b>
-        </div> -->
         <div class="stat" title="Nombre total de joueurs chargés">
           👥 Joueurs : <b id="playersCounter">0</b>
         </div>
@@ -183,6 +188,21 @@
           <h3>Joueurs</h3>
           <div class="row">
             <input id="search" class="input" placeholder="Rechercher (pseudo ou UID)…" style="width:260px">
+
+            <!-- NEW: filtre & tri -->
+            <select id="filter-inactive" class="input pill" style="width:200px">
+              <option value="all">Tous</option>
+              <option value="7">Inactifs &gt; 7 j</option>
+              <option value="30">Inactifs &gt; 30 j</option>
+            </select>
+            <select id="sort" class="input pill" style="width:220px">
+              <option value="activityDesc">Trier : activité récente</option>
+              <option value="inactivityAsc">Trier : plus inactifs</option>
+              <option value="levelDesc">Trier : niveau</option>
+              <option value="packsOpenedDesc">Trier : packs ouverts</option>
+            </select>
+            <!-- /NEW -->
+
             <button id="btn-refresh" class="btn pill">Rafraîchir</button>
           </div>
         </div>
@@ -244,6 +264,34 @@
     // NEW: helpers
     const nfmt = (n)=> (Number.isFinite(n) ? n.toLocaleString('fr-FR') : '0');
 
+    // NEW: date/time helpers (Europe/Paris + "il y a …")
+    const dtfmt = new Intl.DateTimeFormat('fr-FR',{ timeZone:'Europe/Paris', dateStyle:'medium', timeStyle:'short' });
+    function asDate(ts){
+      if(!ts) return null;
+      try{
+        if(typeof ts.toDate === 'function') return ts.toDate();
+        if(typeof ts === 'object' && typeof ts.seconds === 'number') return new Date(ts.seconds*1000);
+        if(typeof ts === 'number') return new Date(ts);
+        if(typeof ts === 'string') { const d = new Date(ts); return isNaN(d)? null : d; }
+      }catch{}
+      return null;
+    }
+    function timeAgo(date){
+      if(!date) return '—';
+      const diff = Date.now() - date.getTime();
+      const sec = Math.max(0, Math.floor(diff/1000));
+      const min = Math.floor(sec/60), hr=Math.floor(min/60), day=Math.floor(hr/24);
+      if(day>0) return `il y a ${day} j`;
+      if(hr>0)  return `il y a ${hr} h`;
+      if(min>0) return `il y a ${min} min`;
+      return 'à l’instant';
+    }
+    function daysSince(date){
+      if(!date) return Infinity;
+      const ms = Date.now() - date.getTime();
+      return Math.floor(ms/(1000*60*60*24));
+    }
+
     // ⚠️ Remplace par ton UID si tu veux une whitelist locale en plus du rôle Firestore
     const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
 
@@ -294,7 +342,13 @@
     const diag = document.getElementById('diag');
     const search = document.getElementById('search');
     document.getElementById('btn-refresh').addEventListener('click', ()=> loadPlayers());
-    search.addEventListener('input', ()=> filterCards());
+
+    // NEW: sort & filter elements
+    const sortSel = document.getElementById('sort');
+    const filterInactiveSel = document.getElementById('filter-inactive');
+    sortSel.addEventListener('change', ()=> renderPlayers(lastPlayers));
+    filterInactiveSel.addEventListener('change', ()=> renderPlayers(lastPlayers));
+    search.addEventListener('input', ()=> renderPlayers(lastPlayers));
 
     let lastPlayers = [];
 
@@ -338,23 +392,79 @@
     }
 
     function renderPlayers(list){
+      // recherche
       const term = (search.value||'').toLowerCase();
-      const filtered = list.filter(p=>{
-        const dn = (p.displayName||'').toLowerCase();
-        return !term || dn.includes(term) || (p.uid||'').toLowerCase().includes(term);
+
+      // filtre inactivité
+      const inactiveMode = filterInactiveSel.value; // 'all' | '7' | '30'
+
+      // pré-traitement: map avec dates & jours d'inactivité
+      let rows = (list||[]).map(p=>{
+        const last = asDate(p.lastLogin);
+        return {
+          ...p,
+          _lastDate: last,
+          _inactDays: daysSince(last),
+          _packsOpened: p?.stats?.packsOpened || 0,
+          _level: p?.level || 1
+        };
       });
+
+      // filtrage recherche
+      rows = rows.filter(p=>{
+        const dn = (p.displayName||'').toLowerCase();
+        const uid = (p.uid||'').toLowerCase();
+        return !term || dn.includes(term) || uid.includes(term);
+      });
+
+      // filtrage inactivité
+      if(inactiveMode !== 'all'){
+        const th = parseInt(inactiveMode,10);
+        rows = rows.filter(p=> p._inactDays >= th);
+      }
+
+      // tri
+      const mode = sortSel.value;
+      rows.sort((a,b)=>{
+        if(mode==='activityDesc'){ // plus récemment connectés en premier
+          const ta = a._lastDate ? a._lastDate.getTime() : 0;
+          const tb = b._lastDate ? b._lastDate.getTime() : 0;
+          return tb - ta;
+        }
+        if(mode==='inactivityAsc'){ // plus inactifs en premier
+          return (b._inactDays || 0) - (a._inactDays || 0);
+        }
+        if(mode==='levelDesc'){
+          return (b._level||0) - (a._level||0);
+        }
+        if(mode==='packsOpenedDesc'){
+          return (b._packsOpened||0) - (a._packsOpened||0);
+        }
+        return 0;
+      });
+
       playersWrap.innerHTML = '';
-      for(const p of filtered){
+      for(const p of rows){
         const std = (p.packBalances?.standard)||0;
         const prem = (p.packBalances?.premium)||0;
+
+        // NEW: last login text + badges
+        const d = p._lastDate;
+        const lastText = d ? `${dtfmt.format(d)} · ${timeAgo(d)}` : 'jamais';
+        const inact = p._inactDays;
+        const badge =
+          (inact>=30) ? `<span class="inactive-badge inactive-30">>30 j</span>` :
+          (inact>=7)  ? `<span class="inactive-badge inactive-7">>7 j</span>` : '';
+
         const el = document.createElement('div'); el.className='card';
         el.innerHTML = `
           <div class="row space">
             <div>
-              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
+              <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')} ${badge}</div>
               <div class="k">UID: <span class="v">${p.uid}</span></div>
-              <div class="k">Packs ouverts: <span class="v">${p.stats?.packsOpened||0}</span></div>
-              <div class="k">Niveau: <span class="v">${p.level||1}</span> — XP: <span class="v">${p.xp||0}</span></div>
+              <div class="k">Dernière connexion: <span class="v">${lastText}</span></div>
+              <div class="k">Packs ouverts: <span class="v">${p._packsOpened}</span></div>
+              <div class="k">Niveau: <span class="v">${p._level}</span> — XP: <span class="v">${p.xp||0}</span></div>
               <div class="k">Cartes uniques: <span class="v">${Object.keys(p.collection||{}).length}</span></div>
               <div class="k">Solde packs: <span class="v">Standard ×${std} · Premium ×${prem}</span></div>
             </div>
@@ -402,11 +512,17 @@
         const packsInInbox = inbox.filter(r=> (r?.type==='pack_standard' || r?.type==='pack_premium'));
         const std = (p.packBalances?.standard)||0;
         const prem = (p.packBalances?.premium)||0;
+
+        // NEW: last login in detail
+        const last = asDate(p.lastLogin);
+        const lastText = last ? `${dtfmt.format(last)} · ${timeAgo(last)}` : 'jamais';
+
         detailWrap.innerHTML = `
           <div class="row space">
             <div>
               <div class="section-title">${escapeHtml(p.displayName||'(sans pseudo)')}</div>
               <div class="k">UID: <span class="v" id="detail-uid">${uid}</span></div>
+              <div class="k">Dernière connexion: <span class="v">${lastText}</span></div>
             </div>
             <div class="btn-group">
               <button class="btn warn pill" id="btn-std">+1 Standard</button>
@@ -425,7 +541,7 @@
           <div style="margin-top:10px" class="k">Cartes uniques: <span class="v">${uniques.length}</span></div>
           ${packsInInbox.length ? `<div style="margin-top:14px" class="row"><button class="btn pill" id="btn-migrate">Convertir les packs du coffre → solde</button><span class="k">(${packsInInbox.length} à convertir)</span></div>` : ''}
           <div style="margin-top:14px" class="section-title">Récompenses en attente</div>
-          <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString()}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
+          <div>${rewards.length? rewards.map(r=>`• ${escapeHtml(r.label||r.type)} — <span class="k">${new Date(r.t||Date.now()).toLocaleString('fr-FR')}</span>`).join('<br/>') : '<span class="k">Aucune</span>'}</div>
           <div style="margin-top:14px" class="section-title">Collection (id → quantité)</div>
           <pre class="diag">${uniques.slice(0,200).map(id=>`${id}: ${p.collection[id]}`).join('\n') || '(vide)'}</pre>
         `;
@@ -518,8 +634,6 @@
       }catch(e){ toast('Erreur: '+(e?.message||e)); }
     }
 
-    function filterCards(){ renderPlayers(lastPlayers); }
-
     function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
@@ -527,11 +641,8 @@
     // --- Mini outils pour le panneau "Configuration & Diagnostic"
     let currentUser = null; // capture l'utilisateur pour les tests
 
-    // alimente currentUser dans ton onAuthStateChanged déjà existant :
-    const _origAuthCb = onAuthStateChanged; // (pas réellement nécessaire si tu modifies directement le callback existant)
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
-      // le reste de ta logique d'accès admin reste inchangé
     });
 
     // helpers d'affichage
