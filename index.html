@@ -691,6 +691,25 @@ body.logged-in .hero-header .hero-actions{
 const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+// === NEW: ping "dernière connexion" (UTC côté serveur)
+let lastTouchAt = 0;
+async function touchLastLogin(force = false){
+  try{
+    if (!currentUser || !playerDocRef) return;
+    const now = Date.now();
+    // petit rate limit local : 1/min pour éviter le spam
+    if (!force && (now - lastTouchAt) < 60_000) return;
+    lastTouchAt = now;
+    await updateDoc(playerDocRef, {
+      lastLogin: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }catch(e){
+    console.warn('[lastLogin] touch failed:', e?.message||e);
+  }
+}
+
     
     // Persistance locale (évite les déconnexions inattendues entre onglets)
 try { await setPersistence(auth, browserLocalPersistence); } catch(e){ console.warn('[AUTH] setPersistence', e); }
@@ -1305,44 +1324,45 @@ document.body.className = 'logged-in';
     setGuestMode(false);
   });
 
-  // --- Cloud bootstrap
+  // === NEW: crée le doc avec lastLogin au 1er login + ping immédiat ensuite
 async function loadOrCreatePlayerDoc(user){
   playerDocRef = doc(db,'players',user.uid);
 
-  // 1) Lis l’existant
+  // 1) Lecture
   const snap = await getDoc(playerDocRef);
   if (!snap.exists()) {
-    // 2) Premier login : on crée un doc MINIMAL en merge (n’écrase jamais rien)
+    // 2) Première connexion : créer le doc + lastLogin
     const base = {
       displayName: user.displayName || '',
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      // ⚠️ NE PAS mettre packBalances ici
-      // ⚠️ NE PAS réinitialiser stats ici
-      // Tu peux garder des valeurs par défaut côté UI uniquement
+      lastLogin: serverTimestamp(),   // 👈 important
     };
-    await setDoc(playerDocRef, base, { merge: true }); // merge = pas d’écrasement
+    await setDoc(playerDocRef, base, { merge: true });
+
+    // État UI minimal
     updateLocalFromCloud({
       collection: {},
       stats: { packsOpened: 0 },
       level: 1,
       xp: 0,
       rewardsInbox: [],
-      // packBalances est volontairement omis : l’UI affichera 0 sans l’écrire
+      // packBalances omis volontairement
     });
     return (await getDoc(playerDocRef)).data() || base;
   }
 
-  // 3) Doc existant : on NE TOUCHE PAS aux soldes ici
+  // 3) Doc existant : maj UI…
   const data = snap.data() || {};
   updateLocalFromCloud(data);
 
-  // 4) Ping de fraîcheur (facultatif) — n’écrase aucun champ sensible
-  try { await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); } catch {}
+  // …puis ping "dernière connexion" immédiatement
+  await touchLastLogin(true);        // 👈 NEW
 
   return data;
 }
+
 
 
   // --- UI Sets + Chooser
@@ -1598,6 +1618,28 @@ async function updateTwitchStatus(){
 }
 updateTwitchStatus();
 setInterval(updateTwitchStatus, 60_000);
+
+// === NEW: rafraîchir lastLogin quand l’onglet redevient actif / focus
+(function setupLastLoginPings(){
+  // On programme l’appel au prochain tick (léger décalage + jitter)
+  let timer = null;
+  function scheduleTouch(){
+    clearTimeout(timer);
+    const jitter = Math.floor(Math.random() * 500); // 0–500ms
+    timer = setTimeout(() => { touchLastLogin(); }, 200 + jitter);
+  }
+
+  // 1) Retour visibilité (ex: tu reviens sur l’onglet)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleTouch();
+  });
+
+  // 2) Focus fenêtre (ex: Alt-Tab vers la fenêtre)
+  window.addEventListener('focus', scheduleTouch);
+
+  // 3) (optionnel) Retour en ligne après offline
+  window.addEventListener('online', scheduleTouch);
+})();
 
     
   </script>
