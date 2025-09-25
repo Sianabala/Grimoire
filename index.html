@@ -691,32 +691,6 @@ body.logged-in .hero-header .hero-actions{
 const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
-// === NEW: ping "dernière connexion" (UTC côté serveur)
-let lastTouchAt = 0;
-async function touchLastLogin(force = false){
-  try{
-    if (!currentUser || !playerDocRef) return;
-    const now = Date.now();
-    // petit rate limit local : 1/min pour éviter le spam
-    if (!force && (now - lastTouchAt) < 60_000) return;
-    lastTouchAt = now;
-    await updateDoc(playerDocRef, {
-      lastLogin: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-  }catch(e){
-    console.warn('[lastLogin] touch failed:', e?.message||e);
-  }
-}
-
-    // ... code existant dans onAuthStateChanged après setGuestMode(false);
-document.body.className = 'logged-in';
-setGuestMode(false);
-
-// ✅ marque la "dernière connexion"
-await touchLastLogin('login');
-
     
     // Persistance locale (évite les déconnexions inattendues entre onglets)
 try { await setPersistence(auth, browserLocalPersistence); } catch(e){ console.warn('[AUTH] setPersistence', e); }
@@ -736,38 +710,6 @@ if (location.protocol === 'file:') {
   async function saveDisplayNameIfAny(user, nick){ if(!user || !nick) return; playerDocRef = playerDocRef || doc(db,'players',user.uid); try{ await setDoc(playerDocRef, { displayName: nick, displayNameLower: nick.toLowerCase(), updatedAt: serverTimestamp() }, { merge:true }); console.log('[DEBUG] Pseudo enregistré:', nick); }catch(e){ console.warn('saveDisplayNameIfAny failed', e); } }
   async function trySavePseudonymFromCredential(cred, user){ if(!user) return; let nick = user.displayName || ''; if(!nick && cred?.idToken){ const claims = decodeJwtPayload(cred.idToken); nick = claims.preferred_username || claims.nickname || ''; } await saveDisplayNameIfAny(user, nick); }
 
-// === Helper "lastLogin" / "lastSeenAt" (rate-limit 60s) ===
-let __lastTouchMs = 0;
-async function touchLastLogin(kind = 'seen'){
-  if (!currentUser || !playerDocRef) return;
-
-  // Anti-spam (sauf pour l'event explicite "login")
-  const now = Date.now();
-  if (kind !== 'login' && (now - __lastTouchMs) < 60_000) return;
-  __lastTouchMs = now;
-
-  try{
-    const payload = {
-      updatedAt: serverTimestamp(),     // ping générique
-      lastSeenAt: serverTimestamp(),    // visible dans l'admin si tu l'affiches
-    };
-    if (kind === 'login') {
-      // Champ attendu par l'admin : "Dernière connexion"
-      payload.lastLogin = serverTimestamp();
-      // (optionnel) première connexion si tu veux l'exposer en admin
-      if (!window.__firstLoginStamped) {
-        payload.firstLoginAt = serverTimestamp();
-        window.__firstLoginStamped = true;
-      }
-    }
-    await updateDoc(playerDocRef, payload);
-    console.debug('[lastLogin]', kind, 'OK');
-  }catch(e){
-    console.warn('[lastLogin]', kind, e);
-  }
-}
-
-    
   // --- UI buttons
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
@@ -1363,45 +1305,44 @@ document.body.className = 'logged-in';
     setGuestMode(false);
   });
 
-  // === NEW: crée le doc avec lastLogin au 1er login + ping immédiat ensuite
+  // --- Cloud bootstrap
 async function loadOrCreatePlayerDoc(user){
   playerDocRef = doc(db,'players',user.uid);
 
-  // 1) Lecture
+  // 1) Lis l’existant
   const snap = await getDoc(playerDocRef);
   if (!snap.exists()) {
-    // 2) Première connexion : créer le doc + lastLogin
+    // 2) Premier login : on crée un doc MINIMAL en merge (n’écrase jamais rien)
     const base = {
       displayName: user.displayName || '',
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      lastLogin: serverTimestamp(),   // 👈 important
+      // ⚠️ NE PAS mettre packBalances ici
+      // ⚠️ NE PAS réinitialiser stats ici
+      // Tu peux garder des valeurs par défaut côté UI uniquement
     };
-    await setDoc(playerDocRef, base, { merge: true });
-
-    // État UI minimal
+    await setDoc(playerDocRef, base, { merge: true }); // merge = pas d’écrasement
     updateLocalFromCloud({
       collection: {},
       stats: { packsOpened: 0 },
       level: 1,
       xp: 0,
       rewardsInbox: [],
-      // packBalances omis volontairement
+      // packBalances est volontairement omis : l’UI affichera 0 sans l’écrire
     });
     return (await getDoc(playerDocRef)).data() || base;
   }
 
-  // 3) Doc existant : maj UI…
+  // 3) Doc existant : on NE TOUCHE PAS aux soldes ici
   const data = snap.data() || {};
   updateLocalFromCloud(data);
 
-  // …puis ping "dernière connexion" immédiatement
-  await touchLastLogin(true);        // 👈 NEW
+  // 4) Ping de fraîcheur (facultatif) — n’écrase aucun champ sensible
+  try { await updateDoc(playerDocRef, { updatedAt: serverTimestamp() }); } catch {}
 
   return data;
 }
-
 
 
   // --- UI Sets + Chooser
@@ -1657,44 +1598,6 @@ async function updateTwitchStatus(){
 }
 updateTwitchStatus();
 setInterval(updateTwitchStatus, 60_000);
-
-// === NEW: rafraîchir lastLogin quand l’onglet redevient actif / focus
-(function setupLastLoginPings(){
-  // On programme l’appel au prochain tick (léger décalage + jitter)
-  let timer = null;
-  function scheduleTouch(){
-    clearTimeout(timer);
-    const jitter = Math.floor(Math.random() * 500); // 0–500ms
-    timer = setTimeout(() => { touchLastLogin(); }, 200 + jitter);
-  }
-
-  // 1) Retour visibilité (ex: tu reviens sur l’onglet)
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) scheduleTouch();
-  });
-
-  // 2) Focus fenêtre (ex: Alt-Tab vers la fenêtre)
-  window.addEventListener('focus', scheduleTouch);
-
-  // 3) (optionnel) Retour en ligne après offline
-  window.addEventListener('online', scheduleTouch);
-})();
-
-// === Rafraîchir lastSeenAt quand l’onglet revient en avant-plan / focus
-(function setupLastLoginPings(){
-  let t = null;
-  function schedule(kind='seen'){
-    clearTimeout(t);
-    const jitter = Math.floor(Math.random() * 500); // évite les rafales si plusieurs onglets
-    t = setTimeout(() => touchLastLogin(kind), 200 + jitter);
-  }
-
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) schedule('seen');
-  });
-  window.addEventListener('focus', () => schedule('seen'));
-  window.addEventListener('online', () => schedule('seen'));
-})();
 
     
   </script>
