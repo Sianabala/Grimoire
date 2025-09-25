@@ -252,9 +252,9 @@ async function loadCardSets(){
 }
 
 // ---- LocalStorage (mêmes clés)
-const LS_KEY='grimoire.alpha.collection.v2_5';
-const LS_STATS='grimoire.alpha.stats.v2_5';
-const LS_PROFILE='grimoire.alpha.profile.v2_5';
+const LS_KEY='grimoire.alpha.collection.v2_6';
+const LS_STATS='grimoire.alpha.stats.v2_6';
+const LS_PROFILE='grimoire.alpha.profile.v2_6';
 function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
 function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 
