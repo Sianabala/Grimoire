@@ -1170,8 +1170,8 @@ setTimeout(()=>{ el.classList.add('revealed'); }, skipRequested ? 0 : 70*i);
         el.setAttribute('aria-pressed','true');
         el.classList.add(rarityGlowClass(c.rarity));
         el.style.transform += fast ? ' translateY(-4px) scale(1.01)' : ' translateY(-8px) scale(1.02)';
-        const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC);
-        if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, c.rarity===RARITY.EXOTIC); }
+        const isBig = (c.rarity===RARITY.LEGENDARY || c.rarity===RARITY.EXOTIC || c.rarity===RARITY.INCANDESCENT);
+        if(isBig) burst(poFx.width/2 + (i-2)*70, poFx.height/2 - 80, (c.rarity===RARITY.EXOTIC || c.rarity===RARITY.INCANDESCENT)); }
       Array.from(poFan.children).forEach((el, i)=>{ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.setAttribute('aria-pressed','false'); el.addEventListener('keydown', onKey); el.addEventListener('click', ()=>{ if(el.getAttribute('aria-pressed') === 'true') return; revealIndex(i, false); remaining.delete(i); if(remaining.size === 0){ resolveAll(); } }, { passive:true }); }); function revealAllFast(){ remaining.forEach(idx => revealIndex(idx, true)); remaining.clear(); resolveAll(); } if (poSkip){ poSkip.addEventListener('click', revealAllFast, { once:true }); } if (skipRequested){ revealAllFast(); } return done; }
    await setupClickReveal();
 
