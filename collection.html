@@ -69,6 +69,7 @@
     .tag.rarity-uncommon{ color:#3b82f6; }
     .tag.rarity-legendary{ color:#7f11e0; }
     .tag.rarity-exotic{ color:#eab308; }
+    .tag.rarity-incandescent{ color:#f59e0b; }
     .tag:hover{ box-shadow: 0 0 0 3px rgba(124,92,255,.10) inset; }
 
     .muted{color:var(--muted)}
@@ -218,7 +219,8 @@
 .segbtn[data-r="rare"] .dot{ background:#22c55e; }
 .segbtn[data-r="légendaire"] .dot{ background:#7f11e0; }
 .segbtn[data-r="exotique"] .dot{ background:#eab308; }
-
+.segbtn[data-r="incandescent"] .dot{ background:#f59e0b; }
+    
 .segbtn.active{
   background: linear-gradient(180deg, rgba(124,92,255,.18), rgba(184,107,255,.14));
   border-color: rgba(124,92,255,.55);
@@ -342,6 +344,9 @@
   <button type="button" class="segbtn active" data-r="exotique" aria-pressed="true">
     <span class="dot"></span> Exotique
   </button>
+<button type="button" class="segbtn active" data-r="incandescent" aria-pressed="true">
+  <span class="dot"></span> Incandescent
+</button>
 
   <span class="segsep" aria-hidden="true"></span>
 
@@ -445,8 +450,8 @@
     try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
 
     // Raretés (cohérentes avec index)
-    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
+    const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique', INCANDESCENT:'incandescent' };
+    const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC, RARITY.INCANDESCENT];
 
     // Images des cartes
     const CARD_IMAGE_BASE = '/images/cards/front/';
@@ -463,7 +468,8 @@
     const SET_FILES = [
       '/data/sets/nouvelle-lumiere.json',
       '/data/sets/twitch.json',
-      '/data/sets/speciales.json'
+      '/data/sets/speciales.json',
+      '/data/sets/super-stream.json'
     ];
 
     const FALLBACK_CARDS = [
@@ -481,6 +487,7 @@
       if(x==='rare') return RARITY.RARE;
       if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
       if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
+      if (x==='incandescent' || x==='incandesceant' || x==='super-exotic') return RARITY.INCANDESCENT;
       return RARITY.COMMON;
     }
     async function loadCardSets(){
@@ -493,14 +500,16 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
 
-          const setName =
-  (url.includes('speciales') ? 'Événements & Spéciales' : null)
-  || data?.set?.name
-  || data?.set
-  || data?.name
-  || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
+         const setName =
+           (url.includes('speciales')     ? 'Événements & Spéciales' : null)
+           || (url.includes('super-stream') ? 'Super Stream' : null) // 
+           || data?.set?.name
+           || data?.set
+           || data?.name
+           || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
       : url.includes('twitch') ? 'Twitch'
       : 'Set inconnu');
+
 
 
           if (!Array.isArray(data?.cards) || !data.cards.length) {
@@ -665,6 +674,7 @@ toast('✅ Synchro Cloud appliquée');
         case RARITY.RARE: return 'rarity-rare';
         case RARITY.LEGENDARY: return 'rarity-legendary';
         case RARITY.EXOTIC: return 'rarity-exotic';
+        case RARITY.INCANDESCENT: return 'rarity-incandescent';
         default: return 'rarity-common';
       }
     }
@@ -728,13 +738,19 @@ const enabled = new Set(
       const totalUnique = allIds.size;
       const completion = totalUnique? Math.round(100*uniques/totalUnique):0;
       const totalCards = Object.values(collection).reduce((s,n)=>s+(n||0),0);
-      const byR = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0 };
+      const byR = { [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0, [RARITY.INCANDESCENT]:0 };
       for(const id in collection){ const card = CARD_POOLS.find(c=>c.id===id); if(card) byR[card.rarity]+=collection[id]; }
 
       elUniques.textContent = uniques;
       elTotal.textContent = totalCards;
       elCompletion.textContent = completion + '%';
-      elByRarity.textContent = `Communes:${byR[RARITY.COMMON]} · Peu communes:${byR[RARITY.UNCOMMON]} · Rares:${byR[RARITY.RARE]} · Légendaires:${byR[RARITY.LEGENDARY]} · Exotiques:${byR[RARITY.EXOTIC]}`;
+      elByRarity.textContent =
+  `Communes:${byR[RARITY.COMMON]} · ` +
+  `Peu communes:${byR[RARITY.UNCOMMON]} · ` +
+  `Rares:${byR[RARITY.RARE]} · ` +
+  `Légendaires:${byR[RARITY.LEGENDARY]} · ` +
+  `Exotiques:${byR[RARITY.EXOTIC]} · ` +
+  `Incandescent:${byR[RARITY.INCANDESCENT]}`;
 
     // Cards (groupé par set avec header + barre de progression)
 elCards.innerHTML = '';
