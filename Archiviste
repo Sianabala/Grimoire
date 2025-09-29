@@ -261,8 +261,13 @@ const LS_PROFILE='grimoire.alpha.profile.v2_6';
 function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
 function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 
+// Seuls ces 2 sets comptent pour le badge ARCHIVISTE
+const LAUNCH_SETS = new Set(['Nouvelle Lumière','Twitch']);
+   
 // ---- Compute centralisé
 function computeProgress({ collection, cardPools }){
+  
+  // ----- Stats globales (inchangées)
   const allIds = new Set(cardPools.map(c=>c.id));
   const totalUnique = allIds.size;
 
@@ -289,11 +294,29 @@ function computeProgress({ collection, cardPools }){
     return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;
   });
 
+  // ----- Stats "sets de lancement" (Nouvelle Lumière + Twitch) → pour ARCHIVISTE
+  const launchIds = new Set(
+    cardPools
+      .filter(c => LAUNCH_SETS.has(c.set))
+      .map(c => c.id)
+  );
+  const launchOwnedUnique = Array.from(launchIds).filter(id => (collection[id] || 0) > 0).length;
+  const launchCompletionPct = launchIds.size ? Math.round(100 * launchOwnedUnique / launchIds.size) : 0;
+  const launchCompleted = launchIds.size > 0 && launchOwnedUnique === launchIds.size;
+
+  return { 
+    uniques, totalUnique, completionPct, 
+    byRarity, legendaryOwned, exoticOwned,
+    // 🆕 champs utilisés par le badge “Archiviste”
+    launchCompletionPct, launchCompleted 
+  };
+}
+  
   return { uniques, totalUnique, completionPct, byRarity, legendaryOwned, exoticOwned };
 }
 
 // ---- Version de schéma badges + helpers de resync
-const BADGE_SCHEMA_VERSION = 3;
+const BADGE_SCHEMA_VERSION = 4;
 
 function computeExpectedBadges(sharedStats){
   const expected = {};
@@ -320,7 +343,7 @@ function diffBadges(currentBadges={}, expectedBadges={}){
 const BADGES = [
   { id:'explorateur',    name:'Explorateur',         ico:'🧭',  desc:'Avoir 10 cartes différentes',   test:s=> s.uniques >= 10 },
   { id:'collectionneur', name:'Collectionneur',      ico:'📚',  desc:'50% de la collection',         test:s=> s.completionPct >= 50 },
-  { id:'archiviste',     name:'Archiviste',          ico:'🏛️',  desc:'100% de la collection',        test:s=> s.completionPct >= 100 },
+  { id:'archiviste',  name:'Archiviste',  ico:'🏛️',  desc:'Compléter les sets de lancement : Nouvelle Lumière + Twitch',  test: s => !!s.launchCompleted },
 
   { id:'curieux',        name:'Curieux',             ico:'📦',  desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
   { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
