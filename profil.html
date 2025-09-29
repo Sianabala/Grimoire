@@ -268,6 +268,10 @@ function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 
 // Seuls ces 2 sets comptent pour le badge ARCHIVISTE
 const LAUNCH_SETS = new Set(['Nouvelle Lumière','Twitch']);
+
+// Set ciblé pour le badge "Super Stream"
+const SUPER_STREAM_SET = 'Super Stream';
+
    
 // ---- Compute centralisé
 function computeProgress({ collection, cardPools }){
@@ -308,13 +312,25 @@ function computeProgress({ collection, cardPools }){
   const launchCompletionPct = launchIds.size ? Math.round(100 * launchOwnedUnique / launchIds.size) : 0;
   const launchCompleted = launchIds.size > 0 && launchOwnedUnique === launchIds.size;
 
+  // ----- Stats "Super Stream" → pour le nouveau badge
+  const ssIds = new Set(
+    cardPools
+      .filter(c => c.set === SUPER_STREAM_SET)
+      .map(c => c.id)
+  );
+  const ssOwnedUnique = Array.from(ssIds).filter(id => (collection[id] || 0) > 0).length;
+  const superStreamCompletionPct = ssIds.size ? Math.round(100 * ssOwnedUnique / ssIds.size) : 0;
+  const superStreamCompleted = ssIds.size > 0 && ssOwnedUnique === ssIds.size;
+
   return { 
     uniques, totalUnique, completionPct, 
     byRarity, legendaryOwned, exoticOwned,
-    // champs utilisés par le badge “Archiviste”
-    launchCompletionPct, launchCompleted 
+    launchCompletionPct, launchCompleted,
+    // 🆕 champs pour le badge "Super Stream"
+    superStreamCompletionPct, superStreamCompleted
   };
 }
+
  
 // ---- Version de schéma badges + helpers de resync
 const BADGE_SCHEMA_VERSION = 4;
@@ -345,6 +361,8 @@ const BADGES = [
   { id:'explorateur',    name:'Explorateur',         ico:'🧭',  desc:'Avoir 10 cartes différentes',   test:s=> s.uniques >= 10 },
   { id:'collectionneur', name:'Collectionneur',      ico:'📚',  desc:'50% de la collection',         test:s=> s.completionPct >= 50 },
   { id:'archiviste',  name:'Archiviste',  ico:'🏛️',  desc:'Compléter les sets de lancement : Nouvelle Lumière + Twitch',  test: s => !!s.launchCompleted },
+  { id:'superstream', name:'Super Héros', ico:'🎥',  desc:'Compléter la collection Super Stream',  test: s => !!s.superStreamCompleted },
+
 
   { id:'curieux',        name:'Curieux',             ico:'📦',  desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
   { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
