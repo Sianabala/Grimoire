@@ -46,7 +46,7 @@
   color: #d6a17a;
 }
 
-/* Super Exotique - or incandescent */
+/* Super Exotique  */
 .tag.super-exotic {
   /* fond un peu plus présent + bord plus lumineux */
   background: rgba(245, 158, 11, 0.18);      /* amber-ish */
@@ -54,6 +54,22 @@
   color: #f59e0b;
   position: relative;
 }
+
+/* Incandescent */
+
+.tag.incandescent{
+  --c: 270 100% 70%;
+  color: white;
+  background: linear-gradient(90deg, hsl(270 90% 55%), hsl(30 90% 55%));
+  border: 1px solid hsl(270 80% 70% / .4);
+  box-shadow: 0 0 20px hsl(30 100% 60% / .35);
+}
+.glow-incandescent{
+  box-shadow: 0 0 0 2px hsl(30 100% 60% / .55),
+              0 0 40px hsl(30 100% 60% / .45),
+              inset 0 0 40px hsl(270 100% 70% / .25);
+}
+
 
   /* Glow par rareté (détecte la classe sur le tag) */
     .card:has(.tag.rare){ box-shadow: 0 6px 20px rgba(59,130,246,.12); }
