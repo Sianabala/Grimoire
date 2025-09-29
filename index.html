@@ -738,9 +738,9 @@ function setGuestMode(isGuest){
   loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
 // --- Rarity constants
-  const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-  const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1 };
-  const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC];
+  const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique', INCANDESCENT:'incandescent' };
+  const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1, [RARITY.INCANDESCENT]:0.1 };
+  const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC, RARITY.INCANDESCENT];
 
 // === Anniversaire (Europe/Paris) ===
 const BIRTHDAY_DATE_ISO = '2025-09-24'; // ✅ aujourd’hui
@@ -813,7 +813,15 @@ function weightedPickRarity(weights) {
     ]
   };
 
-  function mapRarity(r){ const x=(r||'').toLowerCase(); if(x==='common'||x==='commune') return RARITY.COMMON; if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON; if(x==='rare') return RARITY.RARE; if(x==='legendary'||x==='légendaire'||x==='legendaire') return RARITY.LEGENDARY; if(x==='exotic'||x==='exotique') return RARITY.EXOTIC; return RARITY.COMMON; }
+  function mapRarity(r){ 
+    const x=(r||'').toLowerCase(); 
+    if(x==='common'||x==='commune') return RARITY.COMMON; 
+    if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON; 
+    if(x==='rare') return RARITY.RARE; 
+    if(x==='legendary'||x==='légendaire'||x==='legendaire') return RARITY.LEGENDARY; 
+    if(x==='exotic'||x==='exotique') return RARITY.EXOTIC; 
+    if(x==='incandescent'||x==='incandesceant') return RARITY.INCANDESCENT;
+    return RARITY.COMMON; }
 
     function collectOwned(d){
   const out = {};
@@ -925,11 +933,33 @@ const res = await fetch(s.json, {cache:'no-store'});
 
  
   function rankFromCompletion(p){ if(p >= 100) return 'Parangon'; if(p >= 90) return 'Exemplaire'; if(p >= 80) return 'Vainqueur'; if(p >= 70) return 'Justicier'; if(p >= 60) return 'Elite'; if(p >= 50) return 'Vétéran'; if(p >= 40) return 'Aventurier'; if(p >= 30) return 'Éclaireur'; if(p >= 20) return 'Initié'; if(p >= 10) return 'Explorateur'; return 'Nouvelle lumière'; }
-  function rarityClass(r){ switch(r){ case RARITY.UNCOMMON:return 'uncommon'; case RARITY.RARE:return 'rare'; case RARITY.LEGENDARY:return 'legendary'; case RARITY.EXOTIC:return 'exotic'; default:return 'common'; } }
+  function rarityClass(r){ 
+    switch(r){ 
+      case RARITY.UNCOMMON:return 'uncommon'; 
+      case RARITY.RARE:return 'rare'; 
+      case RARITY.LEGENDARY:return 'legendary'; 
+      case RARITY.EXOTIC:return 'exotic'; 
+      case RARITY.INCANDESCENT: return 'incandescent';
+      default:return 'common'; 
+    } 
+  }
 
-  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
-    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true; }
-    const banner=document.getElementById('special-banner'); if(hasExotic || hasLegendary){ banner.style.display='flex'; banner.innerHTML=(hasExotic ? '✨ <strong>EXOTIQUE !</strong> Carte exotique !' : '⭐ <strong>LÉGENDAIRE !</strong>') + '<button class="close" aria-label="Fermer">×</button>'; banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; }); } else { banner.style.display='none'; } }
+  function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false, hasIncandescent=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
+    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true, f(card.rarity===RARITY.INCANDESCENT) hasIncandescent=true; }
+    const banner=document.getElementById('special-banner'); 
+    if(hasIncandescent || hasExotic || hasLegendary){
+  banner.style.display='flex';
+  if(hasIncandescent){
+    banner.innerHTML='🔥 <strong>INCANDESCENT !</strong> Carte suprême !';
+  } else if(hasExotic){
+    banner.innerHTML='✨ <strong>EXOTIQUE !</strong> Carte exotique !';
+  } else {
+    banner.innerHTML='⭐ <strong>LÉGENDAIRE !</strong>';
+  }
+  banner.innerHTML += '<button class="close" aria-label="Fermer">×</button>';
+  banner.querySelector('.close').addEventListener('click',()=>{ banner.style.display='none'; });
+} 
+    else { banner.style.display='none'; } }
 
   function renderCollection(){ const wrap=document.getElementById('collection'); if(!wrap) return; wrap.innerHTML=''; const byRarityIdx=c=>rarityOrder.indexOf(c.rarity); const all=ALL_CARDS.slice().sort((a,b)=>byRarityIdx(a)-byRarityIdx(b)||a.id.localeCompare(b.id)); for(const card of all){ const qty=collection[card.id]||0; const div=document.createElement('div'); div.className='mini-card'; div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + '<div style="font-weight:700">'+card.name+'</div>' + '<span class="tag '+rarityClass(card.rarity)+'"><span class="dot"></span>'+card.rarity+'</span>' + '</div><div class="qty">'+card.set+' — '+card.id+'</div>' + '<div class="qty">Quantité : <strong>'+qty+'</strong></div>'; wrap.appendChild(div); } }
 
@@ -997,7 +1027,13 @@ const FINAL_PAUSE_AFTER_SKIP = 250;         // ms – si "Passer l’animation"
   function showOverlay(){ overlay.hidden = false; requestAnimationFrame(()=> overlay.style.opacity = 1); }
   function hideOverlay(){ overlay.style.opacity = 0; setTimeout(()=> overlay.hidden = true, 180); }
   function wait(ms){ return new Promise(r=> setTimeout(r, ms)); }
-  function rarityGlowClass(r){ if(r===RARITY.EXOTIC) return 'glow-exotic'; if(r===RARITY.LEGENDARY) return 'glow-legendary'; if(r===RARITY.RARE) return 'glow-rare'; if(r===RARITY.UNCOMMON) return 'glow-uncommon'; return 'glow-common'; }
+  function rarityGlowClass(r){ 
+    if(r===RARITY.INCANDESCENT) return 'glow-incandescent';
+    if(r===RARITY.EXOTIC) return 'glow-exotic'; 
+    if(r===RARITY.LEGENDARY) return 'glow-legendary'; 
+    if(r===RARITY.RARE) return 'glow-rare'; 
+    if(r===RARITY.UNCOMMON) return 'glow-uncommon'; 
+    return 'glow-common'; }
   function burst(x, y, strong=false){ const parts = []; const n = strong ? 140 : 80; for(let i=0;i<n;i++){ parts.push({ x, y, vx: (Math.random()*2-1)*(strong?6:4), vy: (Math.random()*-2-2)*(strong?2:1.6), g:  0.18, a:  1, s:  Math.random()*2+1 }); } const start = performance.now(); function step(t){ step._lt = t; ctxFx.clearRect(0,0,poFx.width,poFx.height); parts.forEach(p=>{ p.vy += p.g; p.x  += p.vx; p.y  += p.vy; p.a  -= 0.012; ctxFx.globalAlpha = Math.max(0,p.a); ctxFx.fillStyle = '#fff'; ctxFx.fillRect(p.x, p.y, p.s, p.s); }); ctxFx.globalAlpha = 1; if(performance.now()-start < 1800) requestAnimationFrame(step); else ctxFx.clearRect(0,0,poFx.width,poFx.height); } requestAnimationFrame(step); }
   
 // --- NEW: utilitaires "nouvelle carte" ---
