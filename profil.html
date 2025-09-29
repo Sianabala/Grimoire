@@ -299,8 +299,12 @@ function computeProgress({ collection, cardPools }){
   });
   const exoticOwned = ownedIds.some(id => {
     const card = cardPools.find(c=>c.id===id);
-    return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;
-  });
+    return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;  });
+
+  const exoticUnique = ownedIds.reduce((n, id) => {
+  const card = cardPools.find(c => c.id === id);
+  return n + (card && card.rarity === RARITY.EXOTIC ? 1 : 0);
+}, 0);
 
   // ----- Stats "sets de lancement" (Nouvelle Lumière + Twitch) → pour ARCHIVISTE
   const launchIds = new Set(
@@ -323,17 +327,17 @@ function computeProgress({ collection, cardPools }){
   const superStreamCompleted = ssIds.size > 0 && ssOwnedUnique === ssIds.size;
 
   return { 
-    uniques, totalUnique, completionPct, 
-    byRarity, legendaryOwned, exoticOwned,
-    launchCompletionPct, launchCompleted,
-    // 🆕 champs pour le badge "Super Stream"
-    superStreamCompletionPct, superStreamCompleted
-  };
+  uniques, totalUnique, completionPct, 
+  byRarity, legendaryOwned, exoticOwned,
+  launchCompletionPct, launchCompleted,
+  superStreamCompletionPct, superStreamCompleted,
+  exoticUnique // 🆕
+};
 }
 
  
 // ---- Version de schéma badges + helpers de resync
-const BADGE_SCHEMA_VERSION = 4;
+const BADGE_SCHEMA_VERSION = 5;
 
 function computeExpectedBadges(sharedStats){
   const expected = {};
@@ -373,8 +377,9 @@ const BADGES = [
   { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
   { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
   { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
-  { id:'brillance',       name:'La brillance', ico:'💠',  desc:'Trouver 10 exotiques',     test: s => ((s.byRarity[RARITY.EXOTIC]||0)) >= 10 },
-  { id:'Toujours plus',       name:'Toujours plus', ico:'⭐',  desc:'Trouver 20 exotiques',     test: s => ((s.byRarity[RARITY.EXOTIC]||0)) >= 20 },
+  { id:'brillance', name:'La brillance', ico:'💠',  desc:'Trouver 10 exotiques',  test: s => (s.exoticUnique || 0) >= 10 },
+  { id:'Toujours plus', name:'Toujours plus', ico:'⭐', desc:'Trouver 20 exotiques', test: s => (s.exoticUnique || 0) >= 20 },
+
 
   { id:'apprenti',       name:'Apprenti',         ico:'🔨',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
   { id:'gardienconfirme',name:'En formation', ico:'⚒️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||0) >= 20 },
