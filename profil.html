@@ -225,6 +225,7 @@ const SET_FILES = [
   '/data/sets/nouvelle-lumiere.json',
   '/data/sets/twitch.json',
   '/data/sets/speciales.json',
+  '/data/sets/super-stream.json',
 ];
 
 async function loadCardSets(){
@@ -235,9 +236,12 @@ async function loadCardSets(){
       if(!res.ok) throw new Error('HTTP '+res.status);
       const data = await res.json();
       const setName =
-        data?.set || data?.name ||
-        (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière' :
-         url.includes('twitch') ? 'Twitch' : 'Set inconnu');
+  data?.set || data?.name ||
+  (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière' :
+   url.includes('twitch') ? 'Twitch' :
+   url.includes('super-stream') ? 'Super Stream' :
+   'Set inconnu');
+
 
       if(!Array.isArray(data?.cards)) continue;
       out.push(...data.cards.map(c=>({
@@ -266,7 +270,6 @@ const LAUNCH_SETS = new Set(['Nouvelle Lumière','Twitch']);
    
 // ---- Compute centralisé
 function computeProgress({ collection, cardPools }){
-  
   // ----- Stats globales (inchangées)
   const allIds = new Set(cardPools.map(c=>c.id));
   const totalUnique = allIds.size;
@@ -307,14 +310,11 @@ function computeProgress({ collection, cardPools }){
   return { 
     uniques, totalUnique, completionPct, 
     byRarity, legendaryOwned, exoticOwned,
-    // 🆕 champs utilisés par le badge “Archiviste”
+    // champs utilisés par le badge “Archiviste”
     launchCompletionPct, launchCompleted 
   };
 }
-  
-  return { uniques, totalUnique, completionPct, byRarity, legendaryOwned, exoticOwned };
-}
-
+ 
 // ---- Version de schéma badges + helpers de resync
 const BADGE_SCHEMA_VERSION = 4;
 
