@@ -945,7 +945,11 @@ const res = await fetch(s.json, {cache:'no-store'});
   }
 
   function renderResults(cards){ const wrap = document.getElementById('results'); wrap.innerHTML=''; let hasLegendary=false, hasExotic=false, hasIncandescent=false; for(const card of cards){ const div=document.createElement('div'); div.className='card'; const img=document.createElement('div'); img.className='img'; if(card.image){ img.style.background = `linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%), url('${card.image}') center/cover no-repeat`; img.style.opacity = .85; } const shine=document.createElement('div'); shine.className='shine'; div.appendChild(img); div.appendChild(shine); div.addEventListener('pointermove', (e)=>{ 
-    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); if(card.rarity===RARITY.LEGENDARY) hasLegendary=true; if(card.rarity===RARITY.EXOTIC) hasExotic=true, f(card.rarity===RARITY.INCANDESCENT) hasIncandescent=true; }
+    const r=e.currentTarget.getBoundingClientRect(); const mx=((e.clientX-r.left)/r.width)*100; const my=((e.clientY-r.top)/r.height)*100; shine.style.setProperty('--mx', mx+'%'); shine.style.setProperty('--my', my+'%'); }); const footer=document.createElement('div'); footer.className='footer'; footer.innerHTML = `<div class="name">${card.name}</div><div class="tag ${rarityClass(card.rarity)}"><span class="dot"></span>${card.set} — ${card.rarity}</div>`; div.appendChild(footer); wrap.appendChild(div); 
+   if (card.rarity === RARITY.LEGENDARY) hasLegendary = true;
+   if (card.rarity === RARITY.EXOTIC) hasExotic = true;
+   if (card.rarity === RARITY.INCANDESCENT) hasIncandescent = true;
+ }
     const banner=document.getElementById('special-banner'); 
     if(hasIncandescent || hasExotic || hasLegendary){
   banner.style.display='flex';
