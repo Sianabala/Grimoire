@@ -858,18 +858,66 @@ function weightedPickRarity(weights) {
 }
 
     
-  async function loadCardSets(){
-    ALL_CARDS = []; Object.keys(CARD_SETS).forEach(k=> delete CARD_SETS[k]);
-    for(const s of SETS){
-      try{
-const res = await fetch(s.json, {cache:'no-store'});
-        const data = await res.json();
-        const arr = (data.cards||[]).filter(c=>c.id&&c.name).map(c=>({ id:c.id, name:c.name, set:(c.set||s.name), rarity: mapRarity(c.rarity), image:(c.image||'') }));
-        CARD_SETS[s.id] = arr.length? arr : FALLBACK[s.id] || [];
-      }catch(e){ console.warn('[DEBUG] Set fallback for', s.id, e); CARD_SETS[s.id] = FALLBACK[s.id] || []; }
-      ALL_CARDS = ALL_CARDS.concat(CARD_SETS[s.id]);
+ async function loadCardSets(){
+  // Reset pools
+  ALL_CARDS = [];
+  Object.keys(CARD_SETS).forEach(k => delete CARD_SETS[k]);
+
+  // 1) Charger les sets ouvrables (NL/TW/SS) comme avant
+  for (const s of SETS){
+    try{
+      const res = await fetch(s.json, { cache: 'no-store' });
+      const data = await res.json();
+      const arr = (data.cards || [])
+        .filter(c => c.id && c.name)
+        .map(c => ({
+          id: c.id,
+          name: c.name,
+          set: (c.set || s.name),
+          rarity: mapRarity(c.rarity),
+          image: (c.image || '')
+        }));
+      CARD_SETS[s.id] = arr.length ? arr : (FALLBACK[s.id] || []);
+    }catch(e){
+      console.warn('[DEBUG] Set fallback for', s.id, e);
+      CARD_SETS[s.id] = FALLBACK[s.id] || [];
     }
+    ALL_CARDS = ALL_CARDS.concat(CARD_SETS[s.id]);
+  }
+
+  // 2) Charger les sets "stats-only" (ex: Spéciales) — ajoutés à ALL_CARDS uniquement
+  const known = new Set(ALL_CARDS.map(c => c.id)); // éviter les doublons d’ID
+  for (const url of (EXTRA_STATS_FILES || [])){
+    try{
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json();
+
+      // Nom de set (fallback propre si absent dans le JSON)
+      const setName =
+        data?.set?.name || data?.set || data?.name ||
+        (url.includes('speciales') ? 'Événements & Spéciales' : 'Set (stats)');
+
+      const extra = (data.cards || [])
+        .filter(c => c.id && c.name && !known.has(c.id))
+        .map(c => ({
+          id: c.id,
+          name: c.name,
+          set: (c.set || setName),
+          rarity: mapRarity(c.rarity),
+          image: (c.image || '')
+        }));
+
+      // 👉 On n’ajoute PAS à CARD_SETS → pas de bouton, pas de tirage
+      for (const card of extra){
+        known.add(card.id);
+        ALL_CARDS.push(card);
+      }
+    }catch(e){
+      console.warn('[DEBUG] Extra stats set skipped:', url, e);
+    }
+  }
 }
+
 
   // --- Local/state (mode déconnecté uniquement)
   const LS_KEY = 'grimoire.alpha.collection.v2_6';
