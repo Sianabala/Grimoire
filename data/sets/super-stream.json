@@ -1,8 +1,8 @@
 {
   "set": { "code": "SS", "name": "Super Stream", "total": 100, "version": 1 },
   "cards": [
-    { "id": "SS-001", "name": "Siana Silverhand", "set": "Super Stream", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
-    { "id": "SS-002", "name": "Guerre des clans 1", "set": "Super Stream", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
+    { "id": "SS-001", "name": "Siana Silverhand", "set": "Super Stream", "rarity": "rare", "cardType": "gardian", "image": "https://i.goopics.net/e2id23.png" },
+    { "id": "SS-002", "name": "Boss Afterlife", "set": "Super Stream", "rarity": "peu commune", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
     { "id": "SS-003", "name": "Guerre des clans 1", "set": "Super Stream", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
     { "id": "SS-004", "name": "Guerre des clans 1", "set": "Super Stream", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
     { "id": "SS-005", "name": "Guerre des clans 1", "set": "Super Stream", "rarity": "exotic", "cardType": "map", "image": "https://i.goopics.net/e2id23.png" },
