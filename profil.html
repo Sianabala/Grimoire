@@ -206,14 +206,15 @@ const twitchProvider = new OAuthProvider('oidc.twitch');
 try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
 
 // ---- Raretés + mapping (même normalisation que collection.html)
-const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique' };
-function mapRarity(r){  
+const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique', INCANDESCENT:'incandescent' };
+function mapRarity(r){
   const x=(r||'').toLowerCase();
   if(x==='common'||x==='commune') return RARITY.COMMON;
   if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
   if(x==='rare') return RARITY.RARE;
   if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
   if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
+  if(x==='incandescent'||x==='incandesceant'||x==='super-exotic') return RARITY.INCANDESCENT; // 👍
   return RARITY.COMMON;
 }
 
@@ -357,7 +358,7 @@ const BADGES = [
   { id:'brillance',       name:'La brillance', ico:'💎',  desc:'Trouver 10 exotiques',     test: s => ((s.byRarity[RARITY.EXOTIC]||0)) >= 10 },
 
   { id:'apprenti',       name:'Apprenti',         ico:'📖',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
-  { id:'gardienconfirme',name:'Gardien confirmé', ico:'🛡️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||6) >= 20 },
+{ id:'gardienconfirme',name:'Gardien confirmé', ico:'🛡️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||0) >= 20 },
   { id:'anniv2025',  name:'Anniversaire 2025',  ico:'🎂',  desc:'Présent(e) au stream Anniversaire 2025',  test: s => !!s.hasAnniv2025
 },
 ];
