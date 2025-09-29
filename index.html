@@ -784,12 +784,16 @@ function weightedPickRarity(weights) {
 }
 
     
-  // --- Sets (2 sets visibles au lancement)
-  const SETS = [
-  { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:"https://i.goopics.net/ilm7lk.png" },
-  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:"https://i.goopics.net/wnhrl2.png" },
-  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:"https://i.goopics.net/lni3ic.png", comingSoon:true }
+  // Sets affichés/ouvrables
+const SETS = [
+  { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:'https://i.goopics.net/ilm7lk.png' },
+  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:'https://i.goopics.net/wnhrl2.png' },
+  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:'https://i.goopics.net/lni3ic.png', comingSoon:true }
 ];
+
+// ✅ Sets “stats only” (pas ouvrables)
+const EXTRA_STATS_FILES = ['/data/sets/speciales.json'];
+
 
   // --- Pools par set + pool combiné
   const CARD_SETS = {}; // { setId: Card[] }
