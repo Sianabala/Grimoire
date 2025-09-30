@@ -500,10 +500,13 @@ body.logged-in .hero-header .hero-actions{
           <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
           <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
           <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
+          <button class="btn ghost" id="toggle-halloween">🎃 Mode Halloween</button>
         </div>
       </div>
     </div>
   </header>
+
+  
 
   <main class="container">
     <div class="grid">
@@ -1696,5 +1699,16 @@ setInterval(updateTwitchStatus, 60_000);
     
   </script>
 
+  <script>
+  const toggle = document.getElementById('toggle-halloween');
+  if(toggle){
+    toggle.addEventListener('click', ()=>{
+      document.body.classList.toggle('halloween');
+      document.documentElement.classList.toggle('halloween'); // sécurité pour :root
+    });
+  }
+</script>
+
+  
 </body>
 </html>
