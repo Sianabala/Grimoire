@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire · Profil</title>
 
+<!-- DOIT ÊTRE AVANT les <link rel="stylesheet"> -->
+<script>
+  (function(){
+    try{
+      var saved = localStorage.getItem('grimoire.theme');
+      if (saved === 'halloween') {
+        document.documentElement.classList.add('halloween');
+      }
+    }catch(e){}
+  })();
+</script>
+
+  
   <!-- Harmonisation -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
@@ -562,5 +575,14 @@ function draw(sharedStats, ownedBadges){
 }
 </script>
 
+<script>
+  (function(){
+    var saved = localStorage.getItem('grimoire.theme');
+    var on = (saved === 'halloween');
+    document.body.classList.toggle('halloween', on);
+  })();
+</script>
+
+  
 </body>
 </html>
