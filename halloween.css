@@ -459,3 +459,29 @@ body.halloween .confetti{
   display:flex; align-items:center; gap:10px;
 }
 
+/* Hero : emoji 🎃 qui tourne */
+body.halloween .hero-logo{
+  background: none !important;              /* on enlève le dégradé du carré */
+  display: grid; place-items: center;
+  animation: rotateGlow 6s linear infinite; /* garde ta rotation */
+}
+body.halloween .hero-logo::after{
+  content: "🎃";
+  font-size: 42px; line-height: 1;
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+
+/* Variante : emoji FIXE + halo qui tourne (plus chic) */
+body.halloween .hero-logo.halo{
+  position: relative; background: none !important; animation: none !important;
+}
+body.halloween .hero-logo.halo::before{
+  content:""; position:absolute; inset:-10px; border-radius: 26px;
+  background: conic-gradient(from 0deg, rgba(255,117,24,.55), rgba(181,109,255,.45), rgba(255,117,24,.55));
+  filter: blur(6px);
+  animation: rotateGlow 6s linear infinite;
+}
+body.halloween .hero-logo.halo::after{
+  content: "🎃"; position: relative; z-index: 1;
+  font-size: 42px; line-height: 1; text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
