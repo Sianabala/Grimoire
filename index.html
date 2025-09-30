@@ -29,6 +29,17 @@
   <link rel="stylesheet" href="/mobile.css">
   <link rel="stylesheet" href="/halloween.css">
 
+<script>
+(function(){
+  const KEY='grimoire.theme';
+  const saved = localStorage.getItem(KEY);
+  const now = new Date(), m = now.getMonth()+1, d = now.getDate();
+  const inHalloween = (m===10) || (m===11 && d<=2);
+  if (!saved && inHalloween) localStorage.setItem(KEY,'halloween');
+})();
+</script>
+
+  
   <style>
     :root{
       --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
