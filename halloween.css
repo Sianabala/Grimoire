@@ -448,3 +448,14 @@ body.halloween .confetti{
   50%{ transform: translate3d(var(--x,0), 30vh, 0) rotate(180deg) }
   100%{ transform: translate3d(var(--x,0), 60vh, 0) rotate(360deg) }
 }
+
+.banner.halloween{
+  margin:12px auto;
+  max-width:1200px;
+  padding:10px 12px;
+  border-radius:12px;
+  background: linear-gradient(90deg, rgba(255,117,24,.15), rgba(181,109,255,.15));
+  border: 1px solid rgba(255,255,255,.20);
+  display:flex; align-items:center; gap:10px;
+}
+
