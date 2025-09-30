@@ -10,6 +10,20 @@
 <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
 
   <link rel="prefetch" href="/collection.html" as="document">
+
+  <!-- DOIT ÊTRE AVANT les <link rel="stylesheet"> -->
+<script>
+  (function(){
+    try{
+      var saved = localStorage.getItem('grimoire.theme');
+      if (saved === 'halloween') {
+        document.documentElement.classList.add('halloween');
+      }
+    }catch(e){}
+  })();
+</script>
+
+  
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
@@ -1699,15 +1713,30 @@ setInterval(updateTwitchStatus, 60_000);
     
   </script>
 
-  <script>
-  const toggle = document.getElementById('toggle-halloween');
-  if(toggle){
-    toggle.addEventListener('click', ()=>{
-      document.body.classList.toggle('halloween');
-      document.documentElement.classList.toggle('halloween'); // sécurité pour :root
+ <script>
+  (function(){
+    const KEY = 'grimoire.theme';
+    const btn = document.getElementById('toggle-halloween');
+
+    function apply(on){
+      document.documentElement.classList.toggle('halloween', on);
+      document.body.classList.toggle('halloween', on);
+      localStorage.setItem(KEY, on ? 'halloween' : 'default');
+      if (btn) btn.textContent = on ? '🎃 Mode Halloween : ON' : '🎃 Mode Halloween : OFF';
+    }
+
+    // À l'ouverture de l'index, on lit la valeur stockée
+    const saved = localStorage.getItem(KEY);
+    apply(saved === 'halloween');
+
+    // Toggle au clic
+    btn?.addEventListener('click', ()=>{
+      const isOn = document.documentElement.classList.contains('halloween');
+      apply(!isOn);
     });
-  }
+  })();
 </script>
+
 
   
 </body>
