@@ -485,3 +485,69 @@ body.halloween .hero-logo.halo::after{
   content: "🎃"; position: relative; z-index: 1;
   font-size: 42px; line-height: 1; text-shadow: 0 2px 0 rgba(0,0,0,.35);
 }
+/* --- Compat <html class="halloween"> ET <body class="halloween"> --- */
+:root.halloween body,
+body.halloween {
+  /* Fond global Halloween (override fort) */
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(255,117,24,.16), transparent 60%),
+    radial-gradient(900px 600px at 110% 10%, rgba(181,109,255,.12), transparent 60%),
+    radial-gradient(1000px 800px at 50% 120%, rgba(179,71,0,.08), transparent 60%),
+    linear-gradient(180deg,#0b0b0f 0%,#0b0b0f 100%) !important;
+}
+
+/* Aura et header */
+:root.halloween .aura,
+body.halloween .aura { mix-blend-mode: screen; opacity:.6; }
+
+:root.halloween .site-header,
+body.halloween .site-header {
+  background:linear-gradient(180deg, rgba(11,11,15,.92), rgba(11,11,15,.68)) !important;
+  border-bottom:1px solid rgba(255,117,24,.22) !important;
+}
+
+/* Hero : titre + fond */
+:root.halloween .hero-header,
+body.halloween .hero-header {
+  background: linear-gradient(180deg, rgba(11,11,15,.92), rgba(11,11,15,.68)) !important;
+  border-bottom: 1px solid rgba(255,117,24,.22) !important;
+}
+
+:root.halloween .hero-bg::after,
+body.halloween .hero-bg::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(900px 400px at 20% 15%, rgba(255,117,24,.10), transparent 50%),
+    radial-gradient(900px 400px at 80% 10%, rgba(181,109,255,.08), transparent 55%),
+    repeating-linear-gradient(45deg, rgba(255,117,24,.04) 0 2px, transparent 2px 8px);
+}
+
+/* Hero : remplace le carré tournant par une citrouille (emoji) */
+:root.halloween .hero-logo,
+body.halloween .hero-logo{
+  background: none !important;
+  box-shadow: none !important;
+  position: relative;
+  width: 78px; height: 78px; border-radius: 999px;
+  animation: pumpkinFloat 3.2s ease-in-out infinite;
+}
+:root.halloween .hero-logo::after,
+body.halloween .hero-logo::after{
+  content: "🎃";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: 64px; line-height: 1;
+  filter: drop-shadow(0 8px 24px rgba(255,117,24,.35));
+}
+@keyframes pumpkinFloat {
+  0%,100%{ transform: translateY(0) }
+  50%{ transform: translateY(-6px) }
+}
+
+/* Bouton ON visuellement “actif” quand le thème est chargé via <html> */
+:root.halloween #toggle-halloween,
+body.halloween #toggle-halloween{
+  background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--accent), black 12%)) !important;
+  color: #160c00 !important;
+  box-shadow: 0 0 0 1px rgba(255,117,24,.35) inset, var(--shadow-sm) !important;
+}
