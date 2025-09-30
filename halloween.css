@@ -363,4 +363,35 @@ body.halloween #panel-sets .btn.premium:hover{
   box-shadow: 0 12px 28px rgba(181,109,255,.35), 
               0 0 0 2px rgba(255,255,255,.08) inset !important;
 }
+/* ===== Boutons du modal Choisir le pack ===== */
+body.halloween #pack-chooser .btn{
+  background: linear-gradient(180deg, #ff8a2a, #d85f00) !important;
+  color: #fff !important;
+  border: 1px solid rgba(0,0,0,.35) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.45);
+  font-weight: 900; letter-spacing: .25px;
+  padding: 12px 18px; border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.35),
+              0 0 0 2px rgba(255,255,255,.06) inset !important;
+}
+body.halloween #pack-chooser .btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(255,117,24,.35),
+              0 0 0 2px rgba(255,255,255,.06) inset !important;
+}
+body.halloween #pack-chooser .btn:focus-visible{
+  outline: 2px solid #fff !important;
+  outline-offset: 2px; border-radius: 10px;
+}
+/* Variante “ghost” (ex: Premium indisponible) */
+body.halloween #pack-chooser .btn.ghost{
+  background: rgba(0,0,0,.55) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+}
+/* État disabled très lisible */
+body.halloween #pack-chooser .btn:disabled{
+  opacity: .55; filter: grayscale(.15);
+  cursor: not-allowed;
+}
 
