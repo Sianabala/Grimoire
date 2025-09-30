@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire · Ma collection</title>
+  
+<!-- DOIT ÊTRE AVANT les <link rel="stylesheet"> -->
+<script>
+  (function(){
+    try{
+      var saved = localStorage.getItem('grimoire.theme');
+      if (saved === 'halloween') {
+        document.documentElement.classList.add('halloween');
+      }
+    }catch(e){}
+  })();
+</script>
+
+  
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
   <link rel="stylesheet" href="/halloween.css">
@@ -991,5 +1005,15 @@ rarityBtns.forEach(b=>{ b.classList.add('active'); b.setAttribute('aria-pressed'
       }
     });
   </script>
+
+  <script>
+  (function(){
+    var saved = localStorage.getItem('grimoire.theme');
+    var on = (saved === 'halloween');
+    document.body.classList.toggle('halloween', on);
+  })();
+</script>
+
+  
 </body>
 </html>
