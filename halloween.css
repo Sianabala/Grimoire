@@ -238,3 +238,51 @@ body.halloween .backtotop::after{
 body.halloween .viewer__close{
   border-color: rgba(255,255,255,.16) !important;
 }
+/* ===== Améliorations lisibilité bouton "Ouvrir" (index > sets) ===== */
+
+/* 1) Renforce le fond de l'overlay pour mieux détacher le texte et le CTA */
+body.halloween .set .overlay{
+  background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.88)) !important;
+  backdrop-filter: blur(4px);
+  border-color: rgba(255,255,255,.18);
+}
+
+/* 2) Version haute-contraste du bouton dans l’overlay */
+body.halloween .set .overlay .btn{
+  background: linear-gradient(180deg, #ff8a2a, #d85f00) !important; /* orange plus soutenu */
+  color: #ffffff !important;                                        /* texte blanc */
+  border: 1px solid rgba(0,0,0,.35) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.45);                              /* lisibilité */
+  box-shadow: 0 6px 16px rgba(0,0,0,.35), 
+              0 0 0 2px rgba(255,255,255,.06) inset !important;
+  padding: 10px 14px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+/* 3) État hover/focus visibles */
+body.halloween .set .overlay .btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(255,117,24,.35), 0 0 0 2px rgba(255,255,255,.06) inset !important;
+}
+body.halloween .set .overlay .btn:focus-visible{
+  outline: 2px solid #ffffff !important;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* 4) Si ton bouton dans l’overlay est en .btn.ghost, force un fond sombre lisible */
+body.halloween .set .overlay .btn.ghost{
+  background: rgba(0,0,0,.55) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+}
+
+/* 5) Boutons de l’overlay d’ouverture de pack (en bas au centre) */
+body.halloween .po-actions .btn{
+  background: linear-gradient(180deg, #ff8a2a, #d85f00) !important;
+  color: #fff !important;
+  border: 1px solid rgba(0,0,0,.35) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.45);
+}
+
