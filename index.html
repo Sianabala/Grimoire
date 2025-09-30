@@ -1785,6 +1785,27 @@ setInterval(updateTwitchStatus, 60_000);
 })();
 </script>
 
+  <script>
+  // Ajoute une bannière "Événement Halloween" juste sous la topbar,
+  // uniquement si le thème Halloween est actif.
+  (function(){
+    // Ne rien faire si le thème n'est pas activé
+    if (!document.documentElement.classList.contains('halloween')) return;
+
+    // Insérer immédiatement après la topbar .site-header
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+
+    header.insertAdjacentHTML('afterend', `
+      <div class="banner halloween">
+        <div class="container">
+          👻 <strong>Événement Halloween</strong> — packs relookés & confettis 🎃
+        </div>
+      </div>
+    `);
+  })();
+</script>
+
   
 </body>
 </html>
