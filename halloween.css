@@ -1,0 +1,240 @@
+
+/* =========================================================
+   Grimoire — Thème Halloween (global override, non destructif)
+   Active le thème en ajoutant la classe .halloween sur <body>
+   Exemple: <body class="halloween">
+   ========================================================= */
+
+/* ---------- Palette & bases ---------- */
+:root {
+  /* valeurs par défaut (non modifiées ici) */
+}
+
+:root.halloween,
+body.halloween {
+  --bg:#0b0b0f;
+  --panel:#151018;
+  --panel-2:#0f0a12;
+  --text:#f5f3e7;
+  --muted:#c7a98a;
+
+  /* Accent Halloween */
+  --accent:#ff7518;     /* orange citrouille */
+  --accent-2:#b56dff;   /* violet spectral */
+  --copper:#b34700;     /* cuivre sombre */
+
+  /* états */
+  --success:#38d48b;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+
+  --shadow:0 20px 60px rgba(0,0,0,.55);
+  --shadow-sm:0 8px 24px rgba(0,0,0,.35);
+}
+
+/* Fond global avec halos orange/violet */
+body.halloween{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(255,117,24,.16), transparent 60%),
+    radial-gradient(900px 600px at 110% 10%, rgba(181,109,255,.12), transparent 60%),
+    radial-gradient(1000px 800px at 50% 120%, rgba(179,71,0,.08), transparent 60%),
+    linear-gradient(180deg,#0b0b0f 0%,#0b0b0f 100%) !important;
+  color:var(--text);
+}
+
+/* Scrollbar teintée */
+body.halloween *::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(255,117,24,.75), rgba(181,109,255,.6)) !important;
+  border:2px solid rgba(11,11,15,.6) !important;
+}
+body.halloween *{
+  scrollbar-color: rgba(255,117,24,.45) rgba(255,255,255,.04);
+}
+
+/* ---------- Header / brand ---------- */
+body.halloween .site-header,
+body.halloween header{
+  background:linear-gradient(180deg, rgba(11,11,15,.92), rgba(11,11,15,.68)) !important;
+  border-bottom:1px solid rgba(255,117,24,.22) !important;
+}
+
+/* Logo/brand halo citrouille */
+body.halloween .brand-logo,
+body.halloween .logo{
+  box-shadow: 0 0 18px rgba(255,117,24,.35), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+  background: conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent)) !important;
+}
+
+/* ---------- Panneaux & cartes ---------- */
+body.halloween .panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2)) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+body.halloween .panel::before{
+  background: linear-gradient(140deg, rgba(255,117,24,.35), rgba(181,109,255,.24), rgba(179,71,0,.30)) !important;
+}
+
+body.halloween .card,
+body.halloween .mini-card,
+body.halloween .viewer__panel,
+body.halloween .set{
+  outline-color: rgba(255,255,255,.10) !important;
+  box-shadow: 0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06) inset !important;
+}
+body.halloween .card:hover,
+body.halloween .mini-card:hover,
+body.halloween .set:hover{
+  box-shadow: 0 18px 60px rgba(255,117,24,.18), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+}
+
+/* Lueur sur vignettes de cartes */
+body.halloween .thumb, 
+body.halloween .card, 
+body.halloween .po-card{
+  border-color: rgba(255,255,255,.10) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 0 24px rgba(255,117,24,.10) !important;
+}
+
+/* ---------- Boutons ---------- */
+body.halloween .btn{
+  background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--accent), #000 12%)) !important;
+  color:#0b0b0f !important;
+  border:1px solid rgba(255,117,24,.35) !important;
+}
+body.halloween .btn.ghost{
+  background: transparent !important;
+  color: var(--text) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+}
+body.halloween .btn:hover{
+  box-shadow: 0 12px 28px rgba(255,117,24,.28) !important;
+}
+
+/* Pills / tags */
+body.halloween .pill, 
+body.halloween .tag{
+  background: rgba(255,255,255,.06) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+/* Raretés (teintes légèrement modifiées pour Halloween) */
+body.halloween .tag.rarity-legendary{ color:#b56dff !important; }
+body.halloween .tag.rarity-exotic{ color:#ffb347 !important; }
+body.halloween .tag.rarity-incandescent{ color:#ff7518 !important; }
+
+/* ---------- Hero / Auras ---------- */
+body.halloween .aura{
+  mix-blend:screen; opacity:.55;
+}
+body.halloween .hero-header{
+  background: linear-gradient(180deg, rgba(11,11,15,.95), rgba(11,11,15,.70)) !important;
+  border-bottom: 1px solid rgba(255,117,24,.18) !important;
+}
+
+/* Toile d’araignée en overlay (SVG inline) */
+body.halloween .hero-bg::after{
+  content:"";
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    url("data:image/svg+xml;utf8,\
+      <svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600' fill='none' stroke='white' stroke-opacity='.12' stroke-width='1'>\
+        <path d='M0,0 C200,120 600,120 800,0'/>\
+        <path d='M0,200 C200,320 600,320 800,200'/>\
+        <path d='M0,400 C200,520 600,520 800,400'/>\
+        <path d='M200,0 C220,200 220,400 200,600'/>\
+        <path d='M600,0 C580,200 580,400 600,600'/>\
+      </svg>") center/cover no-repeat;
+  mix-blend-mode: screen;
+  opacity:.35;
+}
+
+/* Chauves-souris flottantes (décor subtil) */
+body.halloween::before,
+body.halloween::after{
+  content:"";
+  position:fixed; inset:auto; top:8vh; left:6vw; width:120px; height:70px;
+  background:
+    url("data:image/svg+xml;utf8,\
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 70'>\
+        <path d='M10,60 Q30,10 60,35 Q90,10 110,60 Q80,50 60,60 Q40,50 10,60 Z' fill='rgba(255,255,255,.12)'/>\
+      </svg>") center/contain no-repeat;
+  pointer-events:none; z-index:5; animation: bats 10s ease-in-out infinite;
+}
+body.halloween::after{
+  top:18vh; left:auto; right:8vw; transform: scale(.8) rotateY(180deg);
+  animation-delay: 3s;
+}
+@keyframes bats{
+  0%,100%{ transform: translateY(-6px) }
+  50%{ transform: translateY(6px) }
+}
+
+/* ---------- Pack opening (overlay) ---------- */
+body.halloween #pack-overlay .po-backdrop{
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255,117,24,.20), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(181,109,255,.18), transparent 60%),
+    rgba(6,8,12,.86) !important;
+}
+body.halloween .po-pack-body{
+  background:
+    radial-gradient(120px 60px at 20% 20%, rgba(255,117,24,.32), transparent 60%),
+    radial-gradient(100px 50px at 80% 25%, rgba(181,109,255,.28), transparent 60%),
+    linear-gradient(180deg,#151018,#0f0a12) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+body.halloween .po-slit{
+  background: linear-gradient(180deg,#fff,rgba(255,255,255,.2));
+  box-shadow: 0 0 24px rgba(255,255,255,.7), 0 0 80px rgba(255,117,24,.45) !important;
+}
+
+/* Veil des cartes à révéler */
+body.halloween .po-card .veil{
+  background:
+    radial-gradient(120px 80px at 30% 20%, rgba(255,117,24,.16), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.78)) !important;
+}
+
+/* ---------- Toast & viewer ---------- */
+body.halloween .toast{
+  background: rgba(14,10,18,.92) !important;
+  border-color: rgba(255,117,24,.22) !important;
+}
+
+/* ---------- Focus / accessibilité ---------- */
+body.halloween :is(.btn, a, button, .po-card, .set):focus-visible{
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px !important;
+  border-radius: 12px !important;
+}
+
+/* ---------- Petites finitions ---------- */
+body.halloween .badge{
+  background: var(--accent) !important;
+  color:#0b0b0f !important;
+  box-shadow: 0 4px 16px rgba(255,117,24,.25) !important;
+}
+
+/* Meta titres (ex: .subtitle) */
+body.halloween .subtitle{ color: color-mix(in oklab, var(--muted), #fff 10%) !important; }
+
+/* Segmented active (collection) */
+body.halloween .segbtn.active{
+  background: linear-gradient(180deg, rgba(255,117,24,.20), rgba(181,109,255,.16)) !important;
+  border-color: rgba(255,117,24,.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+/* Back to top bouton */
+body.halloween .backtotop{
+  background: linear-gradient(180deg, var(--panel), var(--panel-2)) !important;
+  border-color: rgba(255,255,255,.20) !important;
+}
+body.halloween .backtotop::after{
+  background: linear-gradient(140deg, rgba(255,117,24,.35), rgba(181,109,255,.24), rgba(179,71,0,.28)) !important;
+}
+
+/* Viewer zoom outline */
+body.halloween .viewer__close{
+  border-color: rgba(255,255,255,.16) !important;
+}
