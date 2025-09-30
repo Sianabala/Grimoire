@@ -352,7 +352,7 @@ function computeProgress({ collection, cardPools }){
 
  
 // ---- Version de schéma badges + helpers de resync
-const BADGE_SCHEMA_VERSION = 5;
+const BADGE_SCHEMA_VERSION = 6;
 
 function computeExpectedBadges(sharedStats){
   const expected = {};
@@ -399,6 +399,10 @@ const BADGES = [
   { id:'apprenti',       name:'Apprenti',         ico:'🔨',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
   { id:'gardienconfirme',name:'En formation', ico:'⚒️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||0) >= 20 },
   { id:'gardienconfirme',name:'Expert-e', ico:'⚔️​',  desc:'Atteindre le niveau 50',   test:s=> (s.level||0) >= 50 },
+
+  { id:'halloween2025',  name:"Esprit d'Halloween 2025",  ico:'🎃',  desc:"Avoir activé le thème Halloween 2025",  test: s => !!(s.hadHalloweenBadge || s.halloweenActive)
+},
+
   
 ];
 
@@ -525,6 +529,21 @@ xpPctEl.textContent = p + '%';
   const hasAnniv2025 =
   (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
   (collection[ANNIV2025_ID] || 0) > 0;
+
+// juste avant sharedStats
+const halloweenActive   = (localStorage.getItem('grimoire.theme') === 'halloween');
+const hadHalloweenBadge = !!((data.badges || {}).halloween2025);
+
+// sharedStats existant → ajoute les deux flags :
+const sharedStats = {
+  ...progress,
+  packsOpened: stats.packsOpened,
+  level: profileLS.level,
+  hasAnniv2025,
+  halloweenActive,     // 🆕
+  hadHalloweenBadge    // 🆕
+};
+
   
  const sharedStats = { ...progress, packsOpened: stats.packsOpened, level: profileLS.level, hasAnniv2025 };
 
