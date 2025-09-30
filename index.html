@@ -1737,6 +1737,53 @@ setInterval(updateTwitchStatus, 60_000);
   })();
 </script>
 
+<script>
+(function(){
+  if (!document.documentElement.classList.contains('halloween')) return;
+
+  const EMOJI = ["🎃","🦇","🕸️","🕯️","🍬"];
+  function spawnConfetti(n=28, origin){
+    const rect = (origin?.getBoundingClientRect?.() ?? {x: innerWidth/2, y: innerHeight/3, width:0, height:0});
+    for (let i=0;i<n;i++){
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.textContent = EMOJI[(Math.random()*EMOJI.length)|0];
+      const ox = rect.x + rect.width/2;
+      const oy = rect.y + rect.height/2;
+      const dx = (Math.random()*2-1) * Math.min(220, innerWidth*0.35);
+      el.style.left = (ox) + 'px';
+      el.style.top  = (oy) + 'px';
+      el.style.setProperty('--x', dx+'px');
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 1400);
+    }
+  }
+
+  // 1) Quand l'overlay des packs s'ouvre, petit feu d'artifice
+  const overlay = document.getElementById('pack-overlay');
+  const observer = new MutationObserver(()=>{
+    if (!overlay) return;
+    const hidden = overlay.hasAttribute('hidden');
+    if (!hidden) spawnConfetti(22, overlay.querySelector('.po-pack') || overlay);
+  });
+  if (overlay) observer.observe(overlay, { attributes:true, attributeFilter:['hidden'] });
+
+  // 2) Quand toutes les cartes sont révélées, confettis bonus
+  document.addEventListener('click', (e)=>{
+    const card = e.target.closest('.po-card');
+    if (!card) return;
+    // délai fin d'anim de flip
+    setTimeout(()=>{
+      const cards = [...document.querySelectorAll('.po-card')];
+      const done = cards.filter(c => c.getAttribute('aria-pressed')==='true' || c.classList.contains('revealed'));
+      if (cards.length && done.length === cards.length){
+        spawnConfetti(36, document.querySelector('.po-fan') || overlay);
+      }
+    }, 120);
+  }, true);
+})();
+</script>
 
   
 </body>
