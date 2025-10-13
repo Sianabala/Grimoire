@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grimoire — Classement des collectionneurs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0e13;           /* nuit */
+      --panel:#121722;        /* ardoise */
+      --ink:#d9d7ce;          /* encre */
+      --muted:#9aa3b2;        /* gris doux */
+      --primary:#8b7cf6;      /* indigo mystique */
+      --primary-2:#caa6ff;    /* améthyste */
+      --accent:#ffd799;       /* cuivre rosé */
+      --success:#7dd3a8;      /* vert rituel */
+      --danger:#f08c8c;
+      --card:#0f131b;
+      --glow: 0 0 20px rgba(203, 162, 255, .35), 0 0 40px rgba(139,124,246,.2);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(60% 80% at 75% 10%, rgba(139,124,246,.12), transparent 60%),
+        radial-gradient(60% 80% at 20% 90%, rgba(202,166,255,.08), transparent 60%),
+        var(--bg);
+      color:var(--ink);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height:1.45;
+    }
+    header{
+      position:sticky; top:0; z-index:5;
+      background:linear-gradient(180deg, rgba(11,14,19,.9), rgba(11,14,19,.45) 70%, transparent);
+      backdrop-filter: blur(6px);
+      border-bottom:1px solid rgba(138, 124, 246, .15);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 20px}
+    .title{
+      display:flex; align-items:center; gap:14px;
+    }
+    .sigil{
+      width:42px; height:42px; border-radius:50%;
+      display:grid; place-items:center;
+      background: radial-gradient(80% 80% at 50% 30%, rgba(203,162,255,.25), rgba(139,124,246,.08));
+      border:1px solid rgba(203,162,255,.35);
+      box-shadow: var(--glow);
+      font-family: Cinzel, serif; font-weight:700; letter-spacing:.5px;
+      color:var(--accent);
+    }
+    h1{
+      margin:0; font-family: Cinzel, serif; font-weight:700; letter-spacing:.5px;
+      font-size: clamp(20px, 3vw, 28px);
+    }
+    .toolbar{display:flex; gap:12px; margin-top:14px; flex-wrap:wrap}
+    .field{position:relative}
+    .field input{
+      background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.06);
+      border-radius: 12px; padding:12px 40px 12px 12px; min-width:260px; outline:none;
+    }
+    .field input::placeholder{color:var(--muted)}
+    .field .right{position:absolute; right:8px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px}
+    .chip{background: linear-gradient(180deg, rgba(139,124,246,.22), rgba(202,166,255,.14));
+      border:1px solid rgba(139,124,246,.35); color:var(--primary-2);
+      padding:10px 12px; border-radius:999px; font-size:12px}
+
+    main{padding: 10px 20px 80px}
+    .grid{max-width:1100px; margin:0 auto; display:grid; gap:10px}
+    @media(min-width:700px){.grid{grid-template-columns: repeat(2, 1fr)}}
+    @media(min-width:1000px){.grid{grid-template-columns: repeat(3, 1fr)}}
+
+    .card{
+      display:flex; align-items:center; gap:12px; padding:12px; border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(20,26,36,.9), rgba(15,19,27,.9));
+      border:1px solid rgba(203,162,255,.09);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow: var(--glow) }
+    .rank-badge{
+      min-width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+      background: radial-gradient(100% 100% at 50% 30%, rgba(255,215,153,.20), rgba(255,215,153,.08));
+      border:1px solid rgba(255,215,153,.35);
+      font-weight:700; color:var(--accent)
+    }
+    .rank-1{ box-shadow: 0 0 24px rgba(255,215,153,.25) }
+    .rank-2{ background: radial-gradient(100% 100% at 50% 30%, rgba(200,210,230,.20), rgba(200,210,230,.08)); border-color: rgba(200,210,230,.4) }
+    .rank-3{ background: radial-gradient(100% 100% at 50% 30%, rgba(220,170,120,.20), rgba(220,170,120,.08)); border-color: rgba(220,170,120,.4) }
+
+    .avatar{ width:44px; height:44px; border-radius:12px; object-fit:cover; border:1px solid rgba(255,255,255,.12)}
+
+    .info{flex:1; min-width:0}
+    .name{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .meta{font-size:12px; color:var(--muted)}
+
+    .bar{margin-top:6px; width:100%; height:10px; background:#0b0f16; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.06)}
+    .fill{height:100%; width:0%; background: linear-gradient(90deg, var(--primary), var(--primary-2)); box-shadow: var(--glow)}
+
+    .owned{font-variant-numeric: tabular-nums; font-size:12px; color:var(--muted)}
+
+    .footer{max-width:1100px; margin:18px auto 0; color:var(--muted); font-size:12px}
+
+    .empty{opacity:.75; text-align:center; padding:48px 16px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <div class="sigil">G</div>
+        <h1>Classement des collectionneurs</h1>
+      </div>
+      <div class="toolbar">
+        <div class="field">
+          <input id="search" type="search" placeholder="Rechercher un joueur…" />
+          <span class="right" id="totalCount">—</span>
+        </div>
+        <div class="chip" title="MàJ temps réel via Firestore">Temps réel</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="footer wrap">
+      Astuce : ce classement affiche le <strong>% de complétion</strong> (cartes uniques possédées / total du set). En cas d’égalité, l’ordre est tranché par le nombre de cartes possédées.
+    </div>
+  </main>
+
+    <!-- Firebase SDKs (modules) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // 1) 🔧 CONFIG FIREBASE — remplace par ta config
+    const firebaseConfig = {
+      apiKey: "__API_KEY__",
+      authDomain: "__PROJECT_ID__.firebaseapp.com",
+      projectId: "__PROJECT_ID__",
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 2) Source de données: leaderboard_public (dérivé côté client par chaque joueur)
+    //    Champs attendus: displayName, displayNameLower, photoURL, uniques, totalUnique, completionPct, updatedAt
+
+    const gridEl = document.getElementById('grid');
+    const totalCountEl = document.getElementById('totalCount');
+    const searchEl = document.getElementById('search');
+
+    let allPlayers = [];
+
+    function medal(rank){ if(rank===1) return '🥇'; if(rank===2) return '🥈'; if(rank===3) return '🥉'; return '#'+rank; }
+    function rankClass(rank){ if(rank===1) return 'rank-1'; if(rank===2) return 'rank-2'; if(rank===3) return 'rank-3'; return ''; }
+
+    function render(list){
+      gridEl.innerHTML = '';
+      if(!list.length){ gridEl.innerHTML = `<div class="empty">Aucun joueur ne correspond à la recherche.</div>`; totalCountEl.textContent = '0'; return; }
+      totalCountEl.textContent = String(list.length);
+      list.forEach((u, idx)=>{
+        const rank = idx+1;
+        const pctStr = (Math.round((u.completionPct||0)*10)/10).toString().replace('.0','');
+        const ownedStr = (u.uniques||0) + ' / ' + (u.totalUnique||0) + ' cartes';
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="rank-badge ${rankClass(rank)}">${medal(rank)}</div>
+          <img class="avatar" src="${u.photoURL || 'https://api.dicebear.com/9.x/shapes/svg?seed='+encodeURIComponent(u.displayName||'Joueur')}" alt="${u.displayName||'Joueur'}"/>
+          <div class="info">
+            <div class="name">${u.displayName || 'Joueur anonyme'}</div>
+            <div class="meta">Complétion: <strong>${pctStr}%</strong></div>
+            <div class="bar"><div class="fill" style="width:${Math.min(100, Math.max(0, u.completionPct||0))}%;"></div></div>
+            <div class="owned">${ownedStr}</div>
+          </div>`;
+        gridEl.appendChild(card);
+      });
+    }
+
+    function applySearch(){
+      const q = (searchEl.value||'').trim().toLowerCase();
+      if(!q){ render(allPlayers); return; }
+      const filtered = allPlayers.filter(u => (u.displayNameLower||u.displayName||'').toLowerCase().includes(q));
+      render(filtered);
+    }
+    searchEl.addEventListener('input', applySearch);
+
+    // 🔴 Live query: top 100 par % complétion, puis par uniques
+    const qRef = query(
+      collection(db, 'leaderboard_public'),
+      orderBy('completionPct', 'desc'),
+      orderBy('uniques', 'desc'),
+      orderBy('displayNameLower', 'asc'),
+      limit(100)
+    );
+
+    onSnapshot(qRef, (snap)=>{
+      const rows = [];
+      snap.forEach(docu=>{
+        const d = docu.data()||{};
+        rows.push({
+          displayName: d.displayName || 'Joueur',
+          displayNameLower: (d.displayNameLower||d.displayName||'').toLowerCase(),
+          photoURL: d.photoURL || '',
+          uniques: Number(d.uniques)||0,
+          totalUnique: Number(d.totalUnique)||0,
+          completionPct: Number(d.completionPct)||0,
+        });
+      });
+      allPlayers = rows;
+      applySearch();
+    }, (err)=>{
+      console.error(err);
+      gridEl.innerHTML = `<div class="empty">Impossible de charger le classement public. Vérifie les règles de sécurité pour <code>leaderboard_public</code>.</div>`
+    });
+  </script>
+  </script>
+</body>
+</html>
