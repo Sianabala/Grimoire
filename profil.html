@@ -711,7 +711,8 @@ function filterLB(){
 
 lbSearch?.addEventListener('input', filterLB);
 
-const qRef = query(
+// --- Leaderboard: essaie l'index composite, sinon fallback ---
+const qPrimary = query(
   fsCollection(db, 'leaderboard_public'),
   orderBy('completionPct','desc'),
   orderBy('uniques','desc'),
@@ -719,22 +720,75 @@ const qRef = query(
   limit(10)
 );
 
-onSnapshot(qRef, (snap)=>{
-  const rows=[];
-  snap.forEach(d=>{
-    const x=d.data()||{};
-    rows.push({
-      displayName: x.displayName || 'Joueur',
-      displayNameLower: (x.displayNameLower||x.displayName||'').toLowerCase(),
-      photoURL: x.photoURL || '',
-      uniques: Number(x.uniques)||0,
-      totalUnique: Number(x.totalUnique)||0,
-      completionPct: Number(x.completionPct)||0
+// Fallback: un seul orderBy (pas d'index), puis tri en mémoire
+const qFallback = query(
+  fsCollection(db, 'leaderboard_public'),
+  orderBy('completionPct','desc'),
+  limit(50) // on prend plus d'entrées pour un tri local propre
+);
+
+let unsubLB;
+function attachPrimary() {
+  if (unsubLB) unsubLB(); // nettoie si déjà attaché
+  unsubLB = onSnapshot(
+    qPrimary,
+    (snap) => {
+      const rows=[];
+      snap.forEach(d=>{
+        const x=d.data()||{};
+        rows.push({
+          displayName: x.displayName || 'Joueur',
+          displayNameLower: (x.displayNameLower||x.displayName||'').toLowerCase(),
+          photoURL: x.photoURL || '',
+          uniques: Number(x.uniques)||0,
+          totalUnique: Number(x.totalUnique)||0,
+          completionPct: Number(x.completionPct)||0
+        });
+      });
+      LB_ALL = rows;
+      lbCount?.setAttribute('title','Classement trié par index composite ✅'); // optionnel
+      filterLB();
+    },
+    (err) => {
+      if (err && err.code === 'failed-precondition') {
+        lbCount?.setAttribute('title','Index en construction… tri local ⏳'); // optionnel
+        attachFallback();
+      } else {
+        console.error('[leaderboard] snapshot error', err);
+      }
+    }
+  );
+}
+
+function attachFallback() {
+  if (unsubLB) unsubLB();
+  unsubLB = onSnapshot(qFallback, (snap)=>{
+    const rows=[];
+    snap.forEach(d=>{
+      const x=d.data()||{};
+      rows.push({
+        displayName: x.displayName || 'Joueur',
+        displayNameLower: (x.displayNameLower||x.displayName||'').toLowerCase(),
+        photoURL: x.photoURL || '',
+        uniques: Number(x.uniques)||0,
+        totalUnique: Number(x.totalUnique)||0,
+        completionPct: Number(x.completionPct)||0
+      });
     });
+    // tri secondaire côté client (pas d’index requis)
+    rows.sort((a,b)=>{
+      if (b.completionPct !== a.completionPct) return b.completionPct - a.completionPct;
+      if (b.uniques !== a.uniques)             return b.uniques - a.uniques;
+      return a.displayNameLower.localeCompare(b.displayNameLower);
+    });
+    LB_ALL = rows.slice(0,10);
+    filterLB();
   });
-  LB_ALL = rows;
-  filterLB();
-});
+}
+
+// Lance l’attachement
+attachPrimary();
+
 
    
 </script>
