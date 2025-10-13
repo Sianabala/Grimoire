@@ -124,6 +124,38 @@
       .container{ padding:12px; }
       .title{ font-size:18px; }
     }
+
+/* Leaderboard compact dans le panel */
+.lb-controls{ display:flex; gap:10px; align-items:center; margin-bottom:10px }
+.lb-controls input{
+  flex:1; background: var(--panel); color: var(--text);
+  border:1px solid rgba(255,255,255,.10); border-radius: 12px; padding:10px 12px;
+}
+.lb-list{
+  list-style:none; margin:0; padding:0; display:grid; gap:8px;
+}
+.lb-item{
+  display:grid; grid-template-columns: 36px 36px 1fr auto; gap:10px; align-items:center;
+  padding:10px; border:1px solid rgba(255,255,255,.08);
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border-radius: 14px; box-shadow: var(--shadow-sm);
+}
+.lb-rank{
+  width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:900;
+  background: radial-gradient(100% 100% at 50% 30%, rgba(214,161,122,.18), rgba(214,161,122,.08));
+  border:1px solid rgba(214,161,122,.35);
+}
+.lb-rank.r2{ background: radial-gradient(100% 100% at 50% 30%, rgba(200,210,230,.18), rgba(200,210,230,.08)); }
+.lb-rank.r3{ background: radial-gradient(100% 100% at 50% 30%, rgba(220,170,120,.18), rgba(220,170,120,.08)); }
+.lb-ava{ width:36px; height:36px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,.12) }
+.lb-name{ font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.lb-sub{ font-size:12px; color: var(--muted); }
+.lb-bar{ height:8px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+  border-radius:999px; overflow:hidden; margin-top:6px; }
+.lb-fill{ height:100%; width:0%; background: linear-gradient(90deg, rgba(124,92,255,.7), rgba(184,107,255,.7)); }
+.lb-pct{ font-weight:900; }
+
+    
   </style>
 </head>
 <body>
@@ -178,6 +210,23 @@
         <div id="badges" class="badges"></div>
       </div>
     </section>
+
+    <!-- Classement des collectionneurs -->
+<section class="panel" style="grid-column:span 12">
+  <div class="hd">
+    <h3>Classement des collectionneurs</h3>
+    <span class="subtitle">Top 10 par % de complétion (puis cartes uniques)</span>
+  </div>
+  <div class="bd">
+    <div class="lb-controls">
+      <input id="lb-search" type="search" placeholder="Rechercher un joueur…" aria-label="Rechercher un joueur">
+      <span class="pill" id="lb-count">—</span>
+    </div>
+    <ol id="lb-list" class="lb-list" aria-live="polite"></ol>
+  </div>
+</section>
+
+    
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -589,6 +638,75 @@ function draw(sharedStats, ownedBadges){
   renderBadges(badgesWrap, BADGES, ownedBadges || {});
   // console.log('[profil] stats', sharedStats, 'badges', ownedBadges);
 }
+
+   import { collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const lbList   = document.getElementById('lb-list');
+const lbCount  = document.getElementById('lb-count');
+const lbSearch = document.getElementById('lb-search');
+
+let LB_ALL = [];
+
+function medal(i){ if(i===1) return '🥇'; if(i===2) return '🥈'; if(i===3) return '🥉'; return '#'+i; }
+function rankClass(i){ return i===1?'': (i===2?'r2': (i===3?'r3':'')); }
+
+function renderLB(rows){
+  lbList.innerHTML = '';
+  lbCount.textContent = String(rows.length);
+  for (let i=0;i<rows.length;i++){
+    const u = rows[i];
+    const li = document.createElement('li');
+    li.className = 'lb-item';
+    const pct = Math.max(0, Math.min(100, Number(u.completionPct)||0));
+    const pctLabel = (Math.round(pct*10)/10).toString().replace('.0','');
+    li.innerHTML = `
+      <div class="lb-rank ${rankClass(i+1)}">${medal(i+1)}</div>
+      <img class="lb-ava" src="${u.photoURL || 'https://api.dicebear.com/9.x/shapes/svg?seed='+encodeURIComponent(u.displayName||'Joueur')}" alt="">
+      <div>
+        <div class="lb-name">${u.displayName || 'Joueur'}</div>
+        <div class="lb-sub">${u.uniques||0} / ${u.totalUnique||0} cartes</div>
+        <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
+      </div>
+      <div class="lb-pct">${pctLabel}%</div>
+    `;
+    lbList.appendChild(li);
+  }
+}
+
+function filterLB(){
+  const q = (lbSearch.value||'').trim().toLowerCase();
+  if(!q) return renderLB(LB_ALL);
+  renderLB(LB_ALL.filter(u => (u.displayNameLower||u.displayName||'').toLowerCase().includes(q)));
+}
+
+lbSearch?.addEventListener('input', filterLB);
+
+const qRef = query(
+  collection(db, 'leaderboard_public'),
+  orderBy('completionPct','desc'),
+  orderBy('uniques','desc'),
+  orderBy('displayNameLower','asc'),
+  limit(10)
+);
+
+onSnapshot(qRef, (snap)=>{
+  const rows=[];
+  snap.forEach(d=>{
+    const x=d.data()||{};
+    rows.push({
+      displayName: x.displayName || 'Joueur',
+      displayNameLower: (x.displayNameLower||x.displayName||'').toLowerCase(),
+      photoURL: x.photoURL || '',
+      uniques: Number(x.uniques)||0,
+      totalUnique: Number(x.totalUnique)||0,
+      completionPct: Number(x.completionPct)||0
+    });
+  });
+  LB_ALL = rows;
+  filterLB();
+});
+
+   
 </script>
 
 <script>
