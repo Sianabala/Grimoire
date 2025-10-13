@@ -516,6 +516,13 @@ xpPctEl.textContent = p + '%';
 
 
     const progress = computeProgress({ collection, cardPools });
+    // Publie la progression au leaderboard (écriture fusionnée)
+await publishLeaderboardProgress({
+  uniques: progress.uniques,
+  totalUnique: progress.totalUnique,
+  completionPct: progress.completionPct
+});
+
     draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {}); // rendu (tout verrouillé si pas de badges)
     return;
   }
@@ -639,6 +646,29 @@ function draw(sharedStats, ownedBadges){
   // console.log('[profil] stats', sharedStats, 'badges', ownedBadges);
 }
 
+// --- Publication du joueur dans leaderboard_public (anti-spam 30s) ---
+let _lbLastWrite = 0;
+async function publishLeaderboardProgress({ uniques, totalUnique, completionPct }) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const now = Date.now();
+  if (now - _lbLastWrite < 30000) return; // max 1 écriture / 30s
+  _lbLastWrite = now;
+
+  const ref = doc(db, 'leaderboard_public', user.uid);
+  await setDoc(ref, {
+    displayName: user.displayName || 'Joueur',
+    displayNameLower: (user.displayName || 'joueur').toLowerCase(),
+    photoURL: user.photoURL || '',
+    uniques: Number(uniques) || 0,
+    totalUnique: Number(totalUnique) || 0,
+    completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+}
+
+   
    import { collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const lbList   = document.getElementById('lb-list');
