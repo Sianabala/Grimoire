@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grimoire — Calendrier de l'Avent</title>
+  <style>
+    :root {
+      --night: #0c0f1e; /* bleu nuit profond */
+      --amethyst: #8a5cff; /* violet améthyste */
+      --rose-copper: #d29c7c; /* cuivre rosé */
+      --sand: #f0e7da; /* beige sable */
+      --indigo: #4a3b8c; /* indigo céleste */
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 50% 20%, rgba(138,92,255,.15), transparent 60%),
+                  linear-gradient(180deg, #0c0f1e 0%, #0a0d1a 50%, #090b17 100%);
+      color: #eef0f6;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 14px 0 24px 0;
+      padding: 16px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: conic-gradient(from 210deg, var(--amethyst), var(--indigo), var(--rose-copper));
+      box-shadow: inset 0 0 14px rgba(0,0,0,.35), 0 6px 18px rgba(138,92,255,.35);
+      border: 1px solid rgba(255,255,255,.15);
+    }
+
+    h1 {
+      font-size: 1.35rem; margin: 0;
+      letter-spacing: .3px;
+    }
+
+    .actions { display:flex; gap: 10px; }
+
+    .btn {
+      appearance: none; border: 0; cursor: pointer;
+      color: #0c0f1e; font-weight: 700;
+      padding: 10px 14px; border-radius: 12px;
+      background: linear-gradient(180deg, #ffdca8, #d29c7c);
+      box-shadow: 0 8px 18px rgba(210,156,124,.35), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+
+    .btn.secondary {
+      color: #eef0f6; font-weight: 600;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .hero {
+      display: grid; grid-template-columns: 1fr; gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .hero-card {
+      padding: 18px; border-radius: 18px;
+      background: linear-gradient(145deg, rgba(74,59,140,.45), rgba(12,15,30,.45));
+      border: 1px solid rgba(138,92,255,.35);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .notice {
+      font-size: .95rem; opacity: .9; line-height: 1.5;
+    }
+
+    .grid-wrap {
+      position: relative;
+      padding: 18px; border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .avent-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    .case {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      border: 1px solid rgba(138,92,255,.35);
+      background: radial-gradient(180px 180px at 50% 35%, rgba(138,92,255,.18), rgba(12,15,30,.5)),
+                  linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: 0 12px 24px rgba(0,0,0,.35);
+      display: grid; place-items: center;
+      font-size: 1.35rem;
+      letter-spacing: .5px;
+      color: #e9e6ff;
+      user-select: none;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      overflow: hidden;
+    }
+
+    .case:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,.45); }
+
+    .case.locked { opacity: .65; cursor: not-allowed; filter: grayscale(.08); }
+
+    .case.opened {
+      background: linear-gradient(145deg, var(--indigo), var(--amethyst));
+      border-color: rgba(210,156,124,.7);
+      box-shadow: 0 12px 26px rgba(138,92,255,.45), inset 0 0 42px rgba(255,255,255,.12);
+    }
+
+    .case .day-label { font-weight: 800; font-size: 1.15rem; opacity: .95; }
+    .case .gift { font-size: 1.4rem; display: none; }
+    .case.opened .day-label { display: none; }
+    .case.opened .gift { display: block; }
+
+    .legend {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      opacity: .9; font-size: .92rem; margin-top: 12px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+    .dot-ok { background: #62f29e; }
+    .dot-locked { background: #c6c6c6; }
+    .dot-opened { background: #ffd166; }
+
+    /* Modal reward */
+    .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal.open { display: flex; }
+    .modal::before { content: ""; position: absolute; inset: 0; backdrop-filter: blur(6px); background: rgba(0,0,0,.45); }
+
+    .modal-card {
+      position: relative; z-index: 1;
+      width: min(560px, 92vw);
+      padding: 22px; border-radius: 18px;
+      background: linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 28px 50px rgba(0,0,0,.55);
+      text-align: center;
+    }
+    .modal h3 { margin: 6px 0 8px 0; font-size: 1.35rem; }
+    .modal p { margin: 0 0 14px 0; opacity: .95; }
+
+    .reward-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 999px;
+      background: linear-gradient(180deg, #ffdca8, #d29c7c);
+      color: #0c0f1e; font-weight: 800;
+      box-shadow: 0 8px 18px rgba(210,156,124,.35), inset 0 1px 0 rgba(255,255,255,.25);
+      margin: 8px 0 0 0;
+    }
+
+    .toast {
+      position: fixed; bottom: 18px; right: 18px; z-index: 50;
+      background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 12px 14px; border-radius: 12px; display: none;
+      box-shadow: 0 16px 32px rgba(0,0,0,.45);
+    }
+    .toast.open { display: block; }
+
+    @media (max-width: 820px) {
+      .avent-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .avent-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <h1>🎄 Grimoire — Calendrier de l'Avent</h1>
+          <small id="user-info">Chargement du profil…</small>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn secondary" id="go-home">⬅️ Retour au jeu</button>
+        <button class="btn" id="logout">Se déconnecter</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-card">
+        <div class="notice" id="season-note">Ouvre une case par jour du 1 au 24 décembre pour collecter des récompenses !
+          <br/>Certaines cases contiennent des cartes exclusives ✨
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-wrap">
+      <div class="avent-grid" id="avent-grid" aria-live="polite"></div>
+      <div class="legend">
+        <span class="dot dot-ok"></span> Disponible aujourd'hui
+        <span class="dot dot-locked"></span> Verrouillée
+        <span class="dot dot-opened"></span> Déjà ouverte
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal de récompense -->
+  <div class="modal" id="reward-modal" role="dialog" aria-modal="true" aria-labelledby="reward-title">
+    <div class="modal-card">
+      <h3 id="reward-title">Récompense débloquée !</h3>
+      <p id="reward-text">Tu viens de gagner…</p>
+      <div id="reward-pill" class="reward-pill">🎁 +100 XP</div>
+      <div style="margin-top:14px">
+        <button class="btn" id="reward-close">Ok merci ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Récompense ajoutée à ta boîte 🎁</div>
+
+  <!-- Firebase SDK (assume déjà chargé globalement dans ton projet) -->
+  <!-- Si besoin, dé-commente ces imports CDN minifiés: -->
+  <!-- <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script> -->
+
+  <script type="module">
+    // === CONFIG / IMPORTS ===
+    // ⚠️ Adapte ces imports selon ton setup (modules ou compat). Ici: modules modernes.
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp, addDoc, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    // 👉 Remplace par ta config existante (ou utilise ton fichier firebase.js)
+    const firebaseConfig = window.firebaseConfig || {
+      // apiKey: "...",
+      // authDomain: "...",
+      // projectId: "...",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // === UTIL ===
+    const $ = (sel) => document.querySelector(sel);
+    const grid = $('#avent-grid');
+    const toast = $('#toast');
+    const rewardModal = $('#reward-modal');
+    const rewardText = $('#reward-text');
+    const rewardPill = $('#reward-pill');
+
+    const now = new Date();
+    const CURRENT_YEAR = now.getFullYear();
+    const IS_DECEMBER = now.getMonth() === 11; // 11 = décembre
+    const TODAY = now.getDate();
+
+    // Option stricte (facultatif) — empêche l'ouverture hors décembre côté client
+    const STRICT_DECEMBER = true;
+
+    // Récompenses (exemple équilibré, adapte selon ton économie de jeu)
+    const REWARDS = {
+      1:  { type: 'xp', value: 100, title: '+100 XP' },
+      2:  { type: 'pack', value: 'standard', title: 'Pack Standard' },
+      3:  { type: 'card', rarity: 'rare',   title: 'Carte Rare garantie' },
+      4:  { type: 'xp', value: 250, title: '+250 XP' },
+      5:  { type: 'pack', value: 'premium', title: 'Pack Premium' },
+      6:  { type: 'card', rarity: 'exclusive-hiver', title: 'Carte exclusive Hiver' },
+      7:  { type: 'pack', value: 'surprise', title: 'Booster surprise' },
+      8:  { type: 'xp', value: 150, title: '+150 XP' },
+      9:  { type: 'pack', value: 'standard', title: 'Pack Standard' },
+      10: { type: 'card', rarity: 'rare', title: 'Carte Rare garantie' },
+      11: { type: 'xp', value: 200, title: '+200 XP' },
+      12: { type: 'pack', value: 'premium', title: 'Pack Premium' },
+      13: { type: 'cosmetic', value: 'avatar-neige', title: 'Cosmétique: Avatar neige' },
+      14: { type: 'xp', value: 300, title: '+300 XP' },
+      15: { type: 'pack', value: 'standard', title: 'Pack Standard' },
+      16: { type: 'card', rarity: 'legendary', title: 'Carte Légendaire (chance)' },
+      17: { type: 'xp', value: 200, title: '+200 XP' },
+      18: { type: 'pack', value: 'surprise', title: 'Booster surprise' },
+      19: { type: 'card', rarity: 'rare', title: 'Carte Rare garantie' },
+      20: { type: 'xp', value: 400, title: '+400 XP' },
+      21: { type: 'pack', value: 'premium', title: 'Pack Premium' },
+      22: { type: 'cosmetic', value: 'cadre-lumineux', title: 'Cosmétique: Cadre lumineux' },
+      23: { type: 'xp', value: 500, title: '+500 XP' },
+      24: { type: 'card', rarity: 'exotic-noel', title: 'Carte Exotique de Noël ✨' },
+    };
+
+    // === NAV / AUTH ===
+    $('#go-home')?.addEventListener('click', () => {
+      // Adapte l'URL selon ton projet
+      window.location.href = 'jeu.html';
+    });
+    $('#logout')?.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        $('#user-info').textContent = 'Connexion requise — redirection…';
+        setTimeout(() => (window.location.href = 'index.html'), 600);
+        return;
+      }
+      $('#user-info').textContent = `Connecté en tant que ${user.displayName || user.email}`;
+
+      if (!IS_DECEMBER && STRICT_DECEMBER) {
+        document.querySelector('#season-note').innerHTML = `Ce calendrier est disponible uniquement en décembre. Reviens plus tard ✨`;
+      }
+
+      const openedSet = await fetchOpenedDays(user.uid, CURRENT_YEAR);
+      renderGrid(openedSet);
+    });
+
+    async function fetchOpenedDays(uid, year) {
+      const path = collection(db, 'users', uid, 'advent', String(year));
+      const snap = await getDocs(path);
+      const set = new Set();
+      snap.forEach(d => set.add(Number(d.id)));
+      return set; // Set<number>
+    }
+
+    function renderGrid(openedSet = new Set()) {
+      grid.innerHTML = '';
+      for (let day = 1; day <= 24; day++) {
+        const el = document.createElement('button');
+        el.className = 'case';
+        el.setAttribute('aria-label', `Case du ${day} décembre`);
+        el.innerHTML = `<span class="day-label">${day}</span><span class="gift">🎁</span>`;
+
+        const isOpened = openedSet.has(day);
+        const isAvailableToday = IS_DECEMBER && day <= TODAY;
+
+        if (isOpened) el.classList.add('opened');
+        if (!isAvailableToday) el.classList.add('locked');
+
+        el.addEventListener('click', async () => {
+          if (!IS_DECEMBER && STRICT_DECEMBER) return shake(el);
+          if (isOpened) return;
+          if (!isAvailableToday) return shake(el);
+
+          try {
+            el.disabled = true;
+            await openCase(day);
+            el.classList.remove('locked');
+            el.classList.add('opened');
+            el.querySelector('.day-label').style.display = 'none';
+            el.querySelector('.gift').style.display = 'block';
+          } catch (e) {
+            console.error(e);
+            showToast("Oups, impossible d'ouvrir la case. Réessaie.");
+          } finally {
+            el.disabled = false;
+          }
+        });
+
+        grid.appendChild(el);
+      }
+    }
+
+    async function openCase(day) {
+      const user = auth.currentUser;
+      if (!user) throw new Error('no-auth');
+
+      // 1) Marque la case comme ouverte (id = numéro du jour)
+      const dayRef = doc(db, 'users', user.uid, 'advent', String(CURRENT_YEAR), String(day));
+      const already = await getDoc(dayRef);
+      if (already.exists()) return; // idempotent
+
+      await setDoc(dayRef, { openedAt: serverTimestamp(), clientDate: new Date().toISOString() });
+
+      // 2) Attribue la récompense (ajout dans rewardsInbox, et mise à jour stats/XP si souhaité)
+      const reward = REWARDS[day];
+      if (reward) {
+        await grantRewardToInbox(user.uid, day, reward);
+        showRewardModal(reward);
+      }
+    }
+
+    async function grantRewardToInbox(uid, day, reward) {
+      // Ajoute une entrée dans la boîte à récompenses, pour être réclamée depuis ton UI existante
+      const inboxCol = collection(db, 'users', uid, 'rewardsInbox');
+      const payload = { day, kind: reward.type, value: reward.value || null, rarity: reward.rarity || null };
+
+      await addDoc(inboxCol, {
+        source: 'advent',
+        year: CURRENT_YEAR,
+        day,
+        reward,
+        payload,
+        createdAt: serverTimestamp(),
+        status: 'pending' // tu peux la passer à 'claimed' quand le joueur clique dans profil/jeu
+      });
+
+      // Si tu veux des effets immédiats pour l'XP :
+      if (reward.type === 'xp') {
+        const profileRef = doc(db, 'users', uid);
+        try { await updateDoc(profileRef, { xp: increment(Number(reward.value) || 0) }); } catch {}
+      }
+
+      // Packs & cartes resteront "à réclamer" depuis ta boîte à récompenses
+      showToast('Récompense ajoutée à ta boîte 🎁');
+    }
+
+    function showRewardModal(reward) {
+      rewardText.textContent = 'Tu viens de gagner :';
+      rewardPill.textContent = formatRewardLabel(reward);
+      rewardModal.classList.add('open');
+    }
+
+    $('#reward-close').addEventListener('click', () => {
+      rewardModal.classList.remove('open');
+    });
+
+    function formatRewardLabel(rw) {
+      if (rw.title) return rw.title;
+      switch (rw.type) {
+        case 'xp': return `+${rw.value} XP`;
+        case 'pack': return `Pack ${capitalize(rw.value)}`;
+        case 'card': return rw.rarity === 'exotic-noel' ? 'Carte Exotique de Noël ✨' : `Carte ${capitalize(rw.rarity)}`;
+        case 'cosmetic': return `Cosmétique: ${humanize(rw.value)}`;
+        default: return 'Cadeau mystère 🎁';
+      }
+    }
+
+    function capitalize(s='') { return String(s).charAt(0).toUpperCase() + String(s).slice(1); }
+    function humanize(s='') { return String(s).replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+    function showToast(msg) {
+      toast.textContent = msg; toast.classList.add('open');
+      setTimeout(() => toast.classList.remove('open'), 2400);
+    }
+
+    function shake(el) {
+      el.style.transform = 'translateX(0)';
+      el.animate([
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(0)' },
+      ], { duration: 220 });
+    }
+
+    // === NOTE SÉCURITÉ TEMPS ===
+    // Ce prototype se base sur l'heure locale du navigateur pour le verrouillage quotidien.
+    // Pour éviter la triche (changement d'heure locale), tu peux :
+    // 1) Stocker un timestamp serveur à chaque ouverture (déjà fait)
+    // 2) Exposer via Cloud Function une "serverDate" et vérifier côté client
+    // 3) Vérifier côté serveur (CF) que day <= current server day et refuser sinon
+  </script>
+</body>
+</html>
