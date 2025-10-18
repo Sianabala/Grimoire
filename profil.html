@@ -541,15 +541,39 @@ cardPools = await loadCardSets();
 
 // 2) Auth & synchro Cloud → Local, puis calcul des stats communes
 onAuthStateChanged(auth, async (user)=>{
-  if(!user){
+  // === INVITÉ ===============================================================
+  if (!user) {
+    syncBadge.textContent = 'Hors ligne';
+    usernameEl.textContent = 'Invité';
+    levelEl.textContent = String(profileLS.level||0);
+
+    const need = xpForLevel(profileLS.level || 1);
+    xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
+    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
+    xpFillEl.style.width = p + '%';
+    xpPctEl.textContent = p + '%';
+
+    // Stats locales + rendu badges
+    const progress = computeProgress({ collection, cardPools });
+    draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {});
+
+    // Nettoyage SOCIAL
+    if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+    ulIn && (ulIn.innerHTML=''); ulOut && (ulOut.innerHTML=''); ulFriends && (ulFriends.innerHTML='');
+    btnSendFriend && (btnSendFriend.disabled = true);
+    return;
+  }
+
+  // === CONNECTÉ =============================================================
   syncBadge.textContent = 'Sync…';
   avatarEl.textContent = '👤';
 
-  const ref = doc(db,'players',user.uid);
+  // Récup /players/{uid}
+  const ref = doc(db,'players', user.uid);
   const snap = await getDoc(ref);
   const data = snap.exists()? snap.data() : {};
 
-  // Récup collection (divers schémas)
+  // Normalize collection depuis ton schéma
   function collectOwned(d){
     const ids = {};
     if (d.collection && typeof d.collection === 'object'){
@@ -568,7 +592,6 @@ onAuthStateChanged(auth, async (user)=>{
         else if (entry && entry.id) ids[entry.id]=(ids[entry.id]||0)+Number(entry.qty||1);
       }
     }
-    // 4) Collection spéciale (collectors / événements)
     if (d.specialCollection && typeof d.specialCollection === 'object'){
       for (const [id, qty] of Object.entries(d.specialCollection)){
         ids[id] = (ids[id] || 0) + Number(qty || 0);
@@ -579,178 +602,167 @@ onAuthStateChanged(auth, async (user)=>{
 
   collection = collectOwned(data);
   stats.packsOpened = data.packsOpened ?? data.stats?.packsOpened ?? stats.packsOpened ?? 0;
-  profileLS.level = data.level ?? profileLS.level ?? 1;
-  profileLS.xp    = data.xp    ?? profileLS.xp    ?? 0;
+  profileLS.level  = data.level ?? profileLS.level ?? 1;
+  profileLS.xp     = data.xp    ?? profileLS.xp    ?? 0;
 
   saveLS(LS_KEY, collection); saveLS(LS_STATS, stats); saveLS(LS_PROFILE, profileLS);
 
-// UI Infos joueur (priorité au champ players.displayName)
+  // UI joueur
   usernameEl.textContent =
     (data.displayName && data.displayName.trim()) ||
     (data.pseudo && String(data.pseudo).trim()) ||
     (user.displayName && user.displayName.trim()) ||
     (user.email ? user.email.split('@')[0] : 'Joueur');
   levelEl.textContent = String(profileLS.level||0);
-  const need = xpForLevel(profileLS.level || 1);
-xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
-const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
-xpFillEl.style.width = p + '%';
-xpPctEl.textContent = p + '%';
+  {
+    const need = xpForLevel(profileLS.level || 1);
+    xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
+    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
+    xpFillEl.style.width = p + '%';
+    xpPctEl.textContent = p + '%';
+  }
 
+  // Progression + publication leaderboard_public
+  const progress = computeProgress({ collection, cardPools });
+  await publishLeaderboardProgress({
+    uniques: progress.uniques,
+    totalUnique: progress.totalUnique,
+    completionPct: progress.completionPct,
+    displayName:
+      (data.displayName && data.displayName.trim()) ||
+      (data.pseudo && String(data.pseudo).trim()) ||
+      (user.displayName && user.displayName.trim()) ||
+      (user.email ? user.email.split('@')[0] : ''),
+    photoURL: (typeof user.photoURL === 'string' && /^https?:\/\//.test(user.photoURL)) ? user.photoURL : ''
+  });
 
- const progress = computeProgress({ collection, cardPools });
-// Publie/actualise la progression au leaderboard (merge + anti-spam 30s)
-await publishLeaderboardProgress({
-   uniques: progress.uniques,
-   totalUnique: progress.totalUnique,
-   completionPct: progress.completionPct,
-   // Nom prioritaire : /players/{uid}.pseudo, puis displayName, puis préfixe d’email
-  displayName:
-     (data.displayName && data.displayName.trim()) ||
-     (data.pseudo && String(data.pseudo).trim()) ||
-     (user.displayName && user.displayName.trim()) ||
-     (user.email ? user.email.split('@')[0] : ''),
-   // Avatar : seulement si http(s) (conforme à tes règles)
-   photoURL: (typeof user.photoURL === 'string' && /^https?:\/\//.test(user.photoURL))
-     ? user.photoURL
-     : ''
- });
-
-  // Fusion des stats utiles pour badges
+  // Badges: flags + resync
   const hasAnniv2025 =
-  (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
-  (collection[ANNIV2025_ID] || 0) > 0;
+    (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
+    (collection[ANNIV2025_ID] || 0) > 0;
+  const halloweenActive   = (localStorage.getItem('grimoire.theme') === 'halloween');
+  const hadHalloweenBadge = !!((data.badges || {}).halloween2025);
 
-// juste avant sharedStats
-const halloweenActive   = (localStorage.getItem('grimoire.theme') === 'halloween');
-const hadHalloweenBadge = !!((data.badges || {}).halloween2025);
+  const sharedStats = {
+    ...progress,
+    packsOpened: stats.packsOpened,
+    level: profileLS.level,
+    hasAnniv2025,
+    halloweenActive,
+    hadHalloweenBadge
+  };
 
-// sharedStats existant → ajoute les deux flags :
-const sharedStats = {
-  ...progress,
-  packsOpened: stats.packsOpened,
-  level: profileLS.level,
-  hasAnniv2025,
-  halloweenActive,     // 🆕
-  hadHalloweenBadge    // 🆕
-};
-
-  // Badges existants
   let ownedBadges = data.badges || {};
-
-  // === Resynchronisation automatique ===
-  const expected = computeExpectedBadges(sharedStats);
-  const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
-  const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
-
-  if (toAdd.length || toRemove.length || needsVersionBump) {
-    const now = serverTimestamp();
-    const finalBadges = { ...ownedBadges };
-
-    for(const id of toRemove){ delete finalBadges[id]; }
-    for(const id of toAdd){ finalBadges[id] = { acquiredAt: now }; }
-
-    try{
-      if (snap.exists()) {
-        await updateDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, updatedAt: now });
-      } else {
-        await setDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, createdAt: now, updatedAt: now }, { merge: true });
-      }
-
-      if (toAdd.length || toRemove.length) {
-        const plus = toAdd.length ? `+${toAdd.length}` : '';
-        const moins = toRemove.length ? `-${toRemove.length}` : '';
-        toast(`Badges resynchronisés ${[plus,moins].filter(Boolean).join(' / ')}`);
-      }
-
-      const snap2 = await getDoc(ref);
-      ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
-    }catch(e){
-      console.error(e);
-      toast('Erreur lors de la resynchronisation des badges');
+  {
+    const expected = computeExpectedBadges(sharedStats);
+    const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
+    const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
+    if (toAdd.length || toRemove.length || needsVersionBump) {
+      const now = serverTimestamp();
+      const finalBadges = { ...ownedBadges };
+      for (const id of toRemove) delete finalBadges[id];
+      for (const id of toAdd)    finalBadges[id] = { acquiredAt: now };
+      try{
+        if (snap.exists()) {
+          await updateDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, updatedAt: now });
+        } else {
+          await setDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, createdAt: now, updatedAt: now }, { merge: true });
+        }
+        const snap2 = await getDoc(ref);
+        ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
+      }catch(e){ console.error(e); toast('Erreur lors de la resynchronisation des badges'); }
     }
   }
 
-// -- SOCIAL: watchers & handlers --
-btnSendFriend && (btnSendFriend.disabled = false);
-btnSendFriend?.addEventListener('click', async ()=>{
-  const toUid = (friendUidInput?.value||'').trim();
-  if (!toUid) return toast('Renseigne un UID 😉');
-  try {
-    await sendFriendRequest(user.uid, toUid);
-    toast('Demande envoyée ✅');
-    friendUidInput.value = '';
-  } catch(e){
-    console.error(e); toast('Erreur envoi de demande');
-  }
-}, { once:false });
+  // SOCIAL: handlers + watchers (activés seulement connecté)
+  btnSendFriend && (btnSendFriend.disabled = false);
+  btnSendFriend?.addEventListener('click', async ()=>{
+    const toUid = (friendUidInput?.value||'').trim();
+    if (!toUid) return toast('Renseigne un UID 😉');
+    try { await sendFriendRequest(user.uid, toUid); toast('Demande envoyée ✅'); friendUidInput.value=''; }
+    catch(e){ console.error(e); toast('Erreur envoi de demande'); }
+  }, { once:false });
 
-if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+  if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
 
-_stopIn = watchIncomingRequests(user.uid, async list=>{
-  ulIn.innerHTML = '';
-  for (const r of list){
-    const from = await getPlayerBasic(r.fromUid);
-    const li = document.createElement('li');
-    li.className = 'lb-item'; // on reuse ton style “carte”
-    li.innerHTML = `
-      <div class="lb-rank">💌</div>
-      <div>
-        <div class="lb-name">${from.displayName}</div>
-        <div class="lb-sub">UID: ${r.fromUid}</div>
-      </div>
-      <div class="row" style="gap:8px">
-        <button class="pill btn-acc">Accepter</button>
-        <button class="pill btn-dec">Refuser</button>
-      </div>`;
-    li.querySelector('.btn-acc').onclick = async ()=>{ await acceptRequest(r.id); toast('Ajouté ✔'); };
-    li.querySelector('.btn-dec').onclick = async ()=>{ await declineRequest(r.id); toast('Refusé'); };
-    ulIn.appendChild(li);
-  }
-});
+  // IMPORTANT : requêtes conformes aux règles (pas de lecture "toute collection")
+  _stopIn = onSnapshot(
+    query(collection(db,'friend_requests'), where('toUid','==', user.uid), where('status','==','pending')),
+    async snap => {
+      ulIn.innerHTML = '';
+      for (const d of snap.docs){
+        const r = { id: d.id, ...d.data() };
+        const from = await getPlayerBasic(r.fromUid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">💌</div>
+          <div>
+            <div class="lb-name">${from.displayName}</div>
+            <div class="lb-sub">UID: ${r.fromUid}</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="pill btn-acc">Accepter</button>
+            <button class="pill btn-dec">Refuser</button>
+          </div>`;
+        li.querySelector('.btn-acc').onclick = async ()=>{ await acceptRequest(r.id); toast('Ajouté ✔'); };
+        li.querySelector('.btn-dec').onclick = async ()=>{ await declineRequest(r.id); toast('Refusé'); };
+        ulIn.appendChild(li);
+      }
+    }
+  );
 
-_stopOut = watchOutgoingRequests(user.uid, async list=>{
-  ulOut.innerHTML = '';
-  for (const r of list){
-    const to = await getPlayerBasic(r.toUid);
-    const li = document.createElement('li');
-    li.className = 'lb-item';
-    li.innerHTML = `
-      <div class="lb-rank">⏳</div>
-      <div>
-        <div class="lb-name">${to.displayName}</div>
-        <div class="lb-sub">UID: ${r.toUid}</div>
-      </div>
-      <div><button class="pill btn-cancel">Annuler</button></div>`;
-    li.querySelector('.btn-cancel').onclick = async ()=>{ await cancelRequest(r.id); toast('Annulée'); };
-    ulOut.appendChild(li);
-  }
-});
+  _stopOut = onSnapshot(
+    query(collection(db,'friend_requests'), where('fromUid','==', user.uid), where('status','==','pending')),
+    async snap => {
+      ulOut.innerHTML = '';
+      for (const d of snap.docs){
+        const r = { id: d.id, ...d.data() };
+        const to = await getPlayerBasic(r.toUid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">⏳</div>
+          <div>
+            <div class="lb-name">${to.displayName}</div>
+            <div class="lb-sub">UID: ${r.toUid}</div>
+          </div>
+          <div><button class="pill btn-cancel">Annuler</button></div>`;
+        li.querySelector('.btn-cancel').onclick = async ()=>{ await cancelRequest(r.id); toast('Annulée'); };
+        ulOut.appendChild(li);
+      }
+    }
+  );
 
-_stopFriends = watchFriends(user.uid, async list=>{
-  ulFriends.innerHTML = '';
-  for (const f of list){
-    const p = await getPlayerBasic(f.uid);
-    const li = document.createElement('li');
-    li.className = 'lb-item';
-    li.innerHTML = `
-      <div class="lb-rank">👥</div>
-      <div>
-        <div class="lb-name">${p.displayName}</div>
-        <div class="lb-sub">Ami depuis…</div>
-      </div>
-      <div class="row" style="gap:8px">
-        <button class="pill btn-remove">Retirer</button>
-      </div>`;
-    li.querySelector('.btn-remove').onclick = async ()=>{ await removeFriend(user.uid, f.uid); toast('Ami retiré'); };
-    ulFriends.appendChild(li);
-  }
-});
+  _stopFriends = onSnapshot(
+    collection(db,'social', user.uid, 'friends'),
+    async snap => {
+      ulFriends.innerHTML = '';
+      for (const d of snap.docs){
+        const f = { uid: d.id, ...d.data() };
+        const p = await getPlayerBasic(f.uid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">👥</div>
+          <div>
+            <div class="lb-name">${p.displayName}</div>
+            <div class="lb-sub">Ami depuis…</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="pill btn-remove">Retirer</button>
+          </div>`;
+        li.querySelector('.btn-remove').onclick = async ()=>{ await removeFriend(user.uid, f.uid); toast('Ami retiré'); };
+        ulFriends.appendChild(li);
+      }
+    }
+  );
 
-  
+  // Rendu badges
   draw(sharedStats, ownedBadges);
   syncBadge.textContent = 'En ligne';
-}); // <<< FIN onAuthStateChanged (manquait dans ta version)
+});
+
 
 // ---- Rendu
 function draw(sharedStats, ownedBadges){
