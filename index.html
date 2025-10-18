@@ -817,7 +817,6 @@ function weightedPickRarity(weights) {
   // Sets affichés/ouvrables
 const SETS = [
   { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:'https://i.goopics.net/lni3ic.png'},
-  { id:'NL', name:'Nouvelle Lumière', json:'/data/sets/nouvelle-lumiere.json', img:'https://i.goopics.net/ilm7lk.png' },
   { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:'https://i.goopics.net/wnhrl2.png', }
   
 ];
@@ -832,13 +831,6 @@ const EXTRA_STATS_FILES = ['/data/sets/speciales.json'];
 
   // Fallbacks minimalistes par set
   const FALLBACK = {
-    NL: [
-      { id:'NL-001', name:'Éclaireur des Débuts', set:'Nouvelle Lumière', rarity: RARITY.COMMON, image:'' },
-      { id:'NL-010', name:'Gantelet du Prospecteur', set:'Nouvelle Lumière', rarity: RARITY.UNCOMMON, image:'' },
-      { id:'NL-020', name:'Spectre de la Tour', set:'Nouvelle Lumière', rarity: RARITY.RARE, image:'' },
-      { id:'NL-090', name:'Osiris — Vision du Discipliné', set:'Nouvelle Lumière', rarity: RARITY.LEGENDARY, image:'' },
-      { id:'NL-100', name:'Jormungandr — Légende Perdue', set:'Nouvelle Lumière', rarity: RARITY.EXOTIC, image:'' },
-    ],
     TW: [
       { id:'LT-001', name:'Sentinelle de la Place', set:'Twitch', rarity: RARITY.COMMON, image:'' },
       { id:'LT-012', name:'Couteau du Guetteur', set:'Twitch', rarity: RARITY.UNCOMMON, image:'' },
