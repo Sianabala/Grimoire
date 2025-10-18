@@ -735,7 +735,7 @@ const qPrimary = query(
   orderBy('completionPct','desc'),
   orderBy('uniques','desc'),
   orderBy('displayNameLower','asc'),
-  limit(10)
+  limit(5)
 );
 
 // Fallback: un seul orderBy (pas d'index), puis tri en mémoire
