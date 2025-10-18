@@ -799,9 +799,23 @@ function setGuestMode(isGuest){
 
     
   const ADMIN_UIDS = ['VVsf3YTzwkh3rfGGE6N8ku1PVnI3'];
-  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); await trySavePseudonymFromCredential(cred, result.user); } catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
+  loginBtn.addEventListener('click', async ()=>{ try { console.log('[DEBUG] Click login -> POPUP'); const result = await signInWithPopup(auth, twitchProvider); const cred = OAuthProvider.credentialFromResult(result); 
+  await trySavePseudonymFromCredential(cred, result.user); } 
+
+                                                                                                
+ // juste après trySavePseudonymFromCredential(...)
+await publishLeaderboardSkeleton({
+  displayName: (result.user.displayName || ''),
+  photoURL: (typeof result.user.photoURL === 'string' ? result.user.photoURL : '')
+});
+
+  
+  catch(e){ console.warn('[DEBUG] Popup sign-in failed, fallback to redirect if blocked', e); if(e?.code === 'auth/popup-blocked' || e?.code === 'auth/popup-closed-by-user'){ try { console.log('[DEBUG] Fallback -> redirect'); await signInWithRedirect(auth, twitchProvider); } catch(err){ alert('Erreur de connexion Twitch: '+(err?.message||err)); console.error(err); } } else { alert('Erreur de connexion Twitch: '+(e?.message||e)); } } });
   logoutBtn.addEventListener('click', async ()=>{ try{ console.log('[DEBUG] Logout'); await signOut(auth);}catch(e){ console.error(e);} });
-// --- Rarity constants
+
+    
+    
+    // --- Rarity constants
   const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique', INCANDESCENT:'incandescent' };
   const RARITY_WEIGHTS = { [RARITY.COMMON]:60, [RARITY.UNCOMMON]:25, [RARITY.RARE]:10, [RARITY.LEGENDARY]:4, [RARITY.EXOTIC]:1, [RARITY.INCANDESCENT]:0.1 };
   const rarityOrder = [RARITY.COMMON, RARITY.UNCOMMON, RARITY.RARE, RARITY.LEGENDARY, RARITY.EXOTIC, RARITY.INCANDESCENT];
@@ -1448,6 +1462,13 @@ loginBtn.style.display = currentUser ? 'none' : '';
 const allowByRole = !!(data && (data.isAdmin === true || data.role === 'admin'));
 const isAdmin = allowByUid || allowByRole;
 
+// Publie/merge le squelette public (nom + avatar) si absent
+await publishLeaderboardSkeleton({
+  displayName: (data?.displayName || currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : '')),
+  photoURL: (typeof currentUser.photoURL === 'string' ? currentUser.photoURL : '')
+});
+
+    
 if (isAdmin) adminBtn.style.display = '';
 setAdminUIVisible(isAdmin);
 document.body.className = 'logged-in';
