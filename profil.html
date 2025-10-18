@@ -516,12 +516,16 @@ xpPctEl.textContent = p + '%';
 
 
     const progress = computeProgress({ collection, cardPools });
-// Publie/actualise la progression au leaderboard (écriture fusionnée + anti-spam 30s)
-await publishLeaderboardProgress({
-uniques: progress.uniques,
-totalUnique: progress.totalUnique,
-completionPct: progress.completionPct
-});
+ // Publie/actualise la progression au leaderboard (merge + anti-spam 30s)
+ await publishLeaderboardProgress({
+   uniques: progress.uniques,
+   totalUnique: progress.totalUnique,
+   completionPct: progress.completionPct,
+  // 👉 Forçage du nom/pp depuis ton profil et Twitch si dispos
+  displayName: (data.pseudo && String(data.pseudo).trim()) || '',
+  photoURL: (typeof user.photoURL === 'string' ? user.photoURL : '')
+ });
+
 
     
     // Publie la progression au leaderboard (écriture fusionnée)
@@ -662,7 +666,7 @@ function draw(sharedStats, ownedBadges){
 
 // --- Publication du joueur dans leaderboard_public (anti-spam 30s) ---
 let _lbLastWrite = 0;
-async function publishLeaderboardProgress({ uniques, totalUnique, completionPct }) {
+async function publishLeaderboardProgress({ uniques, totalUnique, completionPct, displayName, photoURL }) {
   const user = auth.currentUser;
   if (!user) return;
 
@@ -675,18 +679,21 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct 
   const provider = Array.isArray(user.providerData)
     ? user.providerData.find(p => (p.providerId || '').includes('twitch')) || user.providerData[0]
     : null;
-  const displayName =
+ // Priorité aux overrides → puis Firebase user/provider → enfin fallback
+  const display =
+    (typeof displayName === 'string' && displayName.trim()) ||
     (user.displayName && user.displayName.trim()) ||
     (provider && provider.displayName) ||
-    'Joueur';
+    (user.email ? user.email.split('@')[0] : 'Joueur');
   const maybePhoto =
+    (typeof photoURL === 'string' && photoURL) ||
     user.photoURL ||
     (provider && provider.photoURL) ||
     '';
 
   const payload = {
     displayName,
-    displayNameLower: displayName.toLowerCase(),
+    displayNameLower: display.toLowerCase(),
     uniques: Number(uniques) || 0,
     totalUnique: Number(totalUnique) || 0,
     completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
