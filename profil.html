@@ -542,30 +542,6 @@ cardPools = await loadCardSets();
 // 2) Auth & synchro Cloud → Local, puis calcul des stats communes
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    syncBadge.textContent = 'Hors ligne';
-    usernameEl.textContent = 'Invité';
-    levelEl.textContent = String(profileLS.level||0);
-    const need = xpForLevel(profileLS.level || 1);
-xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
-const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
-xpFillEl.style.width = p + '%';
-xpPctEl.textContent = p + '%';
-
-
-    const progress = computeProgress({ collection, cardPools });
-
-// … UI invité …
-const progress = computeProgress({ collection, cardPools });
-draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {});
-
-// ✅ nettoyage social AVANT de sortir
-if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
-ulIn && (ulIn.innerHTML=''); ulOut && (ulOut.innerHTML=''); ulFriends && (ulFriends.innerHTML='');
-btnSendFriend && (btnSendFriend.disabled = true);
-
-return;
-  }
-
   syncBadge.textContent = 'Sync…';
   avatarEl.textContent = '👤';
 
