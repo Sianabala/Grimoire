@@ -774,6 +774,51 @@ if (location.protocol === 'file:') {
   async function saveDisplayNameIfAny(user, nick){ if(!user || !nick) return; playerDocRef = playerDocRef || doc(db,'players',user.uid); try{ await setDoc(playerDocRef, { displayName: nick, displayNameLower: nick.toLowerCase(), updatedAt: serverTimestamp() }, { merge:true }); console.log('[DEBUG] Pseudo enregistré:', nick); }catch(e){ console.warn('saveDisplayNameIfAny failed', e); } }
   async function trySavePseudonymFromCredential(cred, user){ if(!user) return; let nick = user.displayName || ''; if(!nick && cred?.idToken){ const claims = decodeJwtPayload(cred.idToken); nick = claims.preferred_username || claims.nickname || ''; } await saveDisplayNameIfAny(user, nick); }
 
+// --- Publication du joueur dans leaderboard_public (anti-spam 30s) ---
+let _lbLastWrite = 0;
+async function publishLeaderboardProgress({ uniques, totalUnique, completionPct, displayName, photoURL }) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const now = Date.now();
+  if (now - _lbLastWrite < 30000) return; // max 1 écriture / 30s
+  _lbLastWrite = now;
+
+  const ref = doc(db, 'leaderboard_public', user.uid);
+
+  // Priorité aux overrides -> user -> provider -> fallback
+  const provider = Array.isArray(user.providerData)
+    ? user.providerData.find(p => (p.providerId || '').includes('twitch')) || user.providerData[0]
+    : null;
+
+  const display =
+    (typeof displayName === 'string' && displayName.trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (provider && provider.displayName) ||
+    (user.email ? user.email.split('@')[0] : 'Joueur');
+
+  const maybePhoto =
+    (typeof photoURL === 'string' && photoURL) ||
+    user.photoURL ||
+    (provider && provider.photoURL) ||
+    '';
+
+  const payload = {
+    displayName: display,
+    displayNameLower: display.toLowerCase(),
+    uniques: Number(uniques) || 0,
+    totalUnique: Number(totalUnique) || 0,
+    completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
+    updatedAt: serverTimestamp()
+  };
+  if (typeof maybePhoto === 'string' && /^https?:\/\//.test(maybePhoto)) {
+    payload.photoURL = maybePhoto; // conforme à tes règles
+  }
+
+  await setDoc(ref, payload, { merge: true });
+}
+
+    
   // --- UI buttons
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
@@ -806,6 +851,16 @@ function setGuestMode(isGuest){
     const cred = OAuthProvider.credentialFromResult(result);
     await trySavePseudonymFromCredential(cred, result.user);
 
+// juste après le pseudo → crée/merge le squelette du doc leaderboard
+await publishLeaderboardProgress({
+  uniques: 0,
+  totalUnique: ALL_CARDS.length || 0,
+  completionPct: 0,
+  displayName: (result.user.displayName || ''),
+  photoURL: (typeof result.user.photoURL === 'string' ? result.user.photoURL : '')
+});
+
+    
     // juste après le pseudo → crée/merge le squelette du doc leaderboard
     await publishLeaderboardSkeleton({
       displayName: (result.user.displayName || ''),
@@ -1464,6 +1519,21 @@ loginBtn.style.display = currentUser ? 'none' : '';
   return;
 }
 
+if (user) {
+  const allIds = new Set(ALL_CARDS.map(c => c.id));
+  const uniques = Object.keys(collection).filter(id => allIds.has(id)).length;
+  const totalUnique = allIds.size;
+  const completionPct = totalUnique ? Math.round(100 * uniques / totalUnique) : 0;
+
+  await publishLeaderboardProgress({
+    uniques,
+    totalUnique,
+    completionPct
+    // pas besoin de displayName/photo ici, la fonction va piocher user/provider
+  });
+}
+
+    
     const data = await loadOrCreatePlayerDoc(currentUser).catch(console.error);
     let pseudo = data?.displayName || currentUser.displayName || '';
     if (!pseudo && currentUser.uid) pseudo = '(uid) ' + currentUser.uid.slice(0, 6);
