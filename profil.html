@@ -516,6 +516,14 @@ xpPctEl.textContent = p + '%';
 
 
     const progress = computeProgress({ collection, cardPools });
+// Publie/actualise la progression au leaderboard (écriture fusionnée + anti-spam 30s)
+await publishLeaderboardProgress({
+uniques: progress.uniques,
+totalUnique: progress.totalUnique,
+completionPct: progress.completionPct
+});
+
+    
     // Publie la progression au leaderboard (écriture fusionnée)
 await publishLeaderboardProgress({
   uniques: progress.uniques,
