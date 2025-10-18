@@ -267,7 +267,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { collection, addDoc, where, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection as fcol, addDoc, where, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
    function xpForLevel(level){ return 50 * Math.max(1, level); }
 
@@ -687,7 +687,7 @@ onAuthStateChanged(auth, async (user)=>{
 
   // IMPORTANT : requêtes conformes aux règles (pas de lecture "toute collection")
   _stopIn = onSnapshot(
-    query(collection(db,'friend_requests'), where('toUid','==', user.uid), where('status','==','pending')),
+    query(fcol(db,'friend_requests'), where('toUid','==', user.uid), where('status','==','pending')),
     async snap => {
       ulIn.innerHTML = '';
       for (const d of snap.docs){
@@ -713,7 +713,7 @@ onAuthStateChanged(auth, async (user)=>{
   );
 
   _stopOut = onSnapshot(
-    query(collection(db,'friend_requests'), where('fromUid','==', user.uid), where('status','==','pending')),
+    query(fcol(db,'friend_requests'), where('fromUid','==', user.uid), where('status','==','pending')),
     async snap => {
       ulOut.innerHTML = '';
       for (const d of snap.docs){
@@ -735,7 +735,7 @@ onAuthStateChanged(auth, async (user)=>{
   );
 
   _stopFriends = onSnapshot(
-    collection(db,'social', user.uid, 'friends'),
+    fcol(db,'social', user.uid, 'friends'),
     async snap => {
       ulFriends.innerHTML = '';
       for (const d of snap.docs){
@@ -832,7 +832,7 @@ async function sendFriendRequest(fromUid, toUid, message=''){
   if (!fromUid || !toUid) throw new Error('UID manquant');
   if (fromUid === toUid) throw new Error('Impossible de t’ajouter toi-même');
   const pairKey = (fromUid < toUid) ? `${fromUid}_${toUid}` : `${toUid}_${fromUid}`;
-  await addDoc(collection(db,'friend_requests'), {
+  await addDoc(fcol(db,'friend_requests'), {
     fromUid, toUid, pairKey,
     status: 'pending',
     message,
@@ -863,7 +863,7 @@ async function cancelRequest(requestId){
 
 // watchers temps réel
 function watchIncomingRequests(myUid, cb){
-  const q = collection(db,'friend_requests');
+  const q = fcol(db,'friend_requests');
   return onSnapshot(
     // filtre côté client via .docs.map().filter() pour rester simple ici
     q, snap => {
@@ -874,7 +874,7 @@ function watchIncomingRequests(myUid, cb){
   );
 }
 function watchOutgoingRequests(myUid, cb){
-  const q = collection(db,'friend_requests');
+  const q = fcol(db,'friend_requests');
   return onSnapshot(
     q, snap => {
       const arr = snap.docs.map(d=>({id:d.id, ...d.data()}))
