@@ -226,6 +226,36 @@
   </div>
 </section>
 
+    <!-- Amis & Demandes -->
+<section class="panel" style="grid-column:span 12; margin-bottom:16px">
+  <div class="hd">
+    <h3>Amis</h3>
+    <span class="subtitle">Demandes · Amis · Blocage</span>
+  </div>
+  <div class="bd" style="display:grid; gap:12px">
+    <div class="row" style="gap:8px; flex-wrap:wrap">
+      <input id="friend-uid" placeholder="UID du joueur…" style="flex:1; min-width:220px" />
+      <button id="btn-send-friend" class="pill" style="cursor:pointer">Ajouter en ami</button>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap:12px">
+      <div class="panel">
+        <div class="hd"><h3>Demandes reçues</h3></div>
+        <div class="bd"><ul id="req-in" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+      </div>
+      <div class="panel">
+        <div class="hd"><h3>Demandes envoyées</h3></div>
+        <div class="bd"><ul id="req-out" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="hd"><h3>Mes amis</h3></div>
+      <div class="bd"><ul id="friends" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+    </div>
+  </div>
+</section>
+
     
   </main>
 
@@ -237,6 +267,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection, addDoc, where, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
    function xpForLevel(level){ return 50 * Math.max(1, level); }
 
@@ -491,12 +522,18 @@ const xpPctEl    = $('#xpPct');
 const avatarEl   = $('#avatar');
 const syncBadge  = $('#sync');
 const badgesWrap = $('#badges');
+const friendUidInput = document.getElementById('friend-uid');
+const btnSendFriend  = document.getElementById('btn-send-friend');
+const ulIn  = document.getElementById('req-in');
+const ulOut = document.getElementById('req-out');
+const ulFriends = document.getElementById('friends');
 
 // ---- Etat
 let cardPools = [];
 let collection = loadLS(LS_KEY, {});
 let stats = loadLS(LS_STATS, { packsOpened: 0 });
 let profileLS = loadLS(LS_PROFILE, { level:1, xp:0 });
+let _stopIn=null, _stopOut=null, _stopFriends=null;
 
 // ---- Orchestration
 // 1) Charger le catalogue
@@ -520,6 +557,11 @@ xpPctEl.textContent = p + '%';
     // Publie la progression au leaderboard (écriture fusionnée)
     draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {}); // rendu (tout verrouillé si pas de badges)
     return;
+
+    if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+ulIn && (ulIn.innerHTML=''); ulOut && (ulOut.innerHTML=''); ulFriends && (ulFriends.innerHTML='');
+btnSendFriend && (btnSendFriend.disabled = true);
+
   }
 
   syncBadge.textContent = 'Sync…';
@@ -651,6 +693,83 @@ const sharedStats = {
     }
   }
 
+// -- SOCIAL: watchers & handlers --
+btnSendFriend && (btnSendFriend.disabled = false);
+btnSendFriend?.addEventListener('click', async ()=>{
+  const toUid = (friendUidInput?.value||'').trim();
+  if (!toUid) return toast('Renseigne un UID 😉');
+  try {
+    await sendFriendRequest(user.uid, toUid);
+    toast('Demande envoyée ✅');
+    friendUidInput.value = '';
+  } catch(e){
+    console.error(e); toast('Erreur envoi de demande');
+  }
+}, { once:false });
+
+if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+
+_stopIn = watchIncomingRequests(user.uid, async list=>{
+  ulIn.innerHTML = '';
+  for (const r of list){
+    const from = await getPlayerBasic(r.fromUid);
+    const li = document.createElement('li');
+    li.className = 'lb-item'; // on reuse ton style “carte”
+    li.innerHTML = `
+      <div class="lb-rank">💌</div>
+      <div>
+        <div class="lb-name">${from.displayName}</div>
+        <div class="lb-sub">UID: ${r.fromUid}</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="pill btn-acc">Accepter</button>
+        <button class="pill btn-dec">Refuser</button>
+      </div>`;
+    li.querySelector('.btn-acc').onclick = async ()=>{ await acceptRequest(r.id); toast('Ajouté ✔'); };
+    li.querySelector('.btn-dec').onclick = async ()=>{ await declineRequest(r.id); toast('Refusé'); };
+    ulIn.appendChild(li);
+  }
+});
+
+_stopOut = watchOutgoingRequests(user.uid, async list=>{
+  ulOut.innerHTML = '';
+  for (const r of list){
+    const to = await getPlayerBasic(r.toUid);
+    const li = document.createElement('li');
+    li.className = 'lb-item';
+    li.innerHTML = `
+      <div class="lb-rank">⏳</div>
+      <div>
+        <div class="lb-name">${to.displayName}</div>
+        <div class="lb-sub">UID: ${r.toUid}</div>
+      </div>
+      <div><button class="pill btn-cancel">Annuler</button></div>`;
+    li.querySelector('.btn-cancel').onclick = async ()=>{ await cancelRequest(r.id); toast('Annulée'); };
+    ulOut.appendChild(li);
+  }
+});
+
+_stopFriends = watchFriends(user.uid, async list=>{
+  ulFriends.innerHTML = '';
+  for (const f of list){
+    const p = await getPlayerBasic(f.uid);
+    const li = document.createElement('li');
+    li.className = 'lb-item';
+    li.innerHTML = `
+      <div class="lb-rank">👥</div>
+      <div>
+        <div class="lb-name">${p.displayName}</div>
+        <div class="lb-sub">Ami depuis…</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="pill btn-remove">Retirer</button>
+      </div>`;
+    li.querySelector('.btn-remove').onclick = async ()=>{ await removeFriend(user.uid, f.uid); toast('Ami retiré'); };
+    ulFriends.appendChild(li);
+  }
+});
+
+  
   draw(sharedStats, ownedBadges);
   syncBadge.textContent = 'En ligne';
 }); // <<< FIN onAuthStateChanged (manquait dans ta version)
@@ -701,6 +820,86 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct,
     payload.photoURL = maybePhoto;
   }
   await setDoc(ref, payload, { merge: true });
+}
+
+   // ========= SOCIAL: demandes d'amis & amis =========
+
+// cache simple pour afficher noms/avatars
+const _playerCache = new Map();
+async function getPlayerBasic(uid){
+  if (_playerCache.has(uid)) return _playerCache.get(uid);
+  try {
+    const s = await getDoc(doc(db,'players',uid));
+    const d = s.exists()? s.data(): {};
+    const basic = { displayName: (d.displayName||d.pseudo||uid), photoURL: d.photoURL||'' };
+    _playerCache.set(uid, basic);
+    return basic;
+  } catch { return { displayName: uid, photoURL: '' }; }
+}
+
+// créer une demande
+async function sendFriendRequest(fromUid, toUid, message=''){
+  if (!fromUid || !toUid) throw new Error('UID manquant');
+  if (fromUid === toUid) throw new Error('Impossible de t’ajouter toi-même');
+  const pairKey = (fromUid < toUid) ? `${fromUid}_${toUid}` : `${toUid}_${fromUid}`;
+  await addDoc(collection(db,'friend_requests'), {
+    fromUid, toUid, pairKey,
+    status: 'pending',
+    message,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+}
+
+// transitions de demande
+async function acceptRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'accepted', updatedAt: serverTimestamp()
+  });
+  // si pas encore de CF: crée ta vue locale (optionnel, la CF la fera en prod)
+  // const req = await getDoc(doc(db,'friend_requests', requestId));
+  // const r = req.data(); await setDoc(doc(db,'social', r.toUid, 'friends', r.fromUid), { sinceAt: serverTimestamp() }, { merge:true });
+}
+async function declineRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'declined', updatedAt: serverTimestamp()
+  });
+}
+async function cancelRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'canceled', updatedAt: serverTimestamp()
+  });
+}
+
+// watchers temps réel
+function watchIncomingRequests(myUid, cb){
+  const q = collection(db,'friend_requests');
+  return onSnapshot(
+    // filtre côté client via .docs.map().filter() pour rester simple ici
+    q, snap => {
+      const arr = snap.docs.map(d=>({id:d.id, ...d.data()}))
+        .filter(x => x.toUid===myUid && x.status==='pending');
+      cb(arr);
+    }
+  );
+}
+function watchOutgoingRequests(myUid, cb){
+  const q = collection(db,'friend_requests');
+  return onSnapshot(
+    q, snap => {
+      const arr = snap.docs.map(d=>({id:d.id, ...d.data()}))
+        .filter(x => x.fromUid===myUid && x.status==='pending');
+      cb(arr);
+    }
+  );
+}
+function watchFriends(myUid, cb){
+  return onSnapshot(collection(db,'social', myUid, 'friends'), snap => {
+    cb(snap.docs.map(d=>({ uid:d.id, ...d.data() })));
+  });
+}
+async function removeFriend(myUid, friendUid){
+  await deleteDoc(doc(db,'social', myUid, 'friends', friendUid));
 }
 
    
