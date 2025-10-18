@@ -516,25 +516,8 @@ xpPctEl.textContent = p + '%';
 
 
     const progress = computeProgress({ collection, cardPools });
- // Publie/actualise la progression au leaderboard (merge + anti-spam 30s)
- await publishLeaderboardProgress({
-   uniques: progress.uniques,
-   totalUnique: progress.totalUnique,
-   completionPct: progress.completionPct,
-  // 👉 Forçage du nom/pp depuis ton profil et Twitch si dispos
-  displayName: (data.pseudo && String(data.pseudo).trim()) || '',
-  photoURL: (typeof user.photoURL === 'string' ? user.photoURL : '')
- });
-
-
-    
+   
     // Publie la progression au leaderboard (écriture fusionnée)
-await publishLeaderboardProgress({
-  uniques: progress.uniques,
-  totalUnique: progress.totalUnique,
-  completionPct: progress.completionPct
-});
-
     draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {}); // rendu (tout verrouillé si pas de badges)
     return;
   }
@@ -594,10 +577,18 @@ xpPctEl.textContent = p + '%';
  const progress = computeProgress({ collection, cardPools });
 // Publie/actualise la progression au leaderboard (merge + anti-spam 30s)
 await publishLeaderboardProgress({
-  uniques: progress.uniques,
-  totalUnique: progress.totalUnique,
-  completionPct: progress.completionPct
-});
+   uniques: progress.uniques,
+   totalUnique: progress.totalUnique,
+   completionPct: progress.completionPct,
+   // Nom prioritaire : /players/{uid}.pseudo, puis displayName, puis préfixe d’email
+   displayName: (data.pseudo && String(data.pseudo).trim())
+     || (user.displayName && user.displayName.trim())
+     || (user.email ? user.email.split('@')[0] : ''),
+   // Avatar : seulement si http(s) (conforme à tes règles)
+   photoURL: (typeof user.photoURL === 'string' && /^https?:\/\//.test(user.photoURL))
+     ? user.photoURL
+     : ''
+ });
 
   // Fusion des stats utiles pour badges
   const hasAnniv2025 =
@@ -692,7 +683,7 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct,
     '';
 
   const payload = {
-    displayName,
+    displayName: display,
     displayNameLower: display.toLowerCase(),
     uniques: Number(uniques) || 0,
     totalUnique: Number(totalUnique) || 0,
