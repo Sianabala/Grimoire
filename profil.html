@@ -587,7 +587,13 @@ xpFillEl.style.width = p + '%';
 xpPctEl.textContent = p + '%';
 
 
-  const progress = computeProgress({ collection, cardPools });
+ const progress = computeProgress({ collection, cardPools });
+// Publie/actualise la progression au leaderboard (merge + anti-spam 30s)
+await publishLeaderboardProgress({
+  uniques: progress.uniques,
+  totalUnique: progress.totalUnique,
+  completionPct: progress.completionPct
+});
 
   // Fusion des stats utiles pour badges
   const hasAnniv2025 =
@@ -665,15 +671,19 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct 
   _lbLastWrite = now;
 
   const ref = doc(db, 'leaderboard_public', user.uid);
-  await setDoc(ref, {
+  const payload = {
     displayName: user.displayName || 'Joueur',
     displayNameLower: (user.displayName || 'joueur').toLowerCase(),
-    photoURL: user.photoURL || '',
     uniques: Number(uniques) || 0,
     totalUnique: Number(totalUnique) || 0,
     completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
     updatedAt: serverTimestamp()
-  }, { merge: true });
+  };
+  // Ajoute photoURL uniquement si valide (http/https)
+  if (user.photoURL && /^https?:\/\//.test(user.photoURL)) {
+    payload.photoURL = user.photoURL;
+  }
+  await setDoc(ref, payload, { merge: true });
 }
 
    
