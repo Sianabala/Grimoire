@@ -564,8 +564,12 @@ xpPctEl.textContent = p + '%';
 
   saveLS(LS_KEY, collection); saveLS(LS_STATS, stats); saveLS(LS_PROFILE, profileLS);
 
-  // UI Infos joueur
-  usernameEl.textContent = data.pseudo || user.displayName || user.email || 'Joueur';
+// UI Infos joueur (priorité au champ players.displayName)
+  usernameEl.textContent =
+    (data.displayName && data.displayName.trim()) ||
+    (data.pseudo && String(data.pseudo).trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (user.email ? user.email.split('@')[0] : 'Joueur');
   levelEl.textContent = String(profileLS.level||0);
   const need = xpForLevel(profileLS.level || 1);
 xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
@@ -581,9 +585,11 @@ await publishLeaderboardProgress({
    totalUnique: progress.totalUnique,
    completionPct: progress.completionPct,
    // Nom prioritaire : /players/{uid}.pseudo, puis displayName, puis préfixe d’email
-   displayName: (data.pseudo && String(data.pseudo).trim())
-     || (user.displayName && user.displayName.trim())
-     || (user.email ? user.email.split('@')[0] : ''),
+  displayName:
+     (data.displayName && data.displayName.trim()) ||
+     (data.pseudo && String(data.pseudo).trim()) ||
+     (user.displayName && user.displayName.trim()) ||
+     (user.email ? user.email.split('@')[0] : ''),
    // Avatar : seulement si http(s) (conforme à tes règles)
    photoURL: (typeof user.photoURL === 'string' && /^https?:\/\//.test(user.photoURL))
      ? user.photoURL
