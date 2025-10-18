@@ -215,7 +215,7 @@
 <section class="panel" style="grid-column:span 12">
   <div class="hd">
     <h3>Classement des collectionneurs</h3>
-    <span class="subtitle">Top 10 par % de complétion (puis cartes uniques)</span>
+    <span class="subtitle">Top 5 par % de complétion (puis cartes uniques)</span>
   </div>
   <div class="bd">
     <div class="lb-controls">
@@ -671,17 +671,30 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct 
   _lbLastWrite = now;
 
   const ref = doc(db, 'leaderboard_public', user.uid);
+  // — Récup nom & avatar depuis Twitch (via providerData), sinon depuis user.*
+  const provider = Array.isArray(user.providerData)
+    ? user.providerData.find(p => (p.providerId || '').includes('twitch')) || user.providerData[0]
+    : null;
+  const displayName =
+    (user.displayName && user.displayName.trim()) ||
+    (provider && provider.displayName) ||
+    'Joueur';
+  const maybePhoto =
+    user.photoURL ||
+    (provider && provider.photoURL) ||
+    '';
+
   const payload = {
-    displayName: user.displayName || 'Joueur',
-    displayNameLower: (user.displayName || 'joueur').toLowerCase(),
+    displayName,
+    displayNameLower: displayName.toLowerCase(),
     uniques: Number(uniques) || 0,
     totalUnique: Number(totalUnique) || 0,
     completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
     updatedAt: serverTimestamp()
   };
-  // Ajoute photoURL uniquement si valide (http/https)
-  if (user.photoURL && /^https?:\/\//.test(user.photoURL)) {
-    payload.photoURL = user.photoURL;
+  // Ajoute photoURL uniquement si c’est une URL http(s) (conforme à tes règles)
+  if (typeof maybePhoto === 'string' && /^https?:\/\//.test(maybePhoto)) {
+    payload.photoURL = maybePhoto;
   }
   await setDoc(ref, payload, { merge: true });
 }
@@ -799,7 +812,7 @@ function attachFallback() {
       if (b.uniques !== a.uniques)             return b.uniques - a.uniques;
       return a.displayNameLower.localeCompare(b.displayNameLower);
     });
-    LB_ALL = rows.slice(0,10);
+    LB_ALL = rows.slice(0,5);
     filterLB();
   });
 }
