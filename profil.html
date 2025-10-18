@@ -554,16 +554,16 @@ xpPctEl.textContent = p + '%';
 
     const progress = computeProgress({ collection, cardPools });
 
-     if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+// … UI invité …
+const progress = computeProgress({ collection, cardPools });
+draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {});
+
+// ✅ nettoyage social AVANT de sortir
+if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
 ulIn && (ulIn.innerHTML=''); ulOut && (ulOut.innerHTML=''); ulFriends && (ulFriends.innerHTML='');
 btnSendFriend && (btnSendFriend.disabled = true);
-    
-    // Publie la progression au leaderboard (écriture fusionnée)
-    draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {}); // rendu (tout verrouillé si pas de badges)
-    return;
 
-   
-
+return;
   }
 
   syncBadge.textContent = 'Sync…';
@@ -905,7 +905,7 @@ async function removeFriend(myUid, friendUid){
 }
 
    
-   import { collection as fsCollection, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection as fsCollection, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 // onSnapshot est déjà importé plus haut — on le réutilise
 
 
