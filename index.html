@@ -715,6 +715,40 @@ body.logged-in .hero-header .hero-actions{
   import { getAuth, onAuthStateChanged, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+// --- Publication minimaliste dans leaderboard_public (anti-spam 30s)
+let __lbLastWrite = 0;
+async function publishLeaderboardSkeleton({ displayName, photoURL }) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const now = Date.now();
+  if (now - __lbLastWrite < 30000) return; // max 1 écriture / 30s
+  __lbLastWrite = now;
+
+  // Nom prioritaire : players.displayName (si passé), sinon valeurs Auth
+  const nick =
+    (displayName && displayName.trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (user.email ? user.email.split('@')[0] : 'Joueur');
+
+  const payload = {
+    displayName: nick,
+    displayNameLower: nick.toLowerCase(),
+    // Stats placeholder : 0 — seront remplacées par la vraie progression quand le joueur ouvrira "Profil"
+    uniques: 0,
+    totalUnique: 0,
+    completionPct: 0,
+    updatedAt: serverTimestamp()
+  };
+
+  if (typeof photoURL === 'string' && /^https?:\/\//.test(photoURL)) {
+    payload.photoURL = photoURL;
+  }
+
+  await setDoc(doc(db, 'leaderboard_public', user.uid), payload, { merge: true });
+}
+
+    
   // --- Firebase config
   const firebaseConfig = { apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI', authDomain: 'legends-collection.firebaseapp.com', projectId: 'legends-collection', storageBucket: 'legends-collection.firebasestorage.app', messagingSenderId: '133783086150', appId: '1:133783086150:web:762f209f7f778ef83a1647' };
 
