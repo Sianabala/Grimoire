@@ -776,39 +776,61 @@ async function publishLeaderboardProgress({ uniques, totalUnique, completionPct,
   const user = auth.currentUser;
   if (!user) return;
 
+  // 1) Gardes-fous locaux : ne jamais écrire si le catalogue semble vide
+  const TU = Number(totalUnique) || 0;
+  const U  = Number(uniques) || 0;
+  const CP = Math.max(0, Math.min(100, Number(completionPct) || 0));
+  if (TU === 0) return;                 // ⛔ jamais 0 / 0
+  if (TU < U)  return;                  // ⛔ incohérent
+
+  // anti-spam
   const now = Date.now();
-  if (now - _lbLastWrite < 30000) return; // max 1 écriture / 30s
+  if (now - _lbLastWrite < 30000) return;
   _lbLastWrite = now;
 
   const ref = doc(db, 'leaderboard_public', user.uid);
-  // — Récup nom & avatar depuis Twitch (via providerData), sinon depuis user.*
+
+  // 2) Lis l'état actuel pour éviter toute régression
+  let prev = null;
+  try { const snap = await getDoc(ref); prev = snap.exists() ? snap.data() : null; } catch {}
+
+  // si on a déjà une valeur et que la nouvelle est pire ou nulle, on annule
+  if (prev) {
+    const pTU = Number(prev.totalUnique) || 0;
+    const pU  = Number(prev.uniques) || 0;
+    const pCP = Number(prev.completionPct) || 0;
+
+    // N'écrase pas avec un catalogue plus petit / vide ou une complétion moindre (sauf égalité)
+    if (TU < pTU) return;
+    if (TU === pTU && (U < pU || CP < pCP)) return;
+  }
+
+  // --- construction du payload "safe"
   const provider = Array.isArray(user.providerData)
     ? user.providerData.find(p => (p.providerId || '').includes('twitch')) || user.providerData[0]
     : null;
- // Priorité aux overrides → puis Firebase user/provider → enfin fallback
+
   const display =
     (typeof displayName === 'string' && displayName.trim()) ||
     (user.displayName && user.displayName.trim()) ||
     (provider && provider.displayName) ||
     (user.email ? user.email.split('@')[0] : 'Joueur');
+
   const maybePhoto =
-    (typeof photoURL === 'string' && photoURL) ||
-    user.photoURL ||
-    (provider && provider.photoURL) ||
-    '';
+    (typeof photoURL === 'string' && /^https?:\/\//.test(photoURL) ? photoURL :
+     user.photoURL && /^https?:\/\//.test(user.photoURL) ? user.photoURL :
+     provider && /^https?:\/\//.test(provider.photoURL||'') ? provider.photoURL : '');
 
   const payload = {
     displayName: display,
     displayNameLower: display.toLowerCase(),
-    uniques: Number(uniques) || 0,
-    totalUnique: Number(totalUnique) || 0,
-    completionPct: Math.max(0, Math.min(100, Number(completionPct) || 0)),
+    uniques: U,
+    totalUnique: TU,
+    completionPct: CP,
     updatedAt: serverTimestamp()
   };
-  // Ajoute photoURL uniquement si c’est une URL http(s) (conforme à tes règles)
-  if (typeof maybePhoto === 'string' && /^https?:\/\//.test(maybePhoto)) {
-    payload.photoURL = maybePhoto;
-  }
+  if (maybePhoto) payload.photoURL = maybePhoto;
+
   await setDoc(ref, payload, { merge: true });
 }
 
