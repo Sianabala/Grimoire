@@ -16,26 +16,42 @@
   (function(){
     try{
       var saved = localStorage.getItem('grimoire.theme');
-      if (saved === 'halloween') {
-        document.documentElement.classList.add('halloween');
+      if (saved === 'halloween' || saved === 'christmas') {
+        document.documentElement.classList.add(saved);
       }
     }catch(e){}
   })();
 </script>
+
 
   
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
   <link rel="stylesheet" href="/halloween.css">
+  <link rel="stylesheet" href="/noel.css">
 
 <script>
 (function(){
-  const KEY='grimoire.theme';
-  const saved = localStorage.getItem(KEY);
+  const KEY = 'grimoire.theme';
+  let saved = localStorage.getItem(KEY);
   const now = new Date(), m = now.getMonth()+1, d = now.getDate();
-  const inHalloween = (m===10) || (m===11 && d<=2);
-  if (!saved && inHalloween) localStorage.setItem(KEY,'halloween');
+
+  const inHalloween  = (m===10) || (m===11 && d<=2);
+  const inChristmas  = (m===12);
+
+  // Si l'utilisateur n'a rien choisi, on applique un thème saisonnier
+  if (!saved || saved === 'default') {
+    if (inHalloween)      saved = 'halloween';
+    else if (inChristmas) saved = 'christmas';
+    else                  saved = 'default';
+    localStorage.setItem(KEY, saved);
+  }
+
+  // On pose la classe vite pour éviter le flash
+  if (saved === 'halloween' || saved === 'christmas') {
+    document.documentElement.classList.add(saved);
+  }
 })();
 </script>
 
@@ -520,13 +536,16 @@ body.logged-in .hero-header .hero-actions{
         <p class="hero-subtitle">Entrez dans la légende, collectionnez le destin</p>
         <div id="user-display-name" class="subtitle" style="display:none"></div>
         <div class="hero-actions">
-          <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
-          <a href="/profil.html" class="btn ghost pill">👤 Profil</a>
-          <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
-          <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
-          <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
-          <button class="btn ghost" id="toggle-halloween">🎃 Mode Halloween</button>
-        </div>
+  <a href="/collection.html" class="btn ghost pill">📚 Ma Collection</a>
+  <a href="/profil.html" class="btn ghost pill">👤 Profil</a>
+  <button id="btn-login" class="btn pill">Se connecter avec Twitch</button>
+  <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
+  <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
+
+  <button class="btn ghost" id="toggle-halloween">🎃 Mode Halloween</button>
+  <button class="btn ghost" id="toggle-christmas">🎄 Mode Noël</button>
+</div>
+
       </div>
     </div>
   </header>
@@ -1854,28 +1873,60 @@ setInterval(updateTwitchStatus, 60_000);
   </script>
 
  <script>
-  (function(){
-    const KEY = 'grimoire.theme';
-    const btn = document.getElementById('toggle-halloween');
+(function(){
+  const KEY      = 'grimoire.theme';
+  const btnHal   = document.getElementById('toggle-halloween');
+  const btnXmas  = document.getElementById('toggle-christmas');
 
-    function apply(on){
-      document.documentElement.classList.toggle('halloween', on);
-      document.body.classList.toggle('halloween', on);
-      localStorage.setItem(KEY, on ? 'halloween' : 'default');
-      if (btn) btn.textContent = on ? '🎃 Mode Halloween : ON' : '🎃 Mode Halloween : OFF';
+  function applyTheme(theme){ // 'default' | 'halloween' | 'christmas'
+    const root = document.documentElement;
+    const body = document.body;
+
+    root.classList.toggle('halloween',  theme === 'halloween');
+    body.classList.toggle('halloween',  theme === 'halloween');
+    root.classList.toggle('christmas',  theme === 'christmas');
+    body.classList.toggle('christmas',  theme === 'christmas');
+
+    localStorage.setItem(KEY, theme);
+
+    if (btnHal){
+      btnHal.textContent = (theme === 'halloween')
+        ? '🎃 Mode Halloween : ON'
+        : '🎃 Mode Halloween';
     }
+    if (btnXmas){
+      btnXmas.textContent = (theme === 'christmas')
+        ? '🎄 Mode Noël : ON'
+        : '🎄 Mode Noël';
+    }
+  }
 
-    // À l'ouverture de l'index, on lit la valeur stockée
-    const saved = localStorage.getItem(KEY);
-    apply(saved === 'halloween');
+  let saved = localStorage.getItem(KEY) || 'default';
 
-    // Toggle au clic
-    btn?.addEventListener('click', ()=>{
-      const isOn = document.documentElement.classList.contains('halloween');
-      apply(!isOn);
-    });
-  })();
+  // Auto-saison ici aussi (au cas où tu changes le script du head ailleurs)
+  if (!saved || saved === 'default'){
+    const now = new Date(), m = now.getMonth()+1, d = now.getDate();
+    const inHalloween = (m===10) || (m===11 && d<=2);
+    const inChristmas = (m===12);
+    if (inHalloween)      saved = 'halloween';
+    else if (inChristmas) saved = 'christmas';
+    else                  saved = 'default';
+  }
+
+  applyTheme(saved);
+
+  btnHal?.addEventListener('click', ()=>{
+    const current = localStorage.getItem(KEY) || 'default';
+    applyTheme(current === 'halloween' ? 'default' : 'halloween');
+  });
+
+  btnXmas?.addEventListener('click', ()=>{
+    const current = localStorage.getItem(KEY) || 'default';
+    applyTheme(current === 'christmas' ? 'default' : 'christmas');
+  });
+})();
 </script>
+
 
 <script>
 (function(){
