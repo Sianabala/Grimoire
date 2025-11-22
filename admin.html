@@ -225,6 +225,42 @@
         <div class="bd"><pre id="diag" class="diag"></pre></div>
       </section>
 
+      <section class="panel" style="grid-column:span 6">
+  <div class="hd">
+    <h3>Joueurs</h3>
+    <div class="row">
+      <input id="search" class="input" placeholder="Rechercher (pseudo ou UID)…" style="width:260px">
+
+      <select id="filter-inactive" class="input pill" style="width:200px">
+        <option value="all">Tous</option>
+        <option value="7">Inactifs &gt; 7 j</option>
+        <option value="30">Inactifs &gt; 30 j</option>
+      </select>
+      <select id="sort" class="input pill" style="width:220px">
+        <option value="activityDesc">Trier : activité récente</option>
+        <option value="inactivityAsc">Trier : plus inactifs</option>
+        <option value="levelDesc">Trier : niveau</option>
+        <option value="packsOpenedDesc">Trier : packs ouverts</option>
+      </select>
+
+      <button id="btn-refresh" class="btn pill">Rafraîchir</button>
+
+      <!-- 🔥 NOUVEAU : boutons pour offrir à TOUS les joueurs -->
+      <button id="btn-give-all-standard" class="btn warn pill">
+        Offrir 1 Standard à tous
+      </button>
+      <button id="btn-give-all-premium" class="btn success pill">
+        Offrir 1 Premium à tous
+      </button>
+      <!-- /NOUVEAU -->
+    </div>
+  </div>
+  <div class="bd">
+    <div id="players" class="list"></div>
+  </div>
+</section>
+
+
     </div>
   </main>
 
@@ -338,10 +374,24 @@
 
     // --- UI Logic ---
     const playersWrap = document.getElementById('players');
-    const detailWrap  = document.getElementById('player-detail');
-    const diag = document.getElementById('diag');
-    const search = document.getElementById('search');
-    document.getElementById('btn-refresh').addEventListener('click', ()=> loadPlayers());
+const detailWrap  = document.getElementById('player-detail');
+const diag = document.getElementById('diag');
+const search = document.getElementById('search');
+document.getElementById('btn-refresh').addEventListener('click', ()=> loadPlayers());
+
+// 🔥 NOUVEAU : boutons "offrir à tous"
+const btnGiveAllStd  = document.getElementById('btn-give-all-standard');
+const btnGiveAllPrem = document.getElementById('btn-give-all-premium');
+
+btnGiveAllStd.addEventListener('click', () => {
+  grantPackToAll('pack_standard', 'Pack Standard', 1);
+});
+
+btnGiveAllPrem.addEventListener('click', () => {
+  grantPackToAll('pack_premium', 'Pack Premium', 1);
+});
+// /NOUVEAU
+
 
     // NEW: sort & filter elements
     const sortSel = document.getElementById('sort');
@@ -608,6 +658,81 @@
       if(uidShown === uid){ viewPlayer(uid); }
       loadPlayers(); // met aussi à jour les compteurs en haut
     }
+
+    // ⬇️ MAJ: supporte maintenant une quantité (qty)
+async function grantPack(uid,type,label,qty=1){
+  const kind = normalizePackType(type);
+  // 1) Essaye via Cloud Function sécurisée (si déployée)
+  try{
+    const call = httpsCallable(functions,'grantPack');
+    await call({ uid, type: kind, qty, reason: 'admin-ui' });
+    toast(`${label} ×${qty} ajouté${qty>1?'s':''}`);
+  }catch(err){
+    // 2) Fallback: incrémente directement packBalances (nécessite règles Firestore adaptées aux admins)
+    try{
+      await runTransaction(db, async (trx)=>{
+        const ref = doc(db,'players',uid);
+        const snap = await trx.get(ref);
+        if(!snap.exists()) throw new Error('Profil introuvable');
+        const data = snap.data()||{};
+        const balances = { ...(data.packBalances||{}) };
+        balances[kind] = Math.max(0,(balances[kind]||0) + Number(qty||1));
+        trx.update(ref, { packBalances: balances, updatedAt: serverTimestamp() });
+      });
+      toast(`${label} ×${qty} ajouté (fallback)`);
+    }catch(e2){ toast('Erreur: '+(e2?.message||e2)); return; }
+  }
+  // refresh si on regarde ce joueur
+  const uidShown = (document.getElementById('detail-uid')||{}).textContent;
+  if(uidShown === uid){ viewPlayer(uid); }
+  loadPlayers(); // met aussi à jour les compteurs en haut
+}
+
+/* 🔥 NOUVEAU : offrir un pack à TOUS les joueurs actuellement chargés */
+async function grantPackToAll(type, label, qty = 1) {
+  const kind = normalizePackType(type);
+
+  if (!lastPlayers || !lastPlayers.length) {
+    toast('Aucun joueur chargé. Clique sur "Rafraîchir" d’abord.');
+    return;
+  }
+
+  if (!confirm(`Offrir ${label} ×${qty} à ${lastPlayers.length} joueur(s) ?`)) {
+    return;
+  }
+
+  let ok = 0, fail = 0;
+
+  for (const p of lastPlayers) {
+    try {
+      // 1) Essaye via Cloud Function (si dispo)
+      try {
+        const call = httpsCallable(functions,'grantPack');
+        await call({ uid: p.uid, type: kind, qty, reason: 'admin-bulk' });
+      } catch (err) {
+        // 2) Fallback transaction Firestore directe
+        await runTransaction(db, async (trx)=>{
+          const ref = doc(db,'players',p.uid);
+          const snap = await trx.get(ref);
+          if(!snap.exists()) throw new Error('Profil introuvable');
+          const data = snap.data()||{};
+          const balances = { ...(data.packBalances||{}) };
+          balances[kind] = Math.max(0,(balances[kind]||0) + Number(qty||1));
+          trx.update(ref, { packBalances: balances, updatedAt: serverTimestamp() });
+        });
+      }
+      ok++;
+    } catch(e) {
+      fail++;
+      // Optionnel: log dans le diag
+      diag.textContent += `grantPackToAll: erreur pour ${p.uid}: ${(e?.message||e)}\n`;
+    }
+  }
+
+  toast(`${label} ×${qty} offert à ${ok} joueur(s).${fail ? ' Erreurs: '+fail : ''}`);
+  loadPlayers(); // pour rafraîchir les soldes et stats
+}
+
 
     async function migratePacksFromInbox(uid){
       if(!confirm('Convertir tous les packs présents dans le coffre en solde de packs ?')) return;
