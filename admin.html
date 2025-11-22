@@ -181,36 +181,7 @@
     </div>
 
     <div class="grid" id="admin-ui" style="display:none">
-
-      <!-- Liste joueurs -->
-      <section class="panel" style="grid-column:span 6">
-        <div class="hd">
-          <h3>Joueurs</h3>
-          <div class="row">
-            <input id="search" class="input" placeholder="Rechercher (pseudo ou UID)…" style="width:260px">
-
-            <!-- NEW: filtre & tri -->
-            <select id="filter-inactive" class="input pill" style="width:200px">
-              <option value="all">Tous</option>
-              <option value="7">Inactifs &gt; 7 j</option>
-              <option value="30">Inactifs &gt; 30 j</option>
-            </select>
-            <select id="sort" class="input pill" style="width:220px">
-              <option value="activityDesc">Trier : activité récente</option>
-              <option value="inactivityAsc">Trier : plus inactifs</option>
-              <option value="levelDesc">Trier : niveau</option>
-              <option value="packsOpenedDesc">Trier : packs ouverts</option>
-            </select>
-            <!-- /NEW -->
-
-            <button id="btn-refresh" class="btn pill">Rafraîchir</button>
-          </div>
-        </div>
-        <div class="bd">
-          <div id="players" class="list"></div>
-        </div>
-      </section>
-
+      
       <!-- Détail joueur -->
       <section class="panel" style="grid-column:span 6">
         <div class="hd"><h3>Détails du joueur</h3></div>
@@ -659,35 +630,6 @@ btnGiveAllPrem.addEventListener('click', () => {
       loadPlayers(); // met aussi à jour les compteurs en haut
     }
 
-    // ⬇️ MAJ: supporte maintenant une quantité (qty)
-async function grantPack(uid,type,label,qty=1){
-  const kind = normalizePackType(type);
-  // 1) Essaye via Cloud Function sécurisée (si déployée)
-  try{
-    const call = httpsCallable(functions,'grantPack');
-    await call({ uid, type: kind, qty, reason: 'admin-ui' });
-    toast(`${label} ×${qty} ajouté${qty>1?'s':''}`);
-  }catch(err){
-    // 2) Fallback: incrémente directement packBalances (nécessite règles Firestore adaptées aux admins)
-    try{
-      await runTransaction(db, async (trx)=>{
-        const ref = doc(db,'players',uid);
-        const snap = await trx.get(ref);
-        if(!snap.exists()) throw new Error('Profil introuvable');
-        const data = snap.data()||{};
-        const balances = { ...(data.packBalances||{}) };
-        balances[kind] = Math.max(0,(balances[kind]||0) + Number(qty||1));
-        trx.update(ref, { packBalances: balances, updatedAt: serverTimestamp() });
-      });
-      toast(`${label} ×${qty} ajouté (fallback)`);
-    }catch(e2){ toast('Erreur: '+(e2?.message||e2)); return; }
-  }
-  // refresh si on regarde ce joueur
-  const uidShown = (document.getElementById('detail-uid')||{}).textContent;
-  if(uidShown === uid){ viewPlayer(uid); }
-  loadPlayers(); // met aussi à jour les compteurs en haut
-}
-
 /* 🔥 NOUVEAU : offrir un pack à TOUS les joueurs actuellement chargés */
 async function grantPackToAll(type, label, qty = 1) {
   const kind = normalizePackType(type);
@@ -868,25 +810,28 @@ async function grantPackToAll(type, label, qty = 1) {
       }
     });
 
-    // === Bouton 'Haut de page' (admin) ===
+        // === Bouton 'Haut de page' (admin) ===
     const btnTop = document.getElementById('btn-top');
 
-    // Afficher/Masquer selon le scroll (seuil = 400px)
-    let rafId = null;
-    window.addEventListener('scroll', ()=>{
-      if (rafId) return;
-      rafId = requestAnimationFrame(()=>{
-        const shouldShow = window.scrollY > 400;
-        btnTop.classList.toggle('show', shouldShow);
-        rafId = null;
+    if (btnTop) {
+      // Afficher/Masquer selon le scroll (seuil = 400px)
+      let rafId = null;
+      window.addEventListener('scroll', ()=>{
+        if (rafId) return;
+        rafId = requestAnimationFrame(()=>{
+          const shouldShow = window.scrollY > 400;
+          btnTop.classList.toggle('show', shouldShow);
+          rafId = null;
+        });
       });
-    });
 
-    // Click = remonter en haut (respecte prefers-reduced-motion)
-    btnTop.addEventListener('click', ()=>{
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-    });
+      // Click = remonter en haut (respecte prefers-reduced-motion)
+      btnTop.addEventListener('click', ()=>{
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      });
+    }
+
 
   </script>
   <button id="btn-top" class="backtotop" type="button" aria-label="Revenir en haut" title="Haut de page">↑</button>
