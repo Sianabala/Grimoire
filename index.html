@@ -16,9 +16,10 @@
   (function(){
     try{
       var saved = localStorage.getItem('grimoire.theme');
-      if (saved === 'halloween' || saved === 'christmas') {
-        document.documentElement.classList.add(saved);
-      }
+      if (saved === 'christmas') {
+  document.documentElement.classList.add('christmas');
+}
+
     }catch(e){}
   })();
 </script>
@@ -542,7 +543,6 @@ body.logged-in .hero-header .hero-actions{
   <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
   <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
 
-  <button class="btn ghost" id="toggle-halloween">🎃 Mode Halloween</button>
   <button class="btn ghost" id="toggle-christmas">🎄 Mode Noël</button>
 </div>
 
