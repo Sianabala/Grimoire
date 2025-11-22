@@ -1,6 +1,6 @@
 /* =========================================================
    Grimoire — Thème Noël (global override, non destructif)
-   Active le thème en ajoutant la classe .christmas sur <body> ou <html>
+   Active le thème en ajoutant la classe .christmas sur <html> ou <body>
    Exemple: <body class="christmas">
    ========================================================= */
 
@@ -32,7 +32,7 @@ body.christmas {
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(63,185,255,.20), transparent 60%),
     radial-gradient(900px 600px at 110% 10%, rgba(39,194,122,.18), transparent 60%),
-    radial-gradient(1100px 800px at 50% 120%, rgba(243,208,138,.10), transparent 60%),
+    radial-gradient(1100px 800px at 50% 120%, rgba(243,208,138,.12), transparent 60%),
     linear-gradient(180deg,#050811 0%,#050811 100%) !important;
   color:var(--text);
 }
@@ -53,13 +53,77 @@ body.christmas .aura{
   opacity:.75;
 }
 
-/* ---------- Header / topbar ---------- */
-body.christmas .site-header{
-  background:linear-gradient(180deg, rgba(6,11,24,.95), rgba(6,11,24,.78)) !important;
-  border-bottom:1px solid rgba(243,208,138,.32) !important;
+/* =========================================================
+   Effets féeriques : neige + paillettes
+   ========================================================= */
+
+/* Deux couches de neige très légère, non bloquante */
+body.christmas::before,
+body.christmas::after{
+  content:"";
+  position:fixed;
+  inset:-10%;
+  pointer-events:none;
+  z-index:1;
+  background-image:
+    radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.60) 0, transparent 55%),
+    radial-gradient(2px 2px at 30% 80%, rgba(255,255,255,.50) 0, transparent 55%),
+    radial-gradient(3px 3px at 70% 10%, rgba(255,255,255,.55) 0, transparent 55%),
+    radial-gradient(2px 2px at 90% 60%, rgba(255,255,255,.40) 0, transparent 55%);
+  opacity:.40;
+  animation: snowFall 26s linear infinite;
+}
+body.christmas::after{
+  opacity:.25;
+  filter:blur(.3px);
+  animation-duration: 40s;
 }
 
-/* Logo Grimoire : halo or + sapin */
+@keyframes snowFall{
+  0%{
+    transform: translate3d(0,-10px,0);
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  100%{
+    transform: translate3d(0,40px,0);
+    background-position: 0 40px, 0 60px, 0 80px, 0 50px;
+  }
+}
+
+/* Petites paillettes autour de certaines cartes / vignettes */
+body.christmas .card::after,
+body.christmas .po-card::after,
+body.christmas .thumb::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    radial-gradient(3px 3px at 10% 20%, rgba(243,208,138,.55) 0, transparent 60%),
+    radial-gradient(2px 2px at 80% 10%, rgba(63,185,255,.65) 0, transparent 60%),
+    radial-gradient(2px 2px at 20% 85%, rgba(39,194,122,.60) 0, transparent 60%);
+  opacity:.0;
+  mix-blend-mode:screen;
+  transition: opacity .3s ease;
+}
+body.christmas .card:hover::after,
+body.christmas .po-card:hover::after,
+body.christmas .thumb:hover::after{
+  opacity:.85;
+}
+
+/* =========================================================
+   Header / Topbar
+   ========================================================= */
+
+body.christmas .site-header{
+  background:linear-gradient(180deg, rgba(6,11,24,.97), rgba(6,11,24,.80)) !important;
+  border-bottom:1px solid rgba(243,208,138,.32) !important;
+  box-shadow:0 14px 40px rgba(0,0,0,.7);
+}
+
+/* Logo Grimoire : halo or + sapin glacé */
 body.christmas .brand-logo{
   box-shadow:
     0 0 18px rgba(243,208,138,.6),
@@ -73,98 +137,65 @@ body.christmas .brand-logo{
   ) !important;
 }
 
-/* ---------- Hero ---------- */
-body.christmas .hero-header{
-  background: linear-gradient(180deg, rgba(5,8,17,.96), rgba(5,8,17,.78)) !important;
-  border-bottom:1px solid rgba(243,208,138,.28) !important;
+/* Guirlande lumineuse en haut du header */
+body.christmas .site-header{
+  position:sticky;
 }
-
-/* Hero background : flocons + léger voile */
-body.christmas .hero-bg::before{
+body.christmas .site-header::after{
   content:"";
-  position:absolute; inset:-10%; pointer-events:none;
+  position:absolute;
+  left:0; right:0; top:0;
+  height:26px;
+  pointer-events:none;
   background:
-    radial-gradient(60% 40% at 10% 10%, rgba(63,185,255,.16), transparent 60%),
-    radial-gradient(70% 50% at 85% 15%, rgba(39,194,122,.12), transparent 60%),
-    radial-gradient(70% 70% at 50% 100%, rgba(0,0,0,.35), transparent 70%);
-  filter: blur(10px);
-  opacity:.9;
-}
-body.christmas .hero-bg::after{
-  content:"";
-  position:absolute; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(255,255,255,.45) 1px, transparent 0),
-    radial-gradient(circle at 30% 10%, rgba(255,255,255,.35) 1px, transparent 0),
-    radial-gradient(circle at 70% 15%, rgba(255,255,255,.4) 1px, transparent 0),
-    radial-gradient(circle at 90% 25%, rgba(255,255,255,.30) 1px, transparent 0),
-    radial-gradient(circle at 20% 70%, rgba(255,255,255,.38) 1px, transparent 0),
-    radial-gradient(circle at 60% 80%, rgba(255,255,255,.32) 1px, transparent 0);
-  background-size: 180px 180px;
-  mix-blend-mode: screen;
-  opacity:.55;
+    radial-gradient(circle at 5% 50%,  #ff6767 0, transparent 60%),
+    radial-gradient(circle at 18% 50%, #ffe066 0, transparent 60%),
+    radial-gradient(circle at 31% 50%, #5cf4a8 0, transparent 60%),
+    radial-gradient(circle at 44% 50%, #72e0ff 0, transparent 60%),
+    radial-gradient(circle at 57% 50%, #ff9cf2 0, transparent 60%),
+    radial-gradient(circle at 70% 50%, #ffe066 0, transparent 60%),
+    radial-gradient(circle at 83% 50%, #5cf4a8 0, transparent 60%),
+    radial-gradient(circle at 96% 50%, #ff6767 0, transparent 60%);
+  opacity:.85;
+  mix-blend-mode:screen;
 }
 
-/* Titre + sous-titre un peu plus “festif” */
-@supports (font-variation-settings: normal){
-  body.christmas .hero-title{
-    letter-spacing:.7px;
-  }
+/* Lien Twitch : style "bouton cadeau" */
+body.christmas .twitch-cta{
+  background:linear-gradient(135deg,#f3d08a,#27c27a) !important;
+  color:#050811 !important;
+  border-color:rgba(255,255,255,.26) !important;
+}
+body.christmas .twitch-cta .live-dot{
+  background:#ef4444;
 }
 
-/* Hero logo : sapin avec halo tournant */
-body.christmas .hero-logo{
-  position:relative;
-  background:none !important;
-  box-shadow:none !important;
-}
-body.christmas .hero-logo::before{
-  content:"";
-  position:absolute; inset:-10px;
-  border-radius:999px;
-  background: conic-gradient(
-    from 0deg,
-    rgba(243,208,138,.7),
-    rgba(63,185,255,.6),
-    rgba(39,194,122,.7),
-    rgba(243,208,138,.7)
-  );
-  filter: blur(6px);
-  animation: xmasHalo 7s linear infinite;
-}
-body.christmas .hero-logo::after{
-  content:"🎄";
-  position:relative;
-  display:grid; place-items:center;
-  width:100%; height:100%;
-  font-size:52px; line-height:1;
-  text-shadow:0 4px 12px rgba(0,0,0,.55);
-}
-@keyframes xmasHalo{
-  0%{ transform: rotate(0deg); }
-  100%{ transform: rotate(360deg); }
-}
+/* =========================================================
+   Panels, stats, cartes
+   ========================================================= */
 
-/* ---------- Panels, stats, cartes ---------- */
 body.christmas .panel{
-  background: radial-gradient(circle at top left, rgba(63,185,255,.08), transparent 55%),
-              radial-gradient(circle at bottom right, rgba(39,194,122,.10), transparent 55%),
-              linear-gradient(180deg,#0b1020,#050915) !important;
+  background:
+    radial-gradient(circle at top left, rgba(63,185,255,.10), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(39,194,122,.12), transparent 55%),
+    linear-gradient(180deg,#0b1020,#050915) !important;
   border-color: rgba(255,255,255,.09) !important;
 }
 
 /* Stats cards un peu plus lumineuses */
 body.christmas .stat{
   background: linear-gradient(180deg,#0c1426,#050915) !important;
-  box-shadow: 0 0 0 1px rgba(63,185,255,.18) inset;
+  box-shadow: 0 0 0 1px rgba(63,185,255,.18) inset,
+              0 12px 32px rgba(0,0,0,.75) !important;
 }
 
 /* Lueur sur les cartes / vignettes */
 body.christmas .card,
 body.christmas .po-card,
 body.christmas .thumb{
-  box-shadow: 0 0 0 1px rgba(63,185,255,.16) inset,
-              0 0 32px rgba(63,185,255,.15) !important;
+  box-shadow:
+    0 0 0 1px rgba(63,185,255,.16) inset,
+    0 0 32px rgba(63,185,255,.15) !important;
   border-color: rgba(255,255,255,.12) !important;
 }
 
@@ -174,10 +205,21 @@ body.christmas .tag{
   border-color: rgba(255,255,255,.14) !important;
 }
 body.christmas .tag.rarity-legendary{ color:#f3d08a !important; }
-body.christmas .tag.rarity-exotic{ color:#3fb9ff !important; }
+body.christmas .tag.rarity-exotic{    color:#3fb9ff !important; }
 body.christmas .tag.rarity-incandescent{ color:#27c27a !important; }
 
-/* ---------- Boutons ---------- */
+/* Badges / chips */
+body.christmas .badge,
+body.christmas .chip{
+  background: linear-gradient(135deg,#f3d08a,#27c27a) !important;
+  color:#050811 !important;
+  box-shadow: 0 6px 20px rgba(243,208,138,.35) !important;
+}
+
+/* =========================================================
+   Boutons
+   ========================================================= */
+
 body.christmas .btn{
   background: linear-gradient(180deg, var(--accent), color-mix(in oklab,var(--accent),#000 14%)) !important;
   color:#020409 !important;
@@ -193,94 +235,151 @@ body.christmas .btn:hover{
   box-shadow: 0 14px 34px rgba(63,185,255,.32) !important;
 }
 
+/* Boutons d’alerte */
+body.christmas .btn.warn{
+  background: linear-gradient(180deg,#facc15,#eab308) !important;
+  color:#1f1305 !important;
+}
+body.christmas .btn.danger{
+  background: linear-gradient(180deg,#f97373,#ef4444) !important;
+  color:#0b0202 !important;
+}
+
 /* Bouton de thème Noël “ON” */
 :root.christmas #toggle-christmas,
 body.christmas #toggle-christmas{
   background: linear-gradient(180deg,#27c27a,#159b57) !important;
   color:#02140a !important;
-  box-shadow: 0 0 0 1px rgba(243,208,138,.55) inset,
-              0 12px 30px rgba(39,194,122,.45) !important;
+  box-shadow:
+    0 0 0 1px rgba(243,208,138,.55) inset,
+    0 12px 30px rgba(39,194,122,.45) !important;
 }
 
-/* ---------- Pack opening (overlay) ---------- */
+/* =========================================================
+   Pack opening (overlay)
+   ========================================================= */
+
 body.christmas #pack-overlay .po-backdrop{
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(63,185,255,.25), transparent 60%),
     radial-gradient(900px 500px at 110% 10%, rgba(39,194,122,.22), transparent 60%),
     rgba(3,5,12,.92) !important;
 }
+
 body.christmas .po-pack-body{
+  position:relative;
   background:
     radial-gradient(130px 70px at 20% 20%, rgba(63,185,255,.38), transparent 65%),
     radial-gradient(110px 60px at 80% 25%, rgba(39,194,122,.34), transparent 65%),
     linear-gradient(180deg,#0c1324,#050915) !important;
   border:1px solid rgba(255,255,255,.14) !important;
+  box-shadow:
+    0 0 0 1px rgba(63,185,255,.18) inset,
+    0 24px 60px rgba(0,0,0,.85) !important;
 }
+
+/* Fente lumineuse */
 body.christmas .po-slit{
-  background: linear-gradient(180deg,#fff,rgba(255,255,255,.3));
-  box-shadow: 0 0 28px rgba(255,255,255,.8),
-              0 0 90px rgba(63,185,255,.55) !important;
+  background: linear-gradient(180deg,#fff,rgba(255,255,255,.03));
+  box-shadow:
+    0 0 28px rgba(255,255,255,.8),
+    0 0 90px rgba(63,185,255,.55) !important;
 }
+
+/* Voile sur les cartes à révéler */
 body.christmas .po-card .veil{
   background:
     radial-gradient(120px 80px at 30% 20%, rgba(63,185,255,.20), transparent 60%),
     linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.80)) !important;
 }
 
-/* ---------- Toast, badge, textes ---------- */
+/* Glow selon la rareté (si tu utilises ces classes) */
+body.christmas .po-card.glow-rare{
+  box-shadow:0 0 24px rgba(63,185,255,.55) !important;
+}
+body.christmas .po-card.glow-legendary{
+  box-shadow:0 0 28px rgba(243,208,138,.75) !important;
+}
+body.christmas .po-card.glow-exotic,
+body.christmas .po-card.glow-incandescent{
+  box-shadow:
+    0 0 30px rgba(243,208,138,.75),
+    0 0 60px rgba(63,185,255,.55) !important;
+}
+
+/* =========================================================
+   Toast, badge, textes
+   ========================================================= */
+
 body.christmas .toast{
   background: rgba(6,11,24,.95) !important;
   border-color: rgba(243,208,138,.4) !important;
 }
+
 body.christmas .badge{
   background: linear-gradient(135deg,#f3d08a,#27c27a) !important;
   color:#050811 !important;
   box-shadow: 0 4px 18px rgba(243,208,138,.35) !important;
 }
+
 body.christmas .subtitle{
   color: color-mix(in oklab, var(--muted), #fff 15%) !important;
 }
 
-/* ---------- Modal de choix de pack ---------- */
+/* Bannière spéciale (exotiques/légendaires, etc.) */
+body.christmas .banner{
+  background: linear-gradient(135deg,#0c1426,#050915) !important;
+  border:1px solid rgba(243,208,138,.45) !important;
+  box-shadow:0 12px 38px rgba(0,0,0,.8) !important;
+}
+
+/* =========================================================
+   Modal de choix de pack
+   ========================================================= */
+
 body.christmas #pack-chooser .modal{
   background: linear-gradient(180deg,#050915,#02030a) !important;
   border-color: rgba(243,208,138,.32) !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.9) !important;
 }
+
 body.christmas #pack-chooser .btn{
   background: linear-gradient(180deg,#27c27a,#159b57) !important;
   color:#020409 !important;
   border:1px solid rgba(243,208,138,.6) !important;
 }
+
 body.christmas #pack-chooser .btn.ghost{
   background: transparent !important;
   color:var(--text) !important;
   border:1px solid rgba(255,255,255,.24) !important;
 }
+
 body.christmas #pack-chooser .btn:disabled{
-  opacity:.55; filter:grayscale(.1);
+  opacity:.55;
+  filter:grayscale(.1);
   cursor:not-allowed;
 }
 
-/* ---------- Bannière événement Noël ---------- */
-.banner.christmas{
-  margin:12px auto;
-  max-width:1200px;
-  padding:10px 12px;
-  border-radius:12px;
-  background: linear-gradient(90deg, rgba(63,185,255,.20), rgba(39,194,122,.20));
-  border:1px solid rgba(243,208,138,.45);
-  display:flex; align-items:center; gap:10px;
+/* =========================================================
+   Petites adaptations collection / profil (optionnelles)
+   ========================================================= */
+
+/* Cartes de collection un peu plus "vitrines de Noël" */
+body.christmas .collection-card{
+  background:
+    radial-gradient(220px 140px at 50% 0%, rgba(255,255,255,.08), transparent 65%),
+    linear-gradient(180deg,#0a1020,#050811) !important;
+  border-color:rgba(255,255,255,.12) !important;
 }
 
-/* ---------- Accessibilité ---------- */
-body.christmas :is(.btn, a, button, .po-card, .set):focus-visible{
-  outline:2px solid var(--accent-2) !important;
-  outline-offset:3px !important;
-  border-radius:12px !important;
+/* Progress bars en mode guirlande verte */
+body.christmas .xp-bar,
+body.christmas .progress-bar{
+  background: rgba(15,23,42,.9) !important;
 }
-
-/* Sélection de texte */
-body.christmas::selection{
-  background: rgba(63,185,255,.35);
-  color:#020409;
+body.christmas .xp-bar-fill,
+body.christmas .progress-fill{
+  background: linear-gradient(90deg,#27c27a,#3fb9ff) !important;
+  box-shadow:0 0 16px rgba(39,194,122,.65) !important;
 }
