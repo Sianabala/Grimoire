@@ -28,7 +28,6 @@
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
-  <link rel="stylesheet" href="/halloween.css">
   <link rel="stylesheet" href="/noel.css">
 
 <script>
@@ -49,9 +48,10 @@
   }
 
   // On pose la classe vite pour éviter le flash
-  if (saved === 'halloween' || saved === 'christmas') {
-    document.documentElement.classList.add(saved);
-  }
+  if (saved === 'christmas') {
+  document.documentElement.classList.add('christmas');
+}
+
 })();
 </script>
 
