@@ -492,17 +492,31 @@ body.christmas #pack-chooser{
 }
 
 /* Boutons de packs en mode “paquet cadeau” */
+/* Boutons de packs en mode “paquet cadeau” (sans zébrures) */
 body.christmas #pack-chooser .btn{
   background:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(243,208,138,.40) 0,
-      rgba(243,208,138,.40) 12px,
-      rgba(148,163,184,.25) 12px,
-      rgba(148,163,184,.25) 24px
-    ),
+    radial-gradient(140% 220% at 0% 0%, rgba(243,208,138,.45), transparent 55%),
+    radial-gradient(130% 200% at 100% 0%, rgba(63,185,255,.35), transparent 55%),
     linear-gradient(180deg,#020617,#020617) !important;
+  color:#f9fafb !important;
+  border-radius:999px;
+  border:1px solid rgba(243,208,138,.65);
+  box-shadow:
+    0 0 0 1px rgba(15,23,42,1) inset,
+    0 14px 34px rgba(0,0,0,.9),
+    0 0 22px rgba(63,185,255,.35);
+  letter-spacing:.03em;
+  text-transform:none;
 }
+
+body.christmas #pack-chooser .btn:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(243,208,138,.85) inset,
+    0 18px 40px rgba(63,185,255,.55),
+    0 0 26px rgba(243,208,138,.55);
+}
+
 
 /* Badge de balance de packs (peut servir de “calendrier de l’Avent”) */
 body.christmas #packs-balance-badge{
