@@ -434,7 +434,7 @@ function computeProgress({ collection, cardPools }){
 
  
 // ---- Version de schéma badges + helpers de resync
-const BADGE_SCHEMA_VERSION = 6;
+const BADGE_SCHEMA_VERSION = 7;
 
 function computeExpectedBadges(sharedStats){
   const expected = {};
@@ -483,6 +483,7 @@ const BADGES = [
   { id:'expert',name:'Expert-e', ico:'⚔️​',  desc:'Atteindre le niveau 50',   test:s=> (s.level||0) >= 50 },
 
   { id:'halloween2025',  name:"Esprit d'Halloween 2025",  ico:'🎃',  desc:"Avoir activé le thème Halloween 2025",  test: s => !!(s.hadHalloweenBadge || s.halloweenActive)
+   { id:'noel2025',  name:"Esprit de Noël 2025",  ico:'🎄',  desc:"Avoir activé le thème Noël 2025",  test: s => !!(s.hadChristmasBadge || s.christmasActive) },
 },
 
   
@@ -642,8 +643,12 @@ onAuthStateChanged(auth, async (user)=>{
   const hasAnniv2025 =
     (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
     (collection[ANNIV2025_ID] || 0) > 0;
+
   const halloweenActive   = (localStorage.getItem('grimoire.theme') === 'halloween');
   const hadHalloweenBadge = !!((data.badges || {}).halloween2025);
+
+  const christmasActive   = (localStorage.getItem('grimoire.theme') === 'christmas');
+  const hadChristmasBadge = !!((data.badges || {}).noel2025);
 
   const sharedStats = {
     ...progress,
@@ -651,8 +656,11 @@ onAuthStateChanged(auth, async (user)=>{
     level: profileLS.level,
     hasAnniv2025,
     halloweenActive,
-    hadHalloweenBadge
+    hadHalloweenBadge,
+    christmasActive,
+    hadChristmasBadge
   };
+
 
   let ownedBadges = data.badges || {};
   {
