@@ -29,7 +29,6 @@
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
-  <link rel="stylesheet" href="/noel.css">
 
 <script>
 (function(){
@@ -1531,11 +1530,15 @@ loginBtn.style.display = currentUser ? 'none' : '';
   if (nameBox) nameBox.style.display = 'none';
   if (userBar) userBar.style.display = 'none';
   setAdminUIVisible(false);
-  document.body.className = 'guest';   // <<< AJOUT
+
+  document.body.classList.add('guest');
+  document.body.classList.remove('logged-in');
+
   setGuestMode(true); 
   refreshPackUI();
   return;
 }
+
 
 if (user) {
   const allIds = new Set(ALL_CARDS.map(c => c.id));
@@ -1570,8 +1573,12 @@ await publishLeaderboardSkeleton({
     
 if (isAdmin) adminBtn.style.display = '';
 setAdminUIVisible(isAdmin);
-document.body.className = 'logged-in';
-    setGuestMode(false);
+
+document.body.classList.add('logged-in');
+document.body.classList.remove('guest');
+
+setGuestMode(false);
+
   });
 
   // --- Cloud bootstrap
