@@ -79,6 +79,26 @@ body.christmas::after{
   100%{ transform: translateY(35px); }
 }
 
+/* Neige un peu allégée sur mobile */
+@media (max-width: 640px){
+  body.christmas::before,
+  body.christmas::after{
+    opacity:.22;
+  }
+}
+
+/* Aura décorative adaptée pour Noël */
+body.christmas .aura{
+  mix-blend-mode: screen;
+  opacity:.75;
+}
+body.christmas .aura::before{
+  background: radial-gradient(closest-side, rgba(63,185,255,.40), transparent 60%);
+}
+body.christmas .aura::after{
+  background: radial-gradient(closest-side, rgba(243,208,138,.32), transparent 60%);
+}
+
 /* =========================================================
    Layout & panneaux
    ========================================================= */
@@ -158,6 +178,15 @@ body.christmas .stat .v,
 body.christmas .stat-value{
   color:var(--accent-gold);
   text-shadow:0 0 18px rgba(63,185,255,.5);
+}
+
+/* Mini-cards de collection (si utilisées sur d’autres pages) */
+body.christmas .mini-card{
+  background:
+    radial-gradient(280px 200px at 0% 0%, rgba(63,185,255,.16), transparent 60%),
+    linear-gradient(180deg,#050915,#020617);
+  border-radius:14px;
+  border:1px solid rgba(148,163,184,.35);
 }
 
 /* =========================================================
@@ -246,6 +275,21 @@ body.christmas .hero-desc{
   color: color-mix(in oklab, var(--muted), #ffffff 30%);
 }
 
+/* Actions du hero (connecté) */
+body.christmas .hero-header .hero-actions .btn{
+  border-radius:999px;
+  padding-inline:16px;
+}
+
+/* User bar */
+body.christmas #user-bar{
+  background:rgba(5,8,17,.95) !important;
+  border-color:rgba(243,208,138,.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(15,23,42,.9) inset,
+    0 10px 30px rgba(0,0,0,.85) !important;
+}
+
 /* =========================================================
    Guest CTA : “Festival d’Hiver” (non connecté)
    ========================================================= */
@@ -276,6 +320,10 @@ body.christmas #guest-cta::before{
     );
   mix-blend-mode:soft-light;
   opacity:.35;
+}
+
+body.christmas #guest-cta .hero-bg{
+  filter:saturate(1.2) contrast(1.05) brightness(1.03);
 }
 
 body.christmas #guest-cta .hero-content{
@@ -309,16 +357,22 @@ body.christmas .site-header{
   backdrop-filter: blur(18px);
 }
 
-body.christmas .site-header .logo-text{
+body.christmas .site-header .brand-name{
   color:var(--text);
 }
 
-body.christmas .nav-link{
+body.christmas .nav-links a{
   color:var(--muted);
 }
-body.christmas .nav-link:hover,
-body.christmas .nav-link.active{
+body.christmas .nav-links a:hover,
+body.christmas .nav-links a:focus-visible{
   color:var(--accent-gold);
+}
+
+/* Twitch pill */
+body.christmas .twitch-cta{
+  background: linear-gradient(135deg,#a855f7,#ec4899);
+  color:#0b0210;
 }
 
 /* =========================================================
@@ -352,6 +406,12 @@ body.christmas .btn{
 }
 body.christmas .btn::first-letter{
   filter: drop-shadow(0 0 6px rgba(243,208,138,.7));
+}
+
+/* Boutons ghost */
+body.christmas .btn.ghost{
+  background:transparent;
+  border-color:rgba(148,163,184,.5);
 }
 
 /* Boutons d’alerte */
@@ -580,9 +640,28 @@ body.christmas #xp-fill{
 }
 
 /* =========================================================
-   Divers & petits détails
+   Bannières / toasts / tags
    ========================================================= */
 
+body.christmas .banner{
+  background:linear-gradient(90deg,rgba(63,185,255,.18),rgba(243,208,138,.20));
+  border-radius:14px;
+  border:1px solid rgba(243,208,138,.55);
+}
+
+/* Bannière “nouvelle carte” → plus visible en Noël */
+body.christmas .banner.new-card{
+  background: linear-gradient(90deg, rgba(63,185,255,.26), rgba(243,208,138,.28));
+  border-color: rgba(243,208,138,.7);
+}
+
+/* Toast */
+body.christmas .toast{
+  background:rgba(5,8,17,.96);
+  border-color:rgba(243,208,138,.55);
+}
+
+/* Tags & badges */
 body.christmas .tag,
 body.christmas .badge{
   border-radius:999px;
