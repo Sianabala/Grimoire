@@ -1045,9 +1045,12 @@ attachPrimary();
 
 <script>
   (function(){
-    var saved = localStorage.getItem('grimoire.theme');
-    var on = (saved === 'halloween');
-    document.body.classList.toggle('halloween', on);
+    const KEY   = 'grimoire.theme';
+    const saved = localStorage.getItem(KEY) || 'default';
+    const isXmas = (saved === 'christmas');
+
+    document.documentElement.classList.toggle('christmas', isXmas);
+    document.body.classList.toggle('christmas', isXmas);
   })();
 </script>
 
