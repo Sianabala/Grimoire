@@ -477,17 +477,15 @@ const BADGES = [
   { id:'brillance', name:'La brillance', ico:'💠',  desc:'Trouver 10 exotiques',  test: s => (s.exoticUnique || 0) >= 10 },
   { id:'toujoursplus', name:'Toujours plus', ico:'⭐', desc:'Trouver 20 exotiques', test: s => (s.exoticUnique || 0) >= 20 },
 
-
   { id:'apprenti',       name:'Apprenti',         ico:'🔨',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
   { id:'gardienconfirme',name:'En formation', ico:'⚒️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||0) >= 20 },
   { id:'expert',name:'Expert-e', ico:'⚔️​',  desc:'Atteindre le niveau 50',   test:s=> (s.level||0) >= 50 },
 
-  { id:'halloween2025',  name:"Esprit d'Halloween 2025",  ico:'🎃',  desc:"Avoir activé le thème Halloween 2025",  test: s => !!(s.hadHalloweenBadge || s.halloweenActive)
-   { id:'noel2025',  name:"Esprit de Noël 2025",  ico:'🎄',  desc:"Avoir activé le thème Noël 2025",  test: s => !!(s.hadChristmasBadge || s.christmasActive) },
-},
+  { id:'halloween2025',  name:"Esprit d'Halloween 2025",  ico:'🎃',  desc:"Avoir activé le thème Halloween 2025",  test: s => !!(s.hadHalloweenBadge || s.halloweenActive) },
 
-  
+  { id:'noel2025',  name:"Esprit de Noël 2025",  ico:'🎄',  desc:"Avoir activé le thème Noël 2025",  test: s => !!(s.hadChristmasBadge || s.christmasActive) },
 ];
+
 
 // ---- UI helpers
 const $ = (sel)=> document.querySelector(sel);
