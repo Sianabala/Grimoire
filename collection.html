@@ -9,13 +9,28 @@
 <script>
   (function(){
     try{
-      var saved = localStorage.getItem('grimoire.theme');
-      if (saved === 'christmas') {
-  document.documentElement.classList.add('christmas');
-}
+      const KEY = 'grimoire.theme';
+      let saved = localStorage.getItem(KEY);
+
+      // Auto-thème saisonnier (comme sur la page du jeu)
+      const now = new Date();
+      const m = now.getMonth() + 1;
+      const inChristmas = (m === 12);
+
+      if (!saved || saved === 'default') {
+        saved = inChristmas ? 'christmas' : 'default';
+        localStorage.setItem(KEY, saved);
+      }
+
+      const isXmas = (saved === 'christmas');
+
+      if (isXmas) {
+        document.documentElement.classList.add('christmas');
+      }
     }catch(e){}
   })();
 </script>
+
 
   
   <link rel="stylesheet" href="/rarities.css">
@@ -1006,13 +1021,17 @@ rarityBtns.forEach(b=>{ b.classList.add('active'); b.setAttribute('aria-pressed'
     });
   </script>
 
-  <script>
+ <script>
   (function(){
-    var saved = localStorage.getItem('grimoire.theme');
-    var on = (saved === 'halloween');
-    document.body.classList.toggle('halloween', on);
+    const KEY   = 'grimoire.theme';
+    const saved = localStorage.getItem(KEY) || 'default';
+    const isXmas = (saved === 'christmas');
+
+    document.documentElement.classList.toggle('christmas', isXmas);
+    document.body.classList.toggle('christmas', isXmas);
   })();
 </script>
+
 
   
 </body>
