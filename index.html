@@ -36,7 +36,6 @@
   const KEY = 'grimoire.theme';
   let saved = localStorage.getItem(KEY);
   const now = new Date(), m = now.getMonth()+1;
-
   const inChristmas = (m === 12);
 
   // Si l'utilisateur n'a rien choisi, on applique un thème saisonnier
@@ -492,6 +491,10 @@ body.logged-in .hero-header .hero-actions{
 
                                           
   </style>
+
+<!-- 🔥 Le thème Noël DOIT être le dernier -->
+  <link rel="stylesheet" href="/noel.css">
+  
 </head>
 <body>
  
