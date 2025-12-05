@@ -1,222 +1,645 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grimoire — Classement des collectionneurs</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Grimoire · Classement</title>
+
+  <script>
+    (function(){
+      try{
+        var saved = localStorage.getItem('grimoire.theme');
+        if (saved === 'christmas') {
+          document.documentElement.classList.add('christmas');
+        }
+      }catch(e){}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/rarities.css">
+  <link rel="stylesheet" href="/mobile.css">
+  <link rel="stylesheet" href="/noel.css">
+
+  <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.goopics.net/aksxey.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
+  <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
+
   <style>
     :root{
-      --bg:#0b0e13;           /* nuit */
-      --panel:#121722;        /* ardoise */
-      --ink:#d9d7ce;          /* encre */
-      --muted:#9aa3b2;        /* gris doux */
-      --primary:#8b7cf6;      /* indigo mystique */
-      --primary-2:#caa6ff;    /* améthyste */
-      --accent:#ffd799;       /* cuivre rosé */
-      --success:#7dd3a8;      /* vert rituel */
-      --danger:#f08c8c;
-      --card:#0f131b;
-      --glow: 0 0 20px rgba(203, 162, 255, .35), 0 0 40px rgba(139,124,246,.2);
-      --radius: 18px;
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b;
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+
     body{
-      margin:0;
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
       background:
-        radial-gradient(60% 80% at 75% 10%, rgba(139,124,246,.12), transparent 60%),
-        radial-gradient(60% 80% at 20% 90%, rgba(202,166,255,.08), transparent 60%),
-        var(--bg);
-      color:var(--ink);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      line-height:1.45;
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+        radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+        linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
     }
+
     header{
-      position:sticky; top:0; z-index:5;
-      background:linear-gradient(180deg, rgba(11,14,19,.9), rgba(11,14,19,.45) 70%, transparent);
-      backdrop-filter: blur(6px);
-      border-bottom:1px solid rgba(138, 124, 246, .15);
+      position:sticky; top:0; z-index:10; backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
     }
-    .wrap{max-width:1100px; margin:0 auto; padding:18px 20px}
-    .title{
-      display:flex; align-items:center; gap:14px;
+    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    nav a{
+      color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.12);
+      padding:8px 12px;border-radius:12px; transition: all .2s ease;
     }
-    .sigil{
-      width:42px; height:42px; border-radius:50%;
-      display:grid; place-items:center;
-      background: radial-gradient(80% 80% at 50% 30%, rgba(203,162,255,.25), rgba(139,124,246,.08));
-      border:1px solid rgba(203,162,255,.35);
-      box-shadow: var(--glow);
-      font-family: Cinzel, serif; font-weight:700; letter-spacing:.5px;
-      color:var(--accent);
+    nav a[aria-current="page"]{ background:rgba(255,255,255,.06) }
+    nav a:hover{ background: rgba(255,255,255,.08); transform: translateY(-1px) }
+
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));
+      box-shadow:var(--shadow-sm)
     }
-    h1{
-      margin:0; font-family: Cinzel, serif; font-weight:700; letter-spacing:.5px;
-      font-size: clamp(20px, 3vw, 28px);
+    .title{font-size:22px;font-weight:900}
+    .subtitle{font-size:12px;color:var(--muted)}
+
+    .panel{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid rgba(255,255,255,.06); border-radius:var(--radius-lg);
+      box-shadow:var(--shadow); position:relative; overflow:clip
     }
-    .toolbar{display:flex; gap:12px; margin-top:14px; flex-wrap:wrap}
-    .field{position:relative}
-    .field input{
-      background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.06);
-      border-radius: 12px; padding:12px 40px 12px 12px; min-width:260px; outline:none;
+    .panel .hd{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)
     }
-    .field input::placeholder{color:var(--muted)}
-    .field .right{position:absolute; right:8px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px}
-    .chip{background: linear-gradient(180deg, rgba(139,124,246,.22), rgba(202,166,255,.14));
-      border:1px solid rgba(139,124,246,.35); color:var(--primary-2);
-      padding:10px 12px; border-radius:999px; font-size:12px}
-
-    main{padding: 10px 20px 80px}
-    .grid{max-width:1100px; margin:0 auto; display:grid; gap:10px}
-    @media(min-width:700px){.grid{grid-template-columns: repeat(2, 1fr)}}
-    @media(min-width:1000px){.grid{grid-template-columns: repeat(3, 1fr)}}
-
-    .card{
-      display:flex; align-items:center; gap:12px; padding:12px; border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(20,26,36,.9), rgba(15,19,27,.9));
-      border:1px solid rgba(203,162,255,.09);
-      transition: transform .18s ease, box-shadow .18s ease;
+    .panel .hd h3{margin:0; font-size:18px; letter-spacing:.3px; font-weight:900}
+    .panel .bd{padding:20px}
+    .panel::before{
+      content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
     }
-    .card:hover{ transform: translateY(-2px); box-shadow: var(--glow) }
-    .rank-badge{
-      min-width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
-      background: radial-gradient(100% 100% at 50% 30%, rgba(255,215,153,.20), rgba(255,215,153,.08));
-      border:1px solid rgba(255,215,153,.35);
-      font-weight:700; color:var(--accent)
+
+    .pill{
+      font-size:13px;padding:6px 12px;border-radius:999px;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      font-weight:600;
     }
-    .rank-1{ box-shadow: 0 0 24px rgba(255,215,153,.25) }
-    .rank-2{ background: radial-gradient(100% 100% at 50% 30%, rgba(200,210,230,.20), rgba(200,210,230,.08)); border-color: rgba(200,210,230,.4) }
-    .rank-3{ background: radial-gradient(100% 100% at 50% 30%, rgba(220,170,120,.20), rgba(220,170,120,.08)); border-color: rgba(220,170,120,.4) }
 
-    .avatar{ width:44px; height:44px; border-radius:12px; object-fit:cover; border:1px solid rgba(255,255,255,.12)}
+    /* Hero section */
+    .hero{
+      text-align:center; padding:40px 20px 30px;
+      background: radial-gradient(600px 400px at 50% 0%, rgba(124,92,255,.15), transparent);
+    }
+    .hero h1{
+      font-size:clamp(32px, 5vw, 48px); font-weight:900; margin:0 0 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--copper));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p{font-size:16px; color:var(--muted); margin:0}
 
-    .info{flex:1; min-width:0}
-    .name{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .meta{font-size:12px; color:var(--muted)}
+    /* Podium */
+    .podium{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;
+      max-width:900px; margin:0 auto 30px;
+    }
+    .podium-card{
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius-lg); padding:24px;
+      text-align:center; position:relative;
+      box-shadow: var(--shadow-sm);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .podium-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow) }
+    .podium-card.first{ order:2; transform: scale(1.08) }
+    .podium-card.second{ order:1 }
+    .podium-card.third{ order:3 }
+    
+    .podium-medal{
+      font-size:48px; line-height:1; margin-bottom:12px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,.3));
+    }
+    .podium-avatar{
+      width:80px; height:80px; border-radius:50%;
+      margin:0 auto 12px; border:3px solid rgba(255,255,255,.15);
+      object-fit:cover; box-shadow: var(--shadow-sm);
+    }
+    .podium-name{ font-weight:900; font-size:18px; margin-bottom:6px }
+    .podium-stats{ font-size:13px; color:var(--muted) }
+    .podium-pct{
+      font-size:28px; font-weight:900; margin-top:8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-    .bar{margin-top:6px; width:100%; height:10px; background:#0b0f16; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.06)}
-    .fill{height:100%; width:0%; background: linear-gradient(90deg, var(--primary), var(--primary-2)); box-shadow: var(--glow)}
+    /* Filters */
+    .filters{
+      display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;
+      align-items:center;
+    }
+    .search-box{
+      flex:1; min-width:220px;
+      background: var(--panel); color: var(--text);
+      border:1px solid rgba(255,255,255,.12); border-radius: 12px;
+      padding:12px 16px; font-size:15px;
+      transition: border-color .2s ease;
+    }
+    .search-box:focus{
+      outline:none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,92,255,.15);
+    }
+    .filter-btn{
+      padding:10px 16px; border-radius:12px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+      color:var(--text); cursor:pointer; font-weight:600;
+      transition: all .2s ease; font-size:14px;
+    }
+    .filter-btn:hover{ background:rgba(255,255,255,.10) }
+    .filter-btn.active{
+      background:var(--accent); border-color:var(--accent);
+      box-shadow: 0 4px 12px rgba(124,92,255,.3);
+    }
 
-    .owned{font-variant-numeric: tabular-nums; font-size:12px; color:var(--muted)}
+    /* Leaderboard list */
+    .lb-list{
+      list-style:none; margin:0; padding:0; display:grid; gap:10px;
+    }
+    .lb-item{
+      display:grid; grid-template-columns: 50px 50px 1fr auto; gap:14px;
+      align-items:center; padding:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-radius: 14px; box-shadow: var(--shadow-sm);
+      transition: all .2s ease;
+    }
+    .lb-item:hover{
+      transform: translateX(4px);
+      border-color: rgba(124,92,255,.3);
+      box-shadow: 0 8px 24px rgba(124,92,255,.15);
+    }
+    
+    .lb-rank{
+      width:50px; height:50px; border-radius:12px; display:grid; place-items:center;
+      font-weight:900; font-size:18px;
+      background: radial-gradient(100% 100% at 50% 30%, rgba(214,161,122,.18), rgba(214,161,122,.08));
+      border:1px solid rgba(214,161,122,.35);
+    }
+    .lb-rank.top3{ font-size:24px; border:none; background:transparent }
+    
+    .lb-ava{
+      width:50px; height:50px; border-radius:12px;
+      object-fit:cover; border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .lb-info{ flex:1; min-width:0 }
+    .lb-name{ font-weight:800; font-size:16px; margin-bottom:4px }
+    .lb-sub{ font-size:13px; color: var(--muted); margin-bottom:8px }
+    .lb-bar{
+      height:8px; background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:999px; overflow:hidden;
+    }
+    .lb-fill{
+      height:100%; width:0%; transition: width .4s ease;
+      background: linear-gradient(90deg, rgba(124,92,255,.8), rgba(184,107,255,.8));
+      box-shadow: inset 0 0 12px rgba(124,92,255,.4);
+    }
+    
+    .lb-pct{
+      font-weight:900; font-size:22px;
+      min-width:70px; text-align:right;
+    }
 
-    .footer{max-width:1100px; margin:18px auto 0; color:var(--muted); font-size:12px}
+    .loading{
+      text-align:center; padding:60px 20px; color:var(--muted);
+    }
+    .loading-spinner{
+      width:40px; height:40px; margin:0 auto 16px;
+      border:4px solid rgba(255,255,255,.1);
+      border-top-color:var(--accent); border-radius:50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg) } }
 
-    .empty{opacity:.75; text-align:center; padding:48px 16px}
+    .empty-state{
+      text-align:center; padding:60px 20px; color:var(--muted);
+    }
+    .empty-state-icon{ font-size:64px; margin-bottom:16px; opacity:.5 }
+
+    .debug-info{
+      margin-top:12px; padding:12px; background:rgba(255,107,107,.1);
+      border:1px solid rgba(255,107,107,.3); border-radius:8px;
+      font-size:12px; color:var(--warning);
+    }
+
+    @media (max-width: 768px){
+      .podium{ grid-template-columns: 1fr; gap:12px }
+      .podium-card.first{ order:1; transform:scale(1) }
+      .podium-card.second{ order:2 }
+      .podium-card.third{ order:3 }
+      .lb-item{ grid-template-columns: 40px 40px 1fr 60px; gap:10px; padding:12px }
+      .lb-rank{ width:40px; height:40px; font-size:16px }
+      .lb-ava{ width:40px; height:40px }
+      .lb-name{ font-size:14px }
+      .lb-pct{ font-size:18px; min-width:60px }
+      .hero h1{ font-size:28px }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap">
-      <div class="title">
-        <div class="sigil">G</div>
-        <h1>Classement des collectionneurs</h1>
-      </div>
-      <div class="toolbar">
-        <div class="field">
-          <input id="search" type="search" placeholder="Rechercher un joueur…" />
-          <span class="right" id="totalCount">—</span>
+    <div class="container row" style="justify-content:space-between">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Grimoire</div>
+          <div class="subtitle">Classement</div>
         </div>
-        <div class="chip" title="MàJ temps réel via Firestore">Temps réel</div>
       </div>
+      <nav class="row" style="gap:10px">
+        <a href="/index.html">Jeu</a>
+        <a href="/collection.html">Collection</a>
+        <a href="/profil.html">Profil</a>
+        <a href="/leaderboard.html" aria-current="page">Classement</a>
+      </nav>
     </div>
   </header>
 
   <main>
-    <div class="grid" id="grid"></div>
-    <div class="footer wrap">
-      Astuce : ce classement affiche le <strong>% de complétion</strong> (cartes uniques possédées / total du set). En cas d’égalité, l’ordre est tranché par le nombre de cartes possédées.
+    <div class="hero">
+      <h1>🏆 Classement des Collectionneurs</h1>
+      <p>Les meilleurs collectionneurs de cartes Grimoire</p>
+    </div>
+
+    <div class="container">
+      <!-- Podium Top 3 -->
+      <div id="podium" class="podium"></div>
+
+      <!-- Reste du classement -->
+      <section class="panel">
+        <div class="hd">
+          <h3>Classement Complet</h3>
+          <span class="pill" id="lb-count">—</span>
+        </div>
+        <div class="bd">
+          <div class="filters">
+            <input
+              id="lb-search"
+              class="search-box"
+              type="search"
+              placeholder="🔍 Rechercher un joueur..."
+              aria-label="Rechercher un joueur"
+            />
+            <button class="filter-btn active" data-limit="50">Top 50</button>
+            <button class="filter-btn" data-limit="100">Top 100</button>
+            <button class="filter-btn" data-limit="all">Tous</button>
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Chargement du classement...</p>
+          </div>
+
+          <ol id="lb-list" class="lb-list" aria-live="polite"></ol>
+          
+          <!-- Debug info (removable in production) -->
+          <div id="debug-info" class="debug-info" style="display:none"></div>
+        </div>
+      </section>
     </div>
   </main>
 
-    <!-- Firebase SDKs (modules) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    // 1) 🔧 CONFIG FIREBASE — remplace par ta config
     const firebaseConfig = {
-      apiKey: "__API_KEY__",
-      authDomain: "__PROJECT_ID__.firebaseapp.com",
-      projectId: "__PROJECT_ID__",
+      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+      authDomain: 'legends-collection.firebaseapp.com',
+      projectId: 'legends-collection',
+      storageBucket: 'legends-collection.firebasestorage.app',
+      messagingSenderId: '133783086150',
+      appId: '1:133783086150:web:762f209f7f778ef83a1647'
     };
+
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 2) Source de données: leaderboard_public (dérivé côté client par chaque joueur)
-    //    Champs attendus: displayName, displayNameLower, photoURL, uniques, totalUnique, completionPct, updatedAt
+    // DOM
+    const podiumEl = document.getElementById('podium');
+    const lbList = document.getElementById('lb-list');
+    const lbCount = document.getElementById('lb-count');
+    const lbSearch = document.getElementById('lb-search');
+    const loadingEl = document.getElementById('loading');
+    const debugInfo = document.getElementById('debug-info');
+    const filterBtns = document.querySelectorAll('.filter-btn');
 
-    const gridEl = document.getElementById('grid');
-    const totalCountEl = document.getElementById('totalCount');
-    const searchEl = document.getElementById('search');
+    let LB_ALL = [];
+    let LB_RAW = []; // Données brutes pour debug
+    let LB_LIMIT = 50;
+    let unsubLB = null;
+    let currentUser = null;
 
-    let allPlayers = [];
-
-    function medal(rank){ if(rank===1) return '🥇'; if(rank===2) return '🥈'; if(rank===3) return '🥉'; return '#'+rank; }
-    function rankClass(rank){ if(rank===1) return 'rank-1'; if(rank===2) return 'rank-2'; if(rank===3) return 'rank-3'; return ''; }
-
-    function render(list){
-      gridEl.innerHTML = '';
-      if(!list.length){ gridEl.innerHTML = `<div class="empty">Aucun joueur ne correspond à la recherche.</div>`; totalCountEl.textContent = '0'; return; }
-      totalCountEl.textContent = String(list.length);
-      list.forEach((u, idx)=>{
-        const rank = idx+1;
-        const pctStr = (Math.round((u.completionPct||0)*10)/10).toString().replace('.0','');
-        const ownedStr = (u.uniques||0) + ' / ' + (u.totalUnique||0) + ' cartes';
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div class="rank-badge ${rankClass(rank)}">${medal(rank)}</div>
-          <img class="avatar" src="${u.photoURL || 'https://api.dicebear.com/9.x/shapes/svg?seed='+encodeURIComponent(u.displayName||'Joueur')}" alt="${u.displayName||'Joueur'}"/>
-          <div class="info">
-            <div class="name">${u.displayName || 'Joueur anonyme'}</div>
-            <div class="meta">Complétion: <strong>${pctStr}%</strong></div>
-            <div class="bar"><div class="fill" style="width:${Math.min(100, Math.max(0, u.completionPct||0))}%;"></div></div>
-            <div class="owned">${ownedStr}</div>
-          </div>`;
-        gridEl.appendChild(card);
-      });
-    }
-
-    function applySearch(){
-      const q = (searchEl.value||'').trim().toLowerCase();
-      if(!q){ render(allPlayers); return; }
-      const filtered = allPlayers.filter(u => (u.displayNameLower||u.displayName||'').toLowerCase().includes(q));
-      render(filtered);
-    }
-    searchEl.addEventListener('input', applySearch);
-
-    // 🔴 Live query: top 100 par % complétion, puis par uniques
-    const qRef = query(
-      collection(db, 'leaderboard_public'),
-      orderBy('completionPct', 'desc'),
-      orderBy('uniques', 'desc'),
-      orderBy('displayNameLower', 'asc'),
-      limit(100)
-    );
-
-    onSnapshot(qRef, (snap)=>{
-      const rows = [];
-      snap.forEach(docu=>{
-        const d = docu.data()||{};
-        rows.push({
-          displayName: d.displayName || 'Joueur',
-          displayNameLower: (d.displayNameLower||d.displayName||'').toLowerCase(),
-          photoURL: d.photoURL || '',
-          uniques: Number(d.uniques)||0,
-          totalUnique: Number(d.totalUnique)||0,
-          completionPct: Number(d.completionPct)||0,
-        });
-      });
-      allPlayers = rows;
-      applySearch();
-    }, (err)=>{
-      console.error(err);
-      gridEl.innerHTML = `<div class="empty">Impossible de charger le classement public. Vérifie les règles de sécurité pour <code>leaderboard_public</code>.</div>`
+    // Auth state
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      filterLB(); // Re-render pour highlight l'utilisateur
     });
-  </script>
+
+    // ========== VALIDATION ET NETTOYAGE DES DONNÉES ==========
+    
+    function isValidPlayer(data) {
+      const issues = [];
+      
+      // Validation de base
+      if (!data.displayName || data.displayName.trim() === '') {
+        issues.push('Nom manquant');
+      }
+      
+      const uniques = Number(data.uniques) || 0;
+      const totalUnique = Number(data.totalUnique) || 0;
+      const completionPct = Number(data.completionPct) || 0;
+      
+      // Règles de cohérence strictes
+      if (totalUnique === 0) {
+        issues.push('Catalogue vide (totalUnique = 0)');
+      }
+      
+      if (uniques === 0) {
+        issues.push('Aucune carte possédée');
+      }
+      
+      if (uniques > totalUnique) {
+        issues.push(`Incohérence: ${uniques} cartes > ${totalUnique} total`);
+      }
+      
+      // Vérification du pourcentage
+      const calculatedPct = totalUnique > 0 ? Math.round((uniques / totalUnique) * 100) : 0;
+      const diff = Math.abs(completionPct - calculatedPct);
+      
+      if (diff > 1) { // Tolérance de 1%
+        issues.push(`% incohérent: affiché ${completionPct}% vs calculé ${calculatedPct}%`);
+      }
+      
+      return {
+        valid: issues.length === 0,
+        issues: issues,
+        data: {
+          uniques,
+          totalUnique,
+          completionPct: calculatedPct // Utilise le % recalculé
+        }
+      };
+    }
+    
+    function cleanAndValidateData(rawData) {
+      const cleaned = [];
+      const rejected = [];
+      
+      rawData.forEach(player => {
+        const validation = isValidPlayer(player);
+        
+        if (validation.valid) {
+          cleaned.push({
+            uid: player.uid,
+            displayName: (player.displayName || 'Joueur').trim(),
+            displayNameLower: ((player.displayNameLower || player.displayName || '').toLowerCase()).trim(),
+            photoURL: player.photoURL || '',
+            uniques: validation.data.uniques,
+            totalUnique: validation.data.totalUnique,
+            completionPct: validation.data.completionPct
+          });
+        } else {
+          rejected.push({
+            uid: player.uid,
+            name: player.displayName || 'Inconnu',
+            issues: validation.issues
+          });
+        }
+      });
+      
+      return { cleaned, rejected };
+    }
+
+    // Medals
+    function medal(i) {
+      if (i === 1) return '🥇';
+      if (i === 2) return '🥈';
+      if (i === 3) return '🥉';
+      return `#${i}`;
+    }
+
+    // Render podium (top 3)
+    function renderPodium(top3) {
+      if (!podiumEl) return;
+      podiumEl.innerHTML = '';
+
+      if (top3.length === 0) return;
+
+      const classes = ['second', 'first', 'third'];
+      const medals = ['🥈', '🥇', '🥉'];
+
+      top3.forEach((user, i) => {
+        const pct = user.completionPct;
+        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
+        const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
+
+        const card = document.createElement('div');
+        card.className = `podium-card ${classes[i]}`;
+        card.innerHTML = `
+          <div class="podium-medal">${medals[i]}</div>
+          <img class="podium-avatar" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
+          <div class="podium-name">${user.displayName}</div>
+          <div class="podium-stats">${user.uniques} / ${user.totalUnique} cartes</div>
+          <div class="podium-pct">${pctLabel}%</div>
+        `;
+        podiumEl.appendChild(card);
+      });
+    }
+
+    // Render full list (starting from 4th place)
+    function renderLB(rows) {
+      if (!lbList) return;
+
+      loadingEl.style.display = 'none';
+      lbList.innerHTML = '';
+      lbCount.textContent = String(rows.length);
+
+      if (rows.length === 0) {
+        lbList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <p>Aucun joueur trouvé</p>
+          </div>
+        `;
+        return;
+      }
+
+      rows.forEach((user, i) => {
+        const rank = i + 1;
+        const pct = user.completionPct;
+        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
+        const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
+        const isCurrentUser = currentUser && user.uid === currentUser.uid;
+
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        if (isCurrentUser) li.style.background = 'linear-gradient(180deg, rgba(124,92,255,.15), rgba(124,92,255,.08))';
+
+        li.innerHTML = `
+          <div class="lb-rank ${rank <= 3 ? 'top3' : ''}">${medal(rank)}</div>
+          <img class="lb-ava" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
+          <div class="lb-info">
+            <div class="lb-name">${user.displayName}${isCurrentUser ? ' (Vous)' : ''}</div>
+            <div class="lb-sub">${user.uniques} / ${user.totalUnique} cartes</div>
+            <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
+          </div>
+          <div class="lb-pct">${pctLabel}%</div>
+        `;
+        lbList.appendChild(li);
+      });
+    }
+
+    // Filter list
+    function filterLB() {
+      const q = (lbSearch?.value || '').trim().toLowerCase();
+      let filtered = LB_ALL;
+
+      if (q) {
+        filtered = LB_ALL.filter(u => {
+          const name = u.displayNameLower;
+          return name.includes(q);
+        });
+      }
+
+      // Apply limit
+      if (LB_LIMIT !== 'all') {
+        filtered = filtered.slice(0, LB_LIMIT);
+      }
+
+      // Top 3 for podium
+      const top3 = filtered.slice(0, 3);
+      renderPodium(top3);
+
+      // Rest for list (from 4th)
+      const rest = filtered.slice(3);
+      renderLB(rest);
+    }
+
+    // Load leaderboard
+    async function loadLeaderboard() {
+      const q = query(
+        collection(db, 'leaderboard_public'),
+        orderBy('completionPct', 'desc'),
+        limit(200)
+      );
+
+      if (unsubLB) unsubLB();
+
+      unsubLB = onSnapshot(
+        q,
+        (snapshot) => {
+          console.log('[Leaderboard] 📊 Données brutes reçues:', snapshot.size, 'joueurs');
+
+          const rawRows = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            rawRows.push({
+              uid: doc.id,
+              displayName: data.displayName || '',
+              displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
+              photoURL: data.photoURL || '',
+              uniques: data.uniques,
+              totalUnique: data.totalUnique,
+              completionPct: data.completionPct
+            });
+          });
+
+          LB_RAW = rawRows;
+
+          // Validation et nettoyage
+          const { cleaned, rejected } = cleanAndValidateData(rawRows);
+          
+          console.log('[Leaderboard] ✅ Joueurs valides:', cleaned.length);
+          console.log('[Leaderboard] ❌ Joueurs rejetés:', rejected.length);
+          
+          if (rejected.length > 0) {
+            console.warn('[Leaderboard] 🚫 Données rejetées:', rejected);
+            
+            // Affiche les problèmes en mode debug
+            debugInfo.style.display = 'block';
+            debugInfo.innerHTML = `
+              <strong>⚠️ ${rejected.length} joueur(s) exclu(s) du classement :</strong><br>
+              ${rejected.map(r => `• ${r.name}: ${r.issues.join(', ')}`).join('<br>')}
+            `;
+          } else {
+            debugInfo.style.display = 'none';
+          }
+
+          // Tri robuste avec plusieurs critères
+          cleaned.sort((a, b) => {
+            // 1. Par % de complétion (décroissant)
+            if (b.completionPct !== a.completionPct) {
+              return b.completionPct - a.completionPct;
+            }
+            // 2. Par nombre de cartes uniques (décroissant)
+            if (b.uniques !== a.uniques) {
+              return b.uniques - a.uniques;
+            }
+            // 3. Par nom alphabétique (croissant)
+            return a.displayNameLower.localeCompare(b.displayNameLower);
+          });
+
+          LB_ALL = cleaned;
+          filterLB();
+        },
+        (error) => {
+          console.error('[Leaderboard] ❌ Erreur:', error);
+          loadingEl.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <p>Impossible de charger le classement</p>
+            </div>
+          `;
+        }
+      );
+    }
+
+    // Search input
+    lbSearch?.addEventListener('input', filterLB);
+
+    // Filter buttons
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const limitVal = btn.dataset.limit;
+        LB_LIMIT = limitVal === 'all' ? 'all' : Number(limitVal);
+        filterLB();
+      });
+    });
+
+    // Init
+    loadLeaderboard();
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+      if (unsubLB) unsubLB();
+    });
   </script>
 </body>
 </html>
