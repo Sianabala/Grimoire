@@ -1,7 +1,928 @@
-// ========== SECTION LEADERBOARD CORRIGÉE ==========
-// Remplacez tout le code après "import { collection as fsCollection..." 
-// jusqu'à "attachPrimary();" par ce code :
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grimoire · Profil</title>
 
+<!-- DOIT ÊTRE AVANT les <link rel="stylesheet"> -->
+<script>
+  (function(){
+    try{
+      var saved = localStorage.getItem('grimoire.theme');
+      if (saved === 'christmas') {
+  document.documentElement.classList.add('christmas');
+}
+
+    }catch(e){}
+  })();
+</script>
+
+  
+  <!-- Harmonisation -->
+  <link rel="stylesheet" href="/rarities.css">
+  <link rel="stylesheet" href="/mobile.css">
+  <link rel="stylesheet" href="/noel.css">
+
+
+  <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.goopics.net/aksxey.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
+  <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
+
+  <style>
+    :root{
+      --bg:#0b0f1a; --panel:#10172a; --panel-2:#0c1222; --text:#e8ecf3; --muted:#9aa6be;
+      --accent:#7c5cff; --accent-2:#b86bff; --copper:#d6a17a; --success:#34d399; --warning:#f59e0b;
+      --radius:16px; --radius-lg:24px; --shadow:0 20px 60px rgba(0,0,0,.45); --shadow-sm:0 8px 24px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color: rgba(124,92,255,.45) rgba(255,255,255,.04)}
+    *::-webkit-scrollbar{ height:10px; width:10px }
+    *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04) }
+    *::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(184,107,255,.6)); border-radius:999px; border:2px solid rgba(11,15,26,.6) }
+
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(184,107,255,.16), transparent 60%),
+        radial-gradient(1000px 800px at 50% 120%, rgba(214,161,122,.10), transparent 60%),
+        linear-gradient(180deg,#0b0f1a 0%,#0b0f1a 100%);
+      min-height:100svh;
+    }
+
+    header{position:sticky; top:0; z-index:10; backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(11,15,26,.85),rgba(11,15,26,.55));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
+    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    nav a{color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:12px}
+    nav a[aria-current="page"]{ background:rgba(255,255,255,.06) }
+    nav a:hover{ background: rgba(255,255,255,.08) }
+
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:44px;height:44px;border-radius:14px;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--copper),var(--accent));box-shadow:var(--shadow-sm)}
+    .title{font-size:22px;font-weight:900}
+    .subtitle{font-size:12px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+    @media (max-width: 960px){ .grid{ grid-template-columns: repeat(6, 1fr) } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr) } }
+
+    .panel{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid rgba(255,255,255,.06); border-radius:var(--radius-lg);
+      box-shadow:var(--shadow); position:relative; overflow:clip
+    }
+    .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel .hd h3{margin:0; font-size:16px; letter-spacing:.2px}
+    .panel .bd{padding:18px 20px}
+    .panel::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(140deg, rgba(124,92,255,.35), rgba(184,107,255,.2), rgba(214,161,122,.28));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+
+    .statline{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+    .avatar{ width:56px; height:56px; border-radius:14px; background:#0e1423; border:1px solid rgba(255,255,255,.10); overflow:hidden; display:grid; place-items:center; font-weight:900 }
+    .user-meta .name{ font-weight:900; letter-spacing:.2px; }
+    .user-meta .k{ font-size:12px; color: var(--muted) }
+
+    .xpwrap{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+    .xpbar{ height:12px; border-radius:999px; background:#0e1423; border:1px solid rgba(255,255,255,.08); overflow:hidden; flex:1; min-width:180px }
+    .xpbar .fill{ height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow: inset 0 0 18px rgba(124,92,255,.35); transition: width .25s ease }
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+
+    /* Badges */
+    .badges{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px }
+    .badge-card{
+      position:relative; border-radius:14px; padding:12px;
+      background: linear-gradient(180deg,#0f1324,#0a0f1e);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 6px 20px rgba(0,0,0,.35);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      cursor: default;
+    }
+    .badge-card:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(124,92,255,.18) }
+    .badge-ico{ font-size:28px; line-height:1; }
+    .badge-name{ font-weight:800; margin-top:6px }
+    .badge-desc{ font-size:12px; color: var(--muted); margin-top:4px; min-height:30px }
+    .badge-state{ position:absolute; top:10px; right:10px; font-size:12px; }
+    .badge-card.locked{ filter: grayscale(.3) opacity(.8) }
+    .badge-card.locked::after{
+      content:""; position:absolute; inset:0; border-radius:inherit; background: rgba(0,0,0,.35);
+    }
+    .badge-card .date{ font-size:11px; color: var(--muted); margin-top:6px }
+
+    .toast{
+      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+      background: rgba(18,24,41,.92); color: var(--text); border:1px solid rgba(255,255,255,.12);
+      padding:10px 14px; border-radius:12px; box-shadow: var(--shadow-sm); z-index: 50;
+      opacity:0; transition: opacity .2s ease, transform .2s ease
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px) }
+
+    @media (max-width: 640px){
+      .container{ padding:12px; }
+      .title{ font-size:18px; }
+    }
+
+/* Leaderboard compact dans le panel */
+.lb-controls{ display:flex; gap:10px; align-items:center; margin-bottom:10px }
+.lb-controls input{
+  flex:1; background: var(--panel); color: var(--text);
+  border:1px solid rgba(255,255,255,.10); border-radius: 12px; padding:10px 12px;
+}
+.lb-list{
+  list-style:none; margin:0; padding:0; display:grid; gap:8px;
+}
+.lb-item{
+  display:grid; grid-template-columns: 36px 36px 1fr auto; gap:10px; align-items:center;
+  padding:10px; border:1px solid rgba(255,255,255,.08);
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border-radius: 14px; box-shadow: var(--shadow-sm);
+}
+.lb-rank{
+  width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:900;
+  background: radial-gradient(100% 100% at 50% 30%, rgba(214,161,122,.18), rgba(214,161,122,.08));
+  border:1px solid rgba(214,161,122,.35);
+}
+.lb-rank.r2{ background: radial-gradient(100% 100% at 50% 30%, rgba(200,210,230,.18), rgba(200,210,230,.08)); }
+.lb-rank.r3{ background: radial-gradient(100% 100% at 50% 30%, rgba(220,170,120,.18), rgba(220,170,120,.08)); }
+.lb-ava{ width:36px; height:36px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,.12) }
+.lb-name{ font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.lb-sub{ font-size:12px; color: var(--muted); }
+.lb-bar{ height:8px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+  border-radius:999px; overflow:hidden; margin-top:6px; }
+.lb-fill{ height:100%; width:0%; background: linear-gradient(90deg, rgba(124,92,255,.7), rgba(184,107,255,.7)); }
+.lb-pct{ font-weight:900; }
+
+    
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row" style="justify-content:space-between">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Grimoire</div>
+          <div class="subtitle">Profil & Badges</div>
+        </div>
+      </div>
+      <nav class="row" style="gap:10px">
+        <a href="/index.html">← Retour au jeu</a>
+        <a href="/collection.html">Collection</a>
+        <a href="/profil.html" aria-current="page">Profil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Profil joueur -->
+    <section class="panel" style="grid-column:span 12; margin-bottom:16px">
+      <div class="hd">
+        <h3>Infos joueur</h3>
+        <span id="sync" class="pill">Chargement…</span>
+      </div>
+      <div class="bd">
+        <div class="statline">
+          <div id="avatar" class="avatar" aria-hidden="true">👤</div>
+          <div class="user-meta">
+            <div class="name" id="username">—</div>
+            <div class="k">Niveau <strong id="level">0</strong> · <span id="xpLabel">0 XP</span></div>
+          </div>
+        </div>
+        <div class="xpwrap" style="margin-top:12px">
+          <div class="xpbar" aria-label="Progression vers le prochain niveau">
+            <div class="fill" id="xpFill" style="width:0%"></div>
+          </div>
+          <span class="pill" id="xpPct">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges -->
+    <section class="panel" style="grid-column:span 12; margin-bottom:16px">
+      <div class="hd">
+        <h3>Badges</h3>
+        <span class="subtitle">Débloque-les en jouant, collectionnant et en te connectant régulièrement.</span>
+      </div>
+      <div class="bd">
+        <div id="badges" class="badges"></div>
+      </div>
+    </section>
+
+    <!-- Classement des collectionneurs -->
+<section class="panel" style="grid-column:span 12; margin-bottom:16px">
+  <div class="hd">
+    <h3>Classement des collectionneurs</h3>
+    <span class="subtitle">Top 5 par % de complétion (puis cartes uniques)</span>
+  </div>
+  <div class="bd">
+    <div class="lb-controls">
+      <input id="lb-search" type="search" placeholder="Rechercher un joueur…" aria-label="Rechercher un joueur">
+      <span class="pill" id="lb-count">—</span>
+    </div>
+    <ol id="lb-list" class="lb-list" aria-live="polite"></ol>
+  </div>
+</section>
+
+    <!-- Amis & Demandes -->
+<section class="panel" style="grid-column:span 12; margin-bottom:16px">
+  <div class="hd">
+    <h3>Amis</h3>
+    <span class="subtitle">Demandes · Amis · Blocage</span>
+  </div>
+  <div class="bd" style="display:grid; gap:12px">
+    <div class="row" style="gap:8px; flex-wrap:wrap">
+      <input id="friend-uid" placeholder="UID du joueur…" style="flex:1; min-width:220px" />
+      <button id="btn-send-friend" class="pill" style="cursor:pointer">Ajouter en ami</button>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap:12px">
+      <div class="panel">
+        <div class="hd"><h3>Demandes reçues</h3></div>
+        <div class="bd"><ul id="req-in" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+      </div>
+      <div class="panel">
+        <div class="hd"><h3>Demandes envoyées</h3></div>
+        <div class="bd"><ul id="req-out" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="hd"><h3>Mes amis</h3></div>
+      <div class="bd"><ul id="friends" style="list-style:none; padding:0; margin:0; display:grid; gap:8px"></ul></div>
+    </div>
+  </div>
+</section>
+
+    
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- === LOGIQUE ALIGNEE AVEC collection.html === -->
+ <script type="module">
+// Firebase (modules v10, comme collection.html)
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection as fcol, addDoc, where, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+   function xpForLevel(level){ return 50 * Math.max(1, level); }
+
+   
+const LS_VERSION_KEY = 'grimoire.alpha.version';
+const CURRENT_LS_VERSION = 3; // incrémente si tu modifies l’architecture
+
+const last = Number(localStorage.getItem(LS_VERSION_KEY)||0);
+if (last !== CURRENT_LS_VERSION){
+  // localStorage.removeItem('grimoire.alpha.collection.v2_5');
+  // localStorage.removeItem('grimoire.alpha.stats.v2_5');
+  // localStorage.removeItem('grimoire.alpha.profile.v2_5');
+  localStorage.setItem(LS_VERSION_KEY, String(CURRENT_LS_VERSION));
+}
+
+// ---- Config identique
+const firebaseConfig = {
+  apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+  authDomain: 'legends-collection.firebaseapp.com',
+  projectId: 'legends-collection',
+  storageBucket: 'legends-collection.firebasestorage.app',
+  messagingSenderId: '133783086150',
+  appId: '1:133783086150:web:762f209f7f778ef83a1647'
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+try { await setPersistence(auth, browserLocalPersistence); } catch {}
+
+const twitchProvider = new OAuthProvider('oidc.twitch');
+try { twitchProvider.addScope('openid'); twitchProvider.addScope('user:read:email'); } catch {}
+
+// ---- Raretés + mapping (même normalisation que collection.html)
+const RARITY = { COMMON:'commune', UNCOMMON:'peu commune', RARE:'rare', LEGENDARY:'légendaire', EXOTIC:'exotique', INCANDESCENT:'incandescent' };
+function mapRarity(r){
+  const x=(r||'').toLowerCase();
+  if(x==='common'||x==='commune') return RARITY.COMMON;
+  if(x==='uncommon'||x==='peu commune') return RARITY.UNCOMMON;
+  if(x==='rare') return RARITY.RARE;
+  if(x==='legendary'||x==='legendaire'||x==='légendaire') return RARITY.LEGENDARY;
+  if(x==='exotic'||x==='exotique') return RARITY.EXOTIC;
+  if(x==='incandescent'||x==='incandesceant'||x==='super-exotic') return RARITY.INCANDESCENT; // 👍
+  return RARITY.COMMON;
+}
+
+   // 👉 ID de la carte collector Anniversaire 2025
+const ANNIV2025_ID = '32ans';
+
+// ---- Chargement dynamique des sets (identique aux chemins de collection.html)
+const SET_FILES = [
+  '/data/sets/nouvelle-lumiere.json',
+  '/data/sets/twitch.json',
+  '/data/sets/speciales.json',
+  '/data/sets/super-stream.json',
+];
+
+async function loadCardSets(){
+  const out = [];
+  for (const url of SET_FILES){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      const setName =
+  data?.set || data?.name ||
+  (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière' :
+   url.includes('twitch') ? 'Twitch' :
+   url.includes('super-stream') ? 'Super Stream' :
+   'Set inconnu');
+
+
+      if(!Array.isArray(data?.cards)) continue;
+      out.push(...data.cards.map(c=>({
+        id: c.id,
+        name: c.name,
+        set: c.set || setName,
+        rarity: mapRarity(c.rarity),
+        image: c.image || ''
+      })));
+    }catch(e){
+      console.warn('[profil] loadCardSets fail', url, e);
+    }
+  }
+  return out;
+}
+
+// ---- LocalStorage (mêmes clés)
+const LS_KEY='grimoire.alpha.collection.v2_6';
+const LS_STATS='grimoire.alpha.stats.v2_6';
+const LS_PROFILE='grimoire.alpha.profile.v2_6';
+function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch{ return def; } }
+function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+// Seuls ces 2 sets comptent pour le badge ARCHIVISTE
+const LAUNCH_SETS = new Set(['Nouvelle Lumière','Twitch']);
+
+// Set ciblé pour le badge "Super Stream"
+const SUPER_STREAM_SET = 'Super Stream';
+
+   
+// ---- Compute centralisé
+function computeProgress({ collection, cardPools }){
+  // ----- Stats globales (inchangées)
+  const allIds = new Set(cardPools.map(c=>c.id));
+  const totalUnique = allIds.size;
+
+  const ownedIds = Object.keys(collection).filter(id => allIds.has(id));
+  const uniques = ownedIds.length;
+
+  const completionPct = totalUnique ? Math.round(100 * uniques / totalUnique) : 0;
+
+  const byRarity = {
+    [RARITY.COMMON]:0, [RARITY.UNCOMMON]:0, [RARITY.RARE]:0, [RARITY.LEGENDARY]:0, [RARITY.EXOTIC]:0
+  };
+  for(const id of ownedIds){
+    const qty = collection[id] || 0;
+    const card = cardPools.find(c => c.id === id);
+    if(card) byRarity[card.rarity] += qty;
+  }
+
+  const legendaryOwned = ownedIds.some(id => {
+    const card = cardPools.find(c=>c.id===id);
+    return card && card.rarity === RARITY.LEGENDARY && (collection[id]||0) > 0;
+  });
+  const exoticOwned = ownedIds.some(id => {
+    const card = cardPools.find(c=>c.id===id);
+    return card && card.rarity === RARITY.EXOTIC && (collection[id]||0) > 0;  });
+
+  const exoticUnique = ownedIds.reduce((n, id) => {
+  const card = cardPools.find(c => c.id === id);
+  return n + (card && card.rarity === RARITY.EXOTIC ? 1 : 0);
+}, 0);
+
+  // ----- Stats "sets de lancement" (Nouvelle Lumière + Twitch) → pour ARCHIVISTE
+  const launchIds = new Set(
+    cardPools
+      .filter(c => LAUNCH_SETS.has(c.set))
+      .map(c => c.id)
+  );
+  const launchOwnedUnique = Array.from(launchIds).filter(id => (collection[id] || 0) > 0).length;
+  const launchCompletionPct = launchIds.size ? Math.round(100 * launchOwnedUnique / launchIds.size) : 0;
+  const launchCompleted = launchIds.size > 0 && launchOwnedUnique === launchIds.size;
+
+  // ----- Stats "Super Stream" → pour le nouveau badge
+  const ssIds = new Set(
+    cardPools
+      .filter(c => c.set === SUPER_STREAM_SET)
+      .map(c => c.id)
+  );
+  const ssOwnedUnique = Array.from(ssIds).filter(id => (collection[id] || 0) > 0).length;
+  const superStreamCompletionPct = ssIds.size ? Math.round(100 * ssOwnedUnique / ssIds.size) : 0;
+  const superStreamCompleted = ssIds.size > 0 && ssOwnedUnique === ssIds.size;
+
+  return { 
+  uniques, totalUnique, completionPct, 
+  byRarity, legendaryOwned, exoticOwned,
+  launchCompletionPct, launchCompleted,
+  superStreamCompletionPct, superStreamCompleted,
+  exoticUnique // 🆕
+};
+}
+
+ 
+// ---- Version de schéma badges + helpers de resync
+const BADGE_SCHEMA_VERSION = 7;
+
+function computeExpectedBadges(sharedStats){
+  const expected = {};
+  for(const b of BADGES){
+    if (b.test(sharedStats)) {
+      expected[b.id] = { acquiredAt: serverTimestamp() };
+    }
+  }
+  return expected;
+}
+function diffBadges(currentBadges={}, expectedBadges={}){
+  const toAdd = [];
+  const toRemove = [];
+  for(const id of Object.keys(currentBadges)){
+    if(!(id in expectedBadges)) toRemove.push(id);
+  }
+  for(const id of Object.keys(expectedBadges)){
+    if(!(id in currentBadges)) toAdd.push(id);
+  }
+  return { toAdd, toRemove };
+}
+
+// ---- Badges
+const BADGES = [
+  { id:'explorateur',    name:'Explorateur',         ico:'🧭',  desc:'Avoir 10 cartes différentes',   test:s=> s.uniques >= 10 },
+  { id:'collectionneur', name:'Collectionneur',      ico:'📚',  desc:'50% de la collection',         test:s=> s.completionPct >= 50 },
+  { id:'archiviste',  name:'Archiviste',  ico:'🏛️',  desc:'Compléter les sets de lancement : Nouvelle Lumière + Twitch',  test: s => !!s.launchCompleted },
+  { id:'superheros', name:'Super Héros', ico:'🦸​',  desc:'Compléter la collection Super Stream',  test: s => !!s.superStreamCompleted },
+  { id:'anniv2025',  name:'Anniversaire 2025',  ico:'🎂',  desc:'Présent(e) au stream Anniversaire 2025',  test: s => !!s.hasAnniv2025 },
+
+  { id:'curieux',        name:'Curieux',             ico:'📦',  desc:'Ouvrir un premier pack',       test:s=> (s.packsOpened||0) >= 1 },
+  { id:'addict',         name:'Addict',              ico:'📦📦', desc:'Ouvrir 50 packs',              test:s=> (s.packsOpened||0) >= 50 },
+  { id:'accro',          name:'Accro',               ico:'📦📦📦',desc:'Ouvrir 100 packs',             test:s=> (s.packsOpened||0) >= 100 },
+  { id:'inarretable',    name:'Inarrêtable',         ico:'🌀',  desc:'Ouvrir 200 packs',             test:s=> (s.packsOpened||0) >= 200 },
+  { id:'paaaaacks',    name:'Des paaaaacks',         ico:'🌀🌀',  desc:'Ouvrir 500 packs',             test:s=> (s.packsOpened||0) >= 500 },
+
+  { id:'chanceux',       name:'Chanceux',            ico:'🌟',  desc:'Trouver 1 légendaire',         test:s=> !!s.legendaryOwned },
+  { id:'benisdesneuf',   name:'Bénis des Neuf',      ico:'✨',  desc:'Trouver 1 exotique',           test:s=> !!s.exoticOwned },
+  { id:'chasseur',       name:'Chasseur de trésors', ico:'💎',  desc:'10 légendaires/exotiques',     test:s=> ((s.byRarity['légendaire']||0)+(s.byRarity['exotique']||0)) >= 10 },
+  { id:'brillance', name:'La brillance', ico:'💠',  desc:'Trouver 10 exotiques',  test: s => (s.exoticUnique || 0) >= 10 },
+  { id:'toujoursplus', name:'Toujours plus', ico:'⭐', desc:'Trouver 20 exotiques', test: s => (s.exoticUnique || 0) >= 20 },
+
+  { id:'apprenti',       name:'Apprenti',         ico:'🔨',  desc:'Atteindre le niveau 5',            test:s=> (s.level||0) >= 5 },
+  { id:'gardienconfirme',name:'En formation', ico:'⚒️',  desc:'Atteindre le niveau 20',   test:s=> (s.level||0) >= 20 },
+  { id:'expert',name:'Expert-e', ico:'⚔️​',  desc:'Atteindre le niveau 50',   test:s=> (s.level||0) >= 50 },
+
+  { id:'halloween2025',  name:"Esprit d'Halloween 2025",  ico:'🎃',  desc:"Avoir activé le thème Halloween 2025",  test: s => !!(s.hadHalloweenBadge || s.halloweenActive) },
+
+  { id:'noel2025',  name:"Esprit de Noël 2025",  ico:'🎄',  desc:"Avoir activé le thème Noël 2025",  test: s => !!(s.hadChristmasBadge || s.christmasActive) },
+];
+
+
+// ---- UI helpers
+const $ = (sel)=> document.querySelector(sel);
+const toastEl = $('#toast');
+function toast(msg, ms=1800){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), ms);
+}
+function renderBadges(container, defs, ownedMap){
+  container.innerHTML = '';
+  defs.forEach(b=>{
+    const unlocked = !!ownedMap[b.id];
+    const date = ownedMap[b.id]?.acquiredAt ? new Date(ownedMap[b.id].acquiredAt.seconds*1000) : null;
+
+    const card = document.createElement('div');
+    card.className = 'badge-card'+(unlocked?'':' locked');
+    card.innerHTML = `
+      <div class="badge-state">${unlocked? 'Débloqué' : 'Verrouillé'}</div>
+      <div class="badge-ico" aria-hidden="true">${b.ico}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      ${unlocked && date ? `<div class="date">Débloqué le ${date.toLocaleDateString()}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ---- Refs DOM
+const usernameEl = $('#username');
+const levelEl    = $('#level');
+const xpLabelEl  = $('#xpLabel');
+const xpFillEl   = $('#xpFill');
+const xpPctEl    = $('#xpPct');
+const avatarEl   = $('#avatar');
+const syncBadge  = $('#sync');
+const badgesWrap = $('#badges');
+const friendUidInput = document.getElementById('friend-uid');
+const btnSendFriend  = document.getElementById('btn-send-friend');
+const ulIn  = document.getElementById('req-in');
+const ulOut = document.getElementById('req-out');
+const ulFriends = document.getElementById('friends');
+
+// ---- Etat
+let cardPools = [];
+let collection = loadLS(LS_KEY, {});
+let stats = loadLS(LS_STATS, { packsOpened: 0 });
+let profileLS = loadLS(LS_PROFILE, { level:1, xp:0 });
+let _stopIn=null, _stopOut=null, _stopFriends=null;
+
+// ---- Orchestration
+// 1) Charger le catalogue
+cardPools = await loadCardSets();
+
+// 2) Auth & synchro Cloud → Local, puis calcul des stats communes
+onAuthStateChanged(auth, async (user)=>{
+  // === INVITÉ ===============================================================
+  if (!user) {
+    syncBadge.textContent = 'Hors ligne';
+    usernameEl.textContent = 'Invité';
+    levelEl.textContent = String(profileLS.level||0);
+
+    const need = xpForLevel(profileLS.level || 1);
+    xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
+    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
+    xpFillEl.style.width = p + '%';
+    xpPctEl.textContent = p + '%';
+
+    // Stats locales + rendu badges
+    const progress = computeProgress({ collection, cardPools });
+    draw({ ...progress, packsOpened: stats.packsOpened, level: profileLS.level }, {});
+
+    // Nettoyage SOCIAL
+    if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+    ulIn && (ulIn.innerHTML=''); ulOut && (ulOut.innerHTML=''); ulFriends && (ulFriends.innerHTML='');
+    btnSendFriend && (btnSendFriend.disabled = true);
+    return;
+  }
+
+  // === CONNECTÉ =============================================================
+  syncBadge.textContent = 'Sync…';
+  avatarEl.textContent = '👤';
+
+  // Récup /players/{uid}
+  const ref = doc(db,'players', user.uid);
+  const snap = await getDoc(ref);
+  const data = snap.exists()? snap.data() : {};
+
+  // Normalize collection depuis ton schéma
+  function collectOwned(d){
+    const ids = {};
+    if (d.collection && typeof d.collection === 'object'){
+      for (const [id, qty] of Object.entries(d.collection)) ids[id]=Number(qty||0);
+    }
+    if (d.collections && typeof d.collections === 'object'){
+      for (const setObj of Object.values(d.collections)){
+        if (setObj && typeof setObj === 'object'){
+          for (const [id, qty] of Object.entries(setObj)) ids[id]=(ids[id]||0)+Number(qty||0);
+        }
+      }
+    }
+    if (Array.isArray(d.cardsOwned)){
+      for (const entry of d.cardsOwned){
+        if (typeof entry === 'string') ids[entry]=(ids[entry]||0)+1;
+        else if (entry && entry.id) ids[entry.id]=(ids[entry.id]||0)+Number(entry.qty||1);
+      }
+    }
+    if (d.specialCollection && typeof d.specialCollection === 'object'){
+      for (const [id, qty] of Object.entries(d.specialCollection)){
+        ids[id] = (ids[id] || 0) + Number(qty || 0);
+      }
+    }
+    return ids;
+  }
+
+  collection = collectOwned(data);
+  stats.packsOpened = data.packsOpened ?? data.stats?.packsOpened ?? stats.packsOpened ?? 0;
+  profileLS.level  = data.level ?? profileLS.level ?? 1;
+  profileLS.xp     = data.xp    ?? profileLS.xp    ?? 0;
+
+  saveLS(LS_KEY, collection); saveLS(LS_STATS, stats); saveLS(LS_PROFILE, profileLS);
+
+  // UI joueur
+  usernameEl.textContent =
+    (data.displayName && data.displayName.trim()) ||
+    (data.pseudo && String(data.pseudo).trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (user.email ? user.email.split('@')[0] : 'Joueur');
+  levelEl.textContent = String(profileLS.level||0);
+  {
+    const need = xpForLevel(profileLS.level || 1);
+    xpLabelEl.textContent = `XP ${profileLS.xp||0} / ${need}`;
+    const p = Math.max(0, Math.min(100, Math.round((profileLS.xp / need) * 100)));
+    xpFillEl.style.width = p + '%';
+    xpPctEl.textContent = p + '%';
+  }
+
+  // Progression + publication leaderboard_public
+  const progress = computeProgress({ collection, cardPools });
+  await publishLeaderboardProgress({
+    uniques: progress.uniques,
+    totalUnique: progress.totalUnique,
+    completionPct: progress.completionPct,
+    displayName:
+      (data.displayName && data.displayName.trim()) ||
+      (data.pseudo && String(data.pseudo).trim()) ||
+      (user.displayName && user.displayName.trim()) ||
+      (user.email ? user.email.split('@')[0] : ''),
+    photoURL: (typeof user.photoURL === 'string' && /^https?:\/\//.test(user.photoURL)) ? user.photoURL : ''
+  });
+
+  // Badges: flags + resync
+  const hasAnniv2025 =
+    (data.specialCollection?.[ANNIV2025_ID] || 0) > 0 ||
+    (collection[ANNIV2025_ID] || 0) > 0;
+
+  const halloweenActive   = (localStorage.getItem('grimoire.theme') === 'halloween');
+  const hadHalloweenBadge = !!((data.badges || {}).halloween2025);
+
+  const christmasActive   = (localStorage.getItem('grimoire.theme') === 'christmas');
+  const hadChristmasBadge = !!((data.badges || {}).noel2025);
+
+  const sharedStats = {
+    ...progress,
+    packsOpened: stats.packsOpened,
+    level: profileLS.level,
+    hasAnniv2025,
+    halloweenActive,
+    hadHalloweenBadge,
+    christmasActive,
+    hadChristmasBadge
+  };
+
+
+  let ownedBadges = data.badges || {};
+  {
+    const expected = computeExpectedBadges(sharedStats);
+    const { toAdd, toRemove } = diffBadges(ownedBadges, expected);
+    const needsVersionBump = (data.badgeSchemaVersion || 0) !== BADGE_SCHEMA_VERSION;
+    if (toAdd.length || toRemove.length || needsVersionBump) {
+      const now = serverTimestamp();
+      const finalBadges = { ...ownedBadges };
+      for (const id of toRemove) delete finalBadges[id];
+      for (const id of toAdd)    finalBadges[id] = { acquiredAt: now };
+      try{
+        if (snap.exists()) {
+          await updateDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, updatedAt: now });
+        } else {
+          await setDoc(ref, { badges: finalBadges, badgeSchemaVersion: BADGE_SCHEMA_VERSION, createdAt: now, updatedAt: now }, { merge: true });
+        }
+        const snap2 = await getDoc(ref);
+        ownedBadges = (snap2.exists()? snap2.data().badges : finalBadges) || finalBadges;
+      }catch(e){ console.error(e); toast('Erreur lors de la resynchronisation des badges'); }
+    }
+  }
+
+  // SOCIAL: handlers + watchers (activés seulement connecté)
+  btnSendFriend && (btnSendFriend.disabled = false);
+  btnSendFriend?.addEventListener('click', async ()=>{
+    const toUid = (friendUidInput?.value||'').trim();
+    if (!toUid) return toast('Renseigne un UID 😉');
+    try { await sendFriendRequest(user.uid, toUid); toast('Demande envoyée ✅'); friendUidInput.value=''; }
+    catch(e){ console.error(e); toast('Erreur envoi de demande'); }
+  }, { once:false });
+
+  if (_stopIn) _stopIn(); if (_stopOut) _stopOut(); if (_stopFriends) _stopFriends();
+
+  // IMPORTANT : requêtes conformes aux règles (pas de lecture "toute collection")
+  _stopIn = onSnapshot(
+    query(fcol(db,'friend_requests'), where('toUid','==', user.uid), where('status','==','pending')),
+    async snap => {
+      ulIn.innerHTML = '';
+      for (const d of snap.docs){
+        const r = { id: d.id, ...d.data() };
+        const from = await getPlayerBasic(r.fromUid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">💌</div>
+          <div>
+            <div class="lb-name">${from.displayName}</div>
+            <div class="lb-sub">UID: ${r.fromUid}</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="pill btn-acc">Accepter</button>
+            <button class="pill btn-dec">Refuser</button>
+          </div>`;
+        li.querySelector('.btn-acc').onclick = async ()=>{ await acceptRequest(r.id); toast('Ajouté ✔'); };
+        li.querySelector('.btn-dec').onclick = async ()=>{ await declineRequest(r.id); toast('Refusé'); };
+        ulIn.appendChild(li);
+      }
+    }
+  );
+
+  _stopOut = onSnapshot(
+    query(fcol(db,'friend_requests'), where('fromUid','==', user.uid), where('status','==','pending')),
+    async snap => {
+      ulOut.innerHTML = '';
+      for (const d of snap.docs){
+        const r = { id: d.id, ...d.data() };
+        const to = await getPlayerBasic(r.toUid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">⏳</div>
+          <div>
+            <div class="lb-name">${to.displayName}</div>
+            <div class="lb-sub">UID: ${r.toUid}</div>
+          </div>
+          <div><button class="pill btn-cancel">Annuler</button></div>`;
+        li.querySelector('.btn-cancel').onclick = async ()=>{ await cancelRequest(r.id); toast('Annulée'); };
+        ulOut.appendChild(li);
+      }
+    }
+  );
+
+  _stopFriends = onSnapshot(
+    fcol(db,'social', user.uid, 'friends'),
+    async snap => {
+      ulFriends.innerHTML = '';
+      for (const d of snap.docs){
+        const f = { uid: d.id, ...d.data() };
+        const p = await getPlayerBasic(f.uid);
+        const li = document.createElement('li');
+        li.className = 'lb-item';
+        li.innerHTML = `
+          <div class="lb-rank">👥</div>
+          <div>
+            <div class="lb-name">${p.displayName}</div>
+            <div class="lb-sub">Ami depuis…</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="pill btn-remove">Retirer</button>
+          </div>`;
+        li.querySelector('.btn-remove').onclick = async ()=>{ await removeFriend(user.uid, f.uid); toast('Ami retiré'); };
+        ulFriends.appendChild(li);
+      }
+    }
+  );
+
+  // Rendu badges
+  draw(sharedStats, ownedBadges);
+  syncBadge.textContent = 'En ligne';
+});
+
+
+// ---- Rendu
+function draw(sharedStats, ownedBadges){
+  renderBadges(badgesWrap, BADGES, ownedBadges || {});
+  // console.log('[profil] stats', sharedStats, 'badges', ownedBadges);
+}
+
+// --- Publication du joueur dans leaderboard_public (anti-spam 30s) ---
+let _lbLastWrite = 0;
+async function publishLeaderboardProgress({ uniques, totalUnique, completionPct, displayName, photoURL }) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // 1) Gardes-fous locaux : ne jamais écrire si le catalogue semble vide
+  const TU = Number(totalUnique) || 0;
+  const U  = Number(uniques) || 0;
+  const CP = Math.max(0, Math.min(100, Number(completionPct) || 0));
+  if (TU === 0) return;                 // ⛔ jamais 0 / 0
+  if (TU < U)  return;                  // ⛔ incohérent
+
+  // anti-spam
+  const now = Date.now();
+  if (now - _lbLastWrite < 30000) return;
+  _lbLastWrite = now;
+
+  const ref = doc(db, 'leaderboard_public', user.uid);
+
+  // 2) Lis l'état actuel pour éviter toute régression
+  let prev = null;
+  try { const snap = await getDoc(ref); prev = snap.exists() ? snap.data() : null; } catch {}
+
+  // si on a déjà une valeur et que la nouvelle est pire ou nulle, on annule
+  if (prev) {
+    const pTU = Number(prev.totalUnique) || 0;
+    const pU  = Number(prev.uniques) || 0;
+    const pCP = Number(prev.completionPct) || 0;
+
+    // N'écrase pas avec un catalogue plus petit / vide ou une complétion moindre (sauf égalité)
+    if (TU < pTU) return;
+    if (TU === pTU && (U < pU || CP < pCP)) return;
+  }
+
+  // --- construction du payload "safe"
+  const provider = Array.isArray(user.providerData)
+    ? user.providerData.find(p => (p.providerId || '').includes('twitch')) || user.providerData[0]
+    : null;
+
+  const display =
+    (typeof displayName === 'string' && displayName.trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (provider && provider.displayName) ||
+    (user.email ? user.email.split('@')[0] : 'Joueur');
+
+  const maybePhoto =
+    (typeof photoURL === 'string' && /^https?:\/\//.test(photoURL) ? photoURL :
+     user.photoURL && /^https?:\/\//.test(user.photoURL) ? user.photoURL :
+     provider && /^https?:\/\//.test(provider.photoURL||'') ? provider.photoURL : '');
+
+  const payload = {
+    displayName: display,
+    displayNameLower: display.toLowerCase(),
+    uniques: U,
+    totalUnique: TU,
+    completionPct: CP,
+    updatedAt: serverTimestamp()
+  };
+  if (maybePhoto) payload.photoURL = maybePhoto;
+
+  await setDoc(ref, payload, { merge: true });
+}
+
+   // ========= SOCIAL: demandes d'amis & amis =========
+
+// cache simple pour afficher noms/avatars
+const _playerCache = new Map();
+async function getPlayerBasic(uid){
+  if (_playerCache.has(uid)) return _playerCache.get(uid);
+  try {
+    const s = await getDoc(doc(db,'players',uid));
+    const d = s.exists()? s.data(): {};
+    const basic = { displayName: (d.displayName||d.pseudo||uid), photoURL: d.photoURL||'' };
+    _playerCache.set(uid, basic);
+    return basic;
+  } catch { return { displayName: uid, photoURL: '' }; }
+}
+
+// créer une demande
+async function sendFriendRequest(fromUid, toUid, message=''){
+  if (!fromUid || !toUid) throw new Error('UID manquant');
+  if (fromUid === toUid) throw new Error('Impossible de t’ajouter toi-même');
+  const pairKey = (fromUid < toUid) ? `${fromUid}_${toUid}` : `${toUid}_${fromUid}`;
+  await addDoc(fcol(db,'friend_requests'), {
+    fromUid, toUid, pairKey,
+    status: 'pending',
+    message,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+}
+
+// transitions de demande
+async function acceptRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'accepted', updatedAt: serverTimestamp()
+  });
+  // si pas encore de CF: crée ta vue locale (optionnel, la CF la fera en prod)
+  // const req = await getDoc(doc(db,'friend_requests', requestId));
+  // const r = req.data(); await setDoc(doc(db,'social', r.toUid, 'friends', r.fromUid), { sinceAt: serverTimestamp() }, { merge:true });
+}
+async function declineRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'declined', updatedAt: serverTimestamp()
+  });
+}
+async function cancelRequest(requestId){
+  await updateDoc(doc(db,'friend_requests', requestId), {
+    status:'canceled', updatedAt: serverTimestamp()
+  });
+}
+
+// watchers temps réel
+function watchIncomingRequests(myUid, cb){
+  const q = fcol(db,'friend_requests');
+  return onSnapshot(
+    // filtre côté client via .docs.map().filter() pour rester simple ici
+    q, snap => {
+      const arr = snap.docs.map(d=>({id:d.id, ...d.data()}))
+        .filter(x => x.toUid===myUid && x.status==='pending');
+      cb(arr);
+    }
+  );
+}
+function watchOutgoingRequests(myUid, cb){
+  const q = fcol(db,'friend_requests');
+  return onSnapshot(
+    q, snap => {
+      const arr = snap.docs.map(d=>({id:d.id, ...d.data()}))
+        .filter(x => x.fromUid===myUid && x.status==='pending');
+      cb(arr);
+    }
+  );
+}
+function watchFriends(myUid, cb){
+  return onSnapshot(collection(db,'social', myUid, 'friends'), snap => {
+    cb(snap.docs.map(d=>({ uid:d.id, ...d.data() })));
+  });
+}
+async function removeFriend(myUid, friendUid){
+  await deleteDoc(doc(db,'social', myUid, 'friends', friendUid));
+}
+
+   
 import { collection as fsCollection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const lbList   = document.getElementById('lb-list');
@@ -205,3 +1126,22 @@ loadLeaderboard();
 window.addEventListener('beforeunload', () => {
   if (unsubLB) unsubLB();
 });
+
+
+   
+</script>
+
+<script>
+  (function(){
+    const KEY   = 'grimoire.theme';
+    const saved = localStorage.getItem(KEY) || 'default';
+    const isXmas = (saved === 'christmas');
+
+    document.documentElement.classList.toggle('christmas', isXmas);
+    document.body.classList.toggle('christmas', isXmas);
+  })();
+</script>
+
+  
+</body>
+</html>
