@@ -384,73 +384,78 @@
     }
 
     // Render full list (starting from 4th place)
-    function renderLB(rows) {
-      if (!lbList) return;
+    // Render full list (à partir de startRank)
+function renderLB(rows, startRank = 1) {
+  if (!lbList) return;
 
-      loadingEl.style.display = 'none';
-      lbList.innerHTML = '';
-      lbCount.textContent = String(rows.length);
+  loadingEl.style.display = 'none';
+  lbList.innerHTML = '';
 
-      if (rows.length === 0) {
-        lbList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <p>Aucun joueur trouvé</p>
-          </div>
-        `;
-        return;
-      }
+  if (rows.length === 0) {
+    lbList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <p>Aucun joueur trouvé</p>
+      </div>
+    `;
+    return;
+  }
 
-      rows.forEach((user, i) => {
-        const rank = i + 1;
-        const pct = Math.max(0, Math.min(100, Number(user.completionPct) || 0));
-        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
-        const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
-        const isCurrentUser = currentUser && user.uid === currentUser.uid;
+  rows.forEach((user, i) => {
+    const rank = startRank + i; // ✅ rang réel (4, 5, 6, ...)
+    const pct = user.completionPct;
+    const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
+    const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
+    const isCurrentUser = currentUser && user.uid === currentUser.uid;
 
-        const li = document.createElement('li');
-        li.className = 'lb-item';
-        if (isCurrentUser) li.style.background = 'linear-gradient(180deg, rgba(124,92,255,.15), rgba(124,92,255,.08))';
+    const li = document.createElement('li');
+    li.className = 'lb-item';
+    if (isCurrentUser) li.style.background = 'linear-gradient(180deg, rgba(124,92,255,.15), rgba(124,92,255,.08))';
 
-        li.innerHTML = `
-          <div class="lb-rank ${rank <= 3 ? 'top3' : ''}">${medal(rank)}</div>
-          <img class="lb-ava" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
-          <div class="lb-info">
-            <div class="lb-name">${user.displayName}${isCurrentUser ? ' (Vous)' : ''}</div>
-            <div class="lb-sub">${user.uniques || 0} / ${user.totalUnique || 0} cartes</div>
-            <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
-          </div>
-          <div class="lb-pct">${pctLabel}%</div>
-        `;
-        lbList.appendChild(li);
-      });
-    }
+    li.innerHTML = `
+      <div class="lb-rank">${medal(rank)}</div>
+      <img class="lb-ava" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
+      <div class="lb-info">
+        <div class="lb-name">${user.displayName}${isCurrentUser ? ' (Vous)' : ''}</div>
+        <div class="lb-sub">${user.uniques} / ${user.totalUnique} cartes</div>
+        <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
+      </div>
+      <div class="lb-pct">${pctLabel}%</div>
+    `;
+    lbList.appendChild(li);
+  });
+}
+
 
     // Filter list
-    function filterLB() {
-      const q = (lbSearch?.value || '').trim().toLowerCase();
-      let filtered = LB_ALL;
+   function filterLB() {
+  const q = (lbSearch?.value || '').trim().toLowerCase();
+  let filtered = LB_ALL;
 
-      if (q) {
-        filtered = LB_ALL.filter(u => {
-          const name = (u.displayNameLower || u.displayName || '').toLowerCase();
-          return name.includes(q);
-        });
-      }
+  if (q) {
+    filtered = LB_ALL.filter(u => {
+      const name = u.displayNameLower;
+      return name.includes(q);
+    });
+  }
 
-      // Apply limit
-      if (LB_LIMIT !== 'all') {
-        filtered = filtered.slice(0, LB_LIMIT);
-      }
+  // Applique la limite
+  if (LB_LIMIT !== 'all') {
+    filtered = filtered.slice(0, LB_LIMIT);
+  }
 
-      // Top 3 for podium
-      const top3 = filtered.slice(0, 3);
-      renderPodium(top3);
+  // Met à jour le nombre total de joueurs affichés (top 3 + le reste)
+  lbCount.textContent = String(filtered.length);
 
-      // Rest for list (from 4th)
-      const rest = filtered.slice(3);
-      renderLB(rest);
-    }
+  // Top 3 pour le podium
+  const top3 = filtered.slice(0, 3);
+  renderPodium(top3);
+
+  // Reste pour la liste à partir de la 4e place
+  const rest = filtered.slice(3);
+  renderLB(rest, 4); // ⬅️ on commence les rangs à 4
+}
+
 
     // Load leaderboard
     async function loadLeaderboard() {
