@@ -342,6 +342,47 @@
     let unsubLB = null;
     let currentUser = null;
 
+    // === CONFIG STATS ===
+// Mets ici le nombre total de cartes uniques possibles dans Grimoire
+const TOTAL_UNIQUE_CARDS = 231;
+
+// Normalise un joueur : corrige les valeurs nulles / incohérentes
+function normalizePlayer(row) {
+  const displayName = (row.displayName || 'Joueur').trim() || 'Joueur';
+  const displayNameLower = (row.displayNameLower || displayName.toLowerCase());
+
+  // Nombre de cartes uniques possédées
+  let uniques = Number(row.uniques);
+  if (!Number.isFinite(uniques) || uniques < 0) {
+    uniques = 0;
+  }
+
+  // Nombre total de cartes uniques possibles pour le calcul
+  let totalUnique = Number(row.totalUnique);
+  if (!Number.isFinite(totalUnique) || totalUnique <= 0) {
+    totalUnique = TOTAL_UNIQUE_CARDS;
+  }
+
+  // Si jamais uniques > totalUnique (vieilles données, bug), on corrige
+  if (uniques > totalUnique) {
+    uniques = totalUnique;
+  }
+
+  // Recalcul propre du pourcentage de complétion
+  const rawPct = totalUnique > 0 ? (uniques / totalUnique) * 100 : 0;
+  const completionPct = Math.round(rawPct * 10) / 10; // 1 décimale
+
+  return {
+    ...row,
+    displayName,
+    displayNameLower,
+    uniques,
+    totalUnique,
+    completionPct
+  };
+}
+
+
     // Auth state
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
@@ -366,8 +407,8 @@
       const medals = ['🥈', '🥇', '🥉'];
 
       top3.forEach((user, i) => {
-        const pct = Math.max(0, Math.min(100, Number(user.completionPct) || 0));
-        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
+        const pct = user.completionPct;
+const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
         const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
 
         const card = document.createElement('div');
@@ -474,27 +515,31 @@ function renderLB(rows, startRank = 1) {
 
           const rows = [];
           snapshot.forEach(doc => {
-            const data = doc.data();
-            rows.push({
-              uid: doc.id,
-              displayName: data.displayName || 'Joueur',
-              displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
-              photoURL: data.photoURL || '',
-              uniques: Number(data.uniques) || 0,
-              totalUnique: Number(data.totalUnique) || 0,
-              completionPct: Number(data.completionPct) || 0
-            });
-          });
+  const data = doc.data();
+  rows.push({
+    uid: doc.id,
+    displayName: data.displayName || 'Joueur',
+    displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
+    photoURL: data.photoURL || '',
+    uniques: data.uniques,
+    totalUnique: data.totalUnique,
+    completionPct: data.completionPct
+  });
+});
 
-          // Tri manuel côté client
-          rows.sort((a, b) => {
-            if (b.completionPct !== a.completionPct) return b.completionPct - a.completionPct;
-            if (b.uniques !== a.uniques) return b.uniques - a.uniques;
-            return a.displayNameLower.localeCompare(b.displayNameLower);
-          });
+// Normalisation des joueurs (corrige uniques / totalUnique / %)
+const normalized = rows.map(normalizePlayer);
 
-          LB_ALL = rows;
-          filterLB();
+// Tri manuel côté client après normalisation
+normalized.sort((a, b) => {
+  if (b.completionPct !== a.completionPct) return b.completionPct - a.completionPct;
+  if (b.uniques !== a.uniques) return b.uniques - a.uniques;
+  return a.displayNameLower.localeCompare(b.displayNameLower);
+});
+
+LB_ALL = normalized;
+filterLB();
+
         },
         (error) => {
           console.error('[Leaderboard] Erreur:', error);
