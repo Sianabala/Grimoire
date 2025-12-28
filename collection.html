@@ -728,7 +728,10 @@ function computeSetStats(){
     
     // Rendu
     function render(){
-      const all = CARD_POOLS.map(c=>({...c, qty:(collection[c.id]||0)}));
+      const all = CARD_POOLS
+  .filter(c => c.set !== 'Nouvelle Lumière')
+  .map(c => ({ ...c, qty: (collection[c.id] || 0) }));
+
     // construit l’ensemble des raretés activées depuis les boutons actifs
 const enabled = new Set(
   rarityBtns
