@@ -11,44 +11,10 @@
 
   <link rel="prefetch" href="/collection.html" as="document">
 
-  <!-- DOIT ÊTRE AVANT les <link rel="stylesheet"> -->
-<script>
-  (function(){
-    try{
-      var saved = localStorage.getItem('grimoire.theme');
-      if (saved === 'christmas') {
-  document.documentElement.classList.add('christmas');
-}
-
-    }catch(e){}
-  })();
-</script>
-
-
-  
+ 
   <!-- Harmonisation des raretés -->
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
-
-<script>
-(function(){
-  const KEY = 'grimoire.theme';
-  let saved = localStorage.getItem(KEY);
-  const now = new Date(), m = now.getMonth()+1;
-  const inChristmas = (m === 12);
-
-  // Si l'utilisateur n'a rien choisi, on applique un thème saisonnier
-  if (!saved || saved === 'default') {
-    saved = inChristmas ? 'christmas' : 'default';
-    localStorage.setItem(KEY, saved);
-  }
-
-  // On pose la classe vite pour éviter le flash
-  if (saved === 'christmas') {
-    document.documentElement.classList.add('christmas');
-  }
-})();
-</script>
 
   
   <style>
@@ -538,7 +504,7 @@ body.logged-in .hero-header .hero-actions{
   <button id="btn-logout" class="btn ghost pill" style="display:none">Se déconnecter</button>
   <a href="/admin.html" class="btn ghost pill" id="btn-admin" style="display:none">Admin</a>
 
-  <button class="btn ghost" id="toggle-christmas">🎄 Mode Noël</button>
+
 </div>
 
       </div>
@@ -1874,38 +1840,5 @@ setInterval(updateTwitchStatus, 60_000);
 
     
   </script>
-
-<script>
-(function(){
-  const KEY     = 'grimoire.theme';
-  const btnXmas = document.getElementById('toggle-christmas');
-
-  function applyTheme(theme){ // 'default' | 'christmas'
-    const root = document.documentElement;
-    const body = document.body;
-
-    root.classList.toggle('christmas',  theme === 'christmas');
-    body.classList.toggle('christmas',  theme === 'christmas');
-
-    localStorage.setItem(KEY, theme);
-
-    if (btnXmas){
-      btnXmas.textContent = (theme === 'christmas')
-        ? '🎄 Mode Noël : ON'
-        : '🎄 Mode Noël';
-    }
-  }
-
-  let saved = localStorage.getItem(KEY) || 'default';
-  applyTheme(saved);
-
-  btnXmas?.addEventListener('click', ()=>{
-    const current = localStorage.getItem(KEY) || 'default';
-    applyTheme(current === 'christmas' ? 'default' : 'christmas');
-  });
-})();
-</script>
-
-  
 </body>
 </html>
