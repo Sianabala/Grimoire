@@ -613,325 +613,267 @@
   </script>
 
 <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
-      authDomain: 'legends-collection.firebaseapp.com',
-      projectId: 'legends-collection',
-      storageBucket: 'legends-collection.firebasestorage.app',
-      messagingSenderId: '133783086150',
-      appId: '1:133783086150:web:762f209f7f778ef83a1647'
+  const firebaseConfig = {
+    apiKey: 'AIzaSyCKZK4I3li_7wkmd_qiiM44BoqRTZoloeI',
+    authDomain: 'legends-collection.firebaseapp.com',
+    projectId: 'legends-collection',
+    storageBucket: 'legends-collection.firebasestorage.app',
+    messagingSenderId: '133783086150',
+    appId: '1:133783086150:web:762f209f7f778ef83a1647'
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const podiumEl = document.getElementById('podium');
+  const lbList = document.getElementById('lb-list');
+  const lbCount = document.getElementById('lb-count');
+  const lbSearch = document.getElementById('lb-search');
+  const loadingEl = document.getElementById('loading');
+  const debugInfo = document.getElementById('debug-info');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+
+  let LB_ALL = [];
+  let LB_LIMIT = 50;
+  let unsubLB = null;
+  let currentUser = null;
+
+  function escapeHtml(value){
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function fallbackAvatar(displayName){
+    return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(displayName || 'Joueur')}`;
+  }
+
+  function normalizePlayer(docId, data){
+    const displayName = String(data.displayName || data.pseudo || 'Joueur').trim() || 'Joueur';
+    const totalUnique = Math.max(0, Number(data.totalUnique) || 0);
+    const uniques = Math.max(0, Math.min(Number(data.uniques) || 0, totalUnique || Number(data.uniques) || 0));
+
+    let completionPct = Number(data.completionPct);
+    if (!Number.isFinite(completionPct)) completionPct = 0;
+
+    // Source de vérité : si totalUnique existe, on recalcule pour éviter les valeurs incohérentes.
+    if (totalUnique > 0) {
+      completionPct = Math.round((uniques / totalUnique) * 100);
+    }
+
+    completionPct = Math.max(0, Math.min(100, completionPct));
+
+    return {
+      uid: docId,
+      displayName,
+      displayNameLower: String(data.displayNameLower || displayName).toLowerCase(),
+      photoURL: /^https?:\/\//.test(String(data.photoURL || '')) ? String(data.photoURL) : '',
+      uniques,
+      totalUnique,
+      completionPct,
+      updatedAt: data.updatedAt || null
     };
+  }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  function medal(rank) {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return `#${rank}`;
+  }
 
-    // DOM
-    const podiumEl = document.getElementById('podium');
-    const lbList = document.getElementById('lb-list');
-    const lbCount = document.getElementById('lb-count');
-    const lbSearch = document.getElementById('lb-search');
-    const loadingEl = document.getElementById('loading');
-    const debugInfo = document.getElementById('debug-info');
-    const filterBtns = document.querySelectorAll('.filter-btn');
+  function pctLabel(pct){
+    return (Math.round(Number(pct || 0) * 10) / 10).toString().replace('.0', '');
+  }
 
-    let LB_ALL = [];
-    let LB_RAW = []; // Données brutes pour debug
-    let LB_LIMIT = 50;
-    let unsubLB = null;
-    let currentUser = null;
+  function renderPodium(top3) {
+    if (!podiumEl) return;
+    podiumEl.innerHTML = '';
 
-    // Auth state
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      filterLB(); // Re-render pour highlight l'utilisateur
+    if (!top3.length) {
+      podiumEl.innerHTML = `
+        <div class="panel" style="grid-column:1/-1">
+          <div class="bd empty-state">
+            <div class="empty-state-icon">🏆</div>
+            <p>Aucun joueur dans le classement pour le moment.</p>
+            <p class="subtitle">Ouvre la page Profil après connexion pour publier ta progression.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const classes = ['first', 'second', 'third'];
+    const medals = ['🥇', '🥈', '🥉'];
+
+    top3.forEach((user, i) => {
+      const safeName = escapeHtml(user.displayName);
+      const avatarUrl = user.photoURL || fallbackAvatar(user.displayName);
+
+      const card = document.createElement('div');
+      card.className = `podium-card ${classes[i]}`;
+      card.innerHTML = `
+        <div class="podium-medal">${medals[i]}</div>
+        <img class="podium-avatar" src="${avatarUrl}" alt="${safeName}" onerror="this.src='${fallbackAvatar('default')}'">
+        <div class="podium-name">${safeName}</div>
+        <div class="podium-stats">${user.uniques} / ${user.totalUnique} cartes</div>
+        <div class="podium-pct">${pctLabel(user.completionPct)}%</div>
+      `;
+      podiumEl.appendChild(card);
     });
+  }
 
-    // ========== VALIDATION ET NETTOYAGE DES DONNÉES ==========
-    
-    function isValidPlayer(data) {
-      const issues = [];
-      
-      // Validation de base
-      if (!data.displayName || data.displayName.trim() === '') {
-        issues.push('Nom manquant');
-      }
-      
-      const uniques = Number(data.uniques) || 0;
-      const totalUnique = Number(data.totalUnique) || 0;
-      const completionPct = Number(data.completionPct) || 0;
-      
-      // Règles de cohérence strictes
-      if (totalUnique === 0) {
-        issues.push('Catalogue vide (totalUnique = 0)');
-      }
-      
-      if (uniques === 0) {
-        issues.push('Aucune carte possédée');
-      }
-      
-      if (uniques > totalUnique) {
-        issues.push(`Incohérence: ${uniques} cartes > ${totalUnique} total`);
-      }
-      
-      // Vérification du pourcentage
-      const calculatedPct = totalUnique > 0 ? Math.round((uniques / totalUnique) * 100) : 0;
-      const diff = Math.abs(completionPct - calculatedPct);
-      
-      if (diff > 1) { // Tolérance de 1%
-        issues.push(`% incohérent: affiché ${completionPct}% vs calculé ${calculatedPct}%`);
-      }
-      
-      return {
-        valid: issues.length === 0,
-        issues: issues,
-        data: {
-          uniques,
-          totalUnique,
-          completionPct: calculatedPct // Utilise le % recalculé
-        }
-      };
-    }
-    
-    function cleanAndValidateData(rawData) {
-      const cleaned = [];
-      const rejected = [];
-      
-      rawData.forEach(player => {
-        const validation = isValidPlayer(player);
-        
-        if (validation.valid) {
-          cleaned.push({
-            uid: player.uid,
-            displayName: (player.displayName || 'Joueur').trim(),
-            displayNameLower: ((player.displayNameLower || player.displayName || '').toLowerCase()).trim(),
-            photoURL: player.photoURL || '',
-            uniques: validation.data.uniques,
-            totalUnique: validation.data.totalUnique,
-            completionPct: validation.data.completionPct
-          });
-        } else {
-          rejected.push({
-            uid: player.uid,
-            name: player.displayName || 'Inconnu',
-            issues: validation.issues
-          });
-        }
-      });
-      
-      return { cleaned, rejected };
+  function renderLB(rows, startRank = 1, totalShown = rows.length) {
+    if (!lbList) return;
+
+    if (loadingEl) loadingEl.style.display = 'none';
+    lbList.innerHTML = '';
+    if (lbCount) lbCount.textContent = `${totalShown} joueur${totalShown > 1 ? 's' : ''}`;
+
+    if (!rows.length) {
+      lbList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <p>Aucun joueur trouvé.</p>
+        </div>
+      `;
+      return;
     }
 
-    // Medals
-    function medal(i) {
-      if (i === 1) return '🥇';
-      if (i === 2) return '🥈';
-      if (i === 3) return '🥉';
-      return `#${i}`;
-    }
+    rows.forEach((user, i) => {
+      const rank = startRank + i;
+      const safeName = escapeHtml(user.displayName);
+      const avatarUrl = user.photoURL || fallbackAvatar(user.displayName);
+      const isCurrentUser = currentUser && user.uid === currentUser.uid;
 
-    // Render podium (top 3)
-    function renderPodium(top3) {
-      if (!podiumEl) return;
-      podiumEl.innerHTML = '';
-
-      if (top3.length === 0) return;
-
-      const classes = ['second', 'first', 'third'];
-      const medals = ['🥈', '🥇', '🥉'];
-
-      top3.forEach((user, i) => {
-        const pct = user.completionPct;
-        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
-        const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
-
-        const card = document.createElement('div');
-        card.className = `podium-card ${classes[i]}`;
-        card.innerHTML = `
-          <div class="podium-medal">${medals[i]}</div>
-          <img class="podium-avatar" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
-          <div class="podium-name">${user.displayName}</div>
-          <div class="podium-stats">${user.uniques} / ${user.totalUnique} cartes</div>
-          <div class="podium-pct">${pctLabel}%</div>
-        `;
-        podiumEl.appendChild(card);
-      });
-    }
-
-    // Render full list (starting from 4th place)
-    function renderLB(rows) {
-      if (!lbList) return;
-
-      loadingEl.style.display = 'none';
-      lbList.innerHTML = '';
-      lbCount.textContent = String(rows.length);
-
-      if (rows.length === 0) {
-        lbList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <p>Aucun joueur trouvé</p>
-          </div>
-        `;
-        return;
+      const li = document.createElement('li');
+      li.className = 'lb-item';
+      if (isCurrentUser) {
+        li.style.background = 'linear-gradient(180deg, rgba(139,92,246,.22), rgba(139,92,246,.08))';
+        li.style.borderColor = 'rgba(244,198,106,.34)';
       }
 
-      rows.forEach((user, i) => {
-        const rank = i + 1;
-        const pct = user.completionPct;
-        const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
-        const avatarUrl = user.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(user.displayName)}`;
-        const isCurrentUser = currentUser && user.uid === currentUser.uid;
+      li.innerHTML = `
+        <div class="lb-rank ${rank <= 3 ? 'top3' : ''}">${medal(rank)}</div>
+        <img class="lb-ava" src="${avatarUrl}" alt="${safeName}" onerror="this.src='${fallbackAvatar('default')}'">
+        <div class="lb-info">
+          <div class="lb-name">${safeName}${isCurrentUser ? ' <span class="pill">Vous</span>' : ''}</div>
+          <div class="lb-sub">${user.uniques} / ${user.totalUnique} cartes</div>
+          <div class="lb-bar"><div class="lb-fill" style="width:${user.completionPct}%;"></div></div>
+        </div>
+        <div class="lb-pct">${pctLabel(user.completionPct)}%</div>
+      `;
+      lbList.appendChild(li);
+    });
+  }
 
-        const li = document.createElement('li');
-        li.className = 'lb-item';
-        if (isCurrentUser) li.style.background = 'linear-gradient(180deg, rgba(124,92,255,.15), rgba(124,92,255,.08))';
+  function filterLB() {
+    const search = (lbSearch?.value || '').trim().toLowerCase();
 
-        li.innerHTML = `
-          <div class="lb-rank ${rank <= 3 ? 'top3' : ''}">${medal(rank)}</div>
-          <img class="lb-ava" src="${avatarUrl}" alt="${user.displayName}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
-          <div class="lb-info">
-            <div class="lb-name">${user.displayName}${isCurrentUser ? ' (Vous)' : ''}</div>
-            <div class="lb-sub">${user.uniques} / ${user.totalUnique} cartes</div>
-            <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
-          </div>
-          <div class="lb-pct">${pctLabel}%</div>
-        `;
-        lbList.appendChild(li);
-      });
+    let filtered = LB_ALL;
+    if (search) {
+      filtered = LB_ALL.filter(u =>
+        u.displayNameLower.includes(search) ||
+        u.displayName.toLowerCase().includes(search)
+      );
     }
 
-    // Filter list
-    function filterLB() {
-      const q = (lbSearch?.value || '').trim().toLowerCase();
-      let filtered = LB_ALL;
+    if (LB_LIMIT !== 'all') {
+      filtered = filtered.slice(0, LB_LIMIT);
+    }
 
-      if (q) {
-        filtered = LB_ALL.filter(u => {
-          const name = u.displayNameLower;
-          return name.includes(q);
+    renderPodium(filtered.slice(0, 3));
+    renderLB(filtered.slice(3), 4, filtered.length);
+  }
+
+  function showError(error){
+    if (loadingEl) {
+      loadingEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <p>Impossible de charger le classement.</p>
+          <p class="subtitle">Vérifie les règles Firestore de <strong>leaderboard_public</strong> et que des joueurs ont bien publié leur progression.</p>
+        </div>
+      `;
+    }
+
+    if (debugInfo) {
+      debugInfo.style.display = 'block';
+      debugInfo.innerHTML = `
+        <strong>Erreur Firebase :</strong><br>
+        ${escapeHtml(error?.code || 'unknown')} — ${escapeHtml(error?.message || String(error))}
+      `;
+    }
+  }
+
+  function loadLeaderboard() {
+    if (loadingEl) loadingEl.style.display = '';
+    if (debugInfo) debugInfo.style.display = 'none';
+
+    const leaderboardQuery = query(
+      collection(db, 'leaderboard_public'),
+      orderBy('completionPct', 'desc'),
+      limit(200)
+    );
+
+    if (unsubLB) unsubLB();
+
+    unsubLB = onSnapshot(
+      leaderboardQuery,
+      (snapshot) => {
+        const rows = [];
+
+        snapshot.forEach((document) => {
+          rows.push(normalizePlayer(document.id, document.data()));
         });
-      }
 
-      // Apply limit
-      if (LB_LIMIT !== 'all') {
-        filtered = filtered.slice(0, LB_LIMIT);
-      }
+        rows.sort((a, b) => {
+          if (b.completionPct !== a.completionPct) return b.completionPct - a.completionPct;
+          if (b.uniques !== a.uniques) return b.uniques - a.uniques;
+          return a.displayNameLower.localeCompare(b.displayNameLower);
+        });
 
-      // Top 3 for podium
-      const top3 = filtered.slice(0, 3);
-      renderPodium(top3);
-
-      // Rest for list (from 4th)
-      const rest = filtered.slice(3);
-      renderLB(rest);
-    }
-
-    // Load leaderboard
-    async function loadLeaderboard() {
-      const q = query(
-        collection(db, 'leaderboard_public'),
-        orderBy('completionPct', 'desc'),
-        limit(200)
-      );
-
-      if (unsubLB) unsubLB();
-
-      unsubLB = onSnapshot(
-        q,
-        (snapshot) => {
-          console.log('[Leaderboard] 📊 Données brutes reçues:', snapshot.size, 'joueurs');
-
-          const rawRows = [];
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            rawRows.push({
-              uid: doc.id,
-              displayName: data.displayName || '',
-              displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
-              photoURL: data.photoURL || '',
-              uniques: data.uniques,
-              totalUnique: data.totalUnique,
-              completionPct: data.completionPct
-            });
-          });
-
-          LB_RAW = rawRows;
-
-          // Validation et nettoyage
-          const { cleaned, rejected } = cleanAndValidateData(rawRows);
-          
-          console.log('[Leaderboard] ✅ Joueurs valides:', cleaned.length);
-          console.log('[Leaderboard] ❌ Joueurs rejetés:', rejected.length);
-          
-          if (rejected.length > 0) {
-            console.warn('[Leaderboard] 🚫 Données rejetées:', rejected);
-            
-            // Affiche les problèmes en mode debug
-            debugInfo.style.display = 'block';
-            debugInfo.innerHTML = `
-              <strong>⚠️ ${rejected.length} joueur(s) exclu(s) du classement :</strong><br>
-              ${rejected.map(r => `• ${r.name}: ${r.issues.join(', ')}`).join('<br>')}
-            `;
-          } else {
-            debugInfo.style.display = 'none';
-          }
-
-          // Tri robuste avec plusieurs critères
-          cleaned.sort((a, b) => {
-            // 1. Par % de complétion (décroissant)
-            if (b.completionPct !== a.completionPct) {
-              return b.completionPct - a.completionPct;
-            }
-            // 2. Par nombre de cartes uniques (décroissant)
-            if (b.uniques !== a.uniques) {
-              return b.uniques - a.uniques;
-            }
-            // 3. Par nom alphabétique (croissant)
-            return a.displayNameLower.localeCompare(b.displayNameLower);
-          });
-
-          LB_ALL = cleaned;
-          filterLB();
-        },
-        (error) => {
-          console.error('[Leaderboard] ❌ Erreur:', error);
-          loadingEl.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">⚠️</div>
-              <p>Impossible de charger le classement</p>
-            </div>
-          `;
-        }
-      );
-    }
-
-    // Search input
-    lbSearch?.addEventListener('input', filterLB);
-
-    // Filter buttons
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        const limitVal = btn.dataset.limit;
-        LB_LIMIT = limitVal === 'all' ? 'all' : Number(limitVal);
+        LB_ALL = rows;
         filterLB();
-      });
-    });
+      },
+      (error) => {
+        console.error('[Classement] Erreur Firestore:', error);
+        showError(error);
+      }
+    );
+  }
 
-    // Init
-    loadLeaderboard();
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    filterLB();
+  });
 
-    // Cleanup
-    window.addEventListener('beforeunload', () => {
-      if (unsubLB) unsubLB();
+  lbSearch?.addEventListener('input', filterLB);
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const limitVal = btn.dataset.limit;
+      LB_LIMIT = limitVal === 'all' ? 'all' : Number(limitVal);
+      filterLB();
     });
-  </script>
+  });
+
+  loadLeaderboard();
+
+  window.addEventListener('beforeunload', () => {
+    if (unsubLB) unsubLB();
+  });
+</script>
 </body>
 </html>
