@@ -61,6 +61,7 @@
     .xpwrap{position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}.xpbar{height:14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;flex:1;min-width:180px}.xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--gold));box-shadow:0 0 24px rgba(139,92,246,.48);transition:width .35s ease}
     .panel{position:relative;overflow:hidden;border-radius:var(--radius-lg);background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(16px)}.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(145deg,rgba(244,198,106,.30),rgba(139,92,246,.24),rgba(96,165,250,.16));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}.panel .hd{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.08)}.panel .hd h3{margin:0;text-transform:uppercase;letter-spacing:.08em;font-size:15px;color:#d9c7ff}.panel .bd{padding:20px 22px}.subtitle{font-size:13px;color:var(--muted)}
     .badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.badge-card{position:relative;min-height:150px;border-radius:24px;padding:16px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-sm);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;overflow:hidden}.badge-card::before{content:"";position:absolute;width:130px;height:130px;right:-42px;top:-44px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.24),transparent 66%)}.badge-card:hover{transform:translateY(-5px);border-color:rgba(244,198,106,.28);box-shadow:0 24px 64px rgba(139,92,246,.18)}.badge-ico{position:relative;font-size:34px}.badge-name{position:relative;font-weight:950;margin-top:10px;font-size:16px}.badge-desc{position:relative;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45;min-height:34px}.badge-state{position:absolute;top:12px;right:12px;z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:950;padding:5px 8px;border-radius:999px;background:rgba(52,211,153,.16);border:1px solid rgba(52,211,153,.28);color:#bfffe8}.badge-card.locked{filter:grayscale(.15) opacity(.82)}.badge-card.locked .badge-state{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:var(--muted)}.badge-card.locked::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(0,0,0,.30);pointer-events:none}.badge-card .date{position:relative;font-size:11px;color:#f7ddb0;margin-top:8px}
+    .lb-controls{display:flex;gap:10px;align-items:center;margin-bottom:12px}input,.lb-controls input{width:100%;background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px;outline:none}input:focus{border-color:rgba(192,132,252,.55);box-shadow:0 0 0 3px rgba(139,92,246,.14)}.lb-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}.lb-item{display:grid;grid-template-columns:42px 42px 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border-radius:18px;box-shadow:var(--shadow-sm)}.lb-rank{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-weight:950;background:radial-gradient(100% 100% at 50% 30%,rgba(244,198,106,.22),rgba(244,198,106,.08));border:1px solid rgba(244,198,106,.35)}.lb-rank.r2{background:radial-gradient(100% 100% at 50% 30%,rgba(200,210,230,.20),rgba(200,210,230,.08))}.lb-rank.r3{background:radial-gradient(100% 100% at 50% 30%,rgba(220,170,120,.20),rgba(220,170,120,.08))}.lb-ava{width:42px;height:42px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,.14)}.lb-name{font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb-sub{font-size:12px;color:var(--muted);margin-top:2px}.lb-bar{height:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:999px;overflow:hidden;margin-top:7px}.lb-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--gold))}.lb-pct{font-weight:950;color:#ffe6a6}
     .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.social-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}.social-card{border-radius:24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);overflow:hidden}.social-card .hd{padding:14px 16px}.social-card .bd{padding:16px}.row{display:flex;gap:8px;flex-wrap:wrap}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(18,24,41,.94);color:var(--text);border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;box-shadow:var(--shadow-sm);z-index:300;opacity:0;transition:.2s ease}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
     @media (max-width:1100px){.nav-links a{padding:28px 10px}.hero-shell{grid-template-columns:1fr}}@media (max-width:760px){.container{width:min(100% - 24px,1480px)}.site-header-row{height:auto;padding:12px 0;flex-wrap:wrap}.brand{min-width:auto}.brand-title{font-size:20px}.brand-sub{font-size:9px}.nav-links{order:3;width:100%;overflow-x:auto;justify-content:flex-start}.nav-links a{padding:12px 10px;font-size:12px;white-space:nowrap}.hero-shell{min-height:auto;padding:38px 0}.hero-title{font-size:42px}.hero-subtitle{font-size:16px}.grid{grid-template-columns:repeat(4,1fr)}.panel{grid-column:span 4!important}.profile-card{padding:18px}.avatar{width:70px;height:70px;border-radius:20px}.user-meta .name{font-size:22px}.social-grid{grid-template-columns:1fr}.lb-item{grid-template-columns:38px 38px 1fr;gap:10px}.lb-pct{grid-column:3}}
   </style>
@@ -89,7 +90,7 @@
       <div>
         <div class="eyebrow">Profil joueur</div>
         <h1 class="hero-title"><span>Gardien</span><br>Ta progression dans le Grimoire.</h1>
-        <p class="hero-subtitle">Suis ton niveau, débloque des badges, développe ton réseau d'amis et progresse dans le Grimoire.</p>
+        <p class="hero-subtitle">Suis ton niveau, débloque des badges, développe ton réseau d’amis et progresse dans le Grimoire.</p>
         <div class="hero-actions">
           <a href="/collection.html" class="btn pill">📚 Voir ma collection</a>
           <a href="/index.html#panel-sets" class="btn ghost pill">📦 Ouvrir des packs</a>
@@ -122,7 +123,6 @@
         <div class="hd"><h3>Badges</h3><span class="subtitle">Débloque-les en jouant, collectionnant et en te connectant régulièrement.</span></div>
         <div class="bd"><div id="badges" class="badges"></div></div>
       </section>
-
       <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Amis</h3><span class="subtitle">Demandes · Amis · Blocage</span></div>
         <div class="bd" style="display:grid;gap:14px">
@@ -148,7 +148,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, OAuthProvider, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { collection as fcol, addDoc, where, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection as fcol, addDoc, where, query, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
    function xpForLevel(level){ return 50 * Math.max(1, level); }
 
@@ -801,156 +801,12 @@ async function removeFriend(myUid, friendUid){
   await deleteDoc(doc(db,'social', myUid, 'friends', friendUid));
 }
 
+   
 
-  lbList.innerHTML = '';
-  if (lbCount) lbCount.textContent = String(rows.length);
-  
-  for (let i = 0; i < rows.length; i++){
-    const u = rows[i];
-    const li = document.createElement('li');
-    li.className = 'lb-item';
-    
-    const pct = Math.max(0, Math.min(100, Number(u.completionPct) || 0));
-    const pctLabel = (Math.round(pct * 10) / 10).toString().replace('.0', '');
-    
-    // Avatar par défaut si pas de photo
-    const avatarUrl = u.photoURL || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u.displayName || 'Joueur')}`;
-    
-    li.innerHTML = `
-      <div class="lb-rank ${rankClass(i+1)}">${medal(i+1)}</div>
-      <img class="lb-ava" src="${avatarUrl}" alt="${u.displayName || 'Joueur'}" onerror="this.src='https://api.dicebear.com/9.x/shapes/svg?seed=default'">
-      <div style="flex:1; min-width:0">
-        <div class="lb-name">${u.displayName || 'Joueur'}</div>
-        <div class="lb-sub">${u.uniques || 0} / ${u.totalUnique || 0} cartes</div>
-        <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;"></div></div>
-      </div>
-      <div class="lb-pct">${pctLabel}%</div>
-    `;
-    lbList.appendChild(li);
-  }
-  
-  // Message si vide
-  if (rows.length === 0) {
-    lbList.innerHTML = '<li style="padding:20px; text-align:center; color:var(--muted)">Aucun joueur trouvé</li>';
-  }
-}
-
- 
-  const filtered = LB_ALL.filter(u => {
-    const name = (u.displayNameLower || u.displayName || '').toLowerCase();
-    return name.includes(q);
-  });
-  
-  renderLB(filtered);
-}
-
-// Écoute la recherche
-lbSearch?.addEventListener('input', filterLB);
-
-// ========== STRATÉGIE DE CHARGEMENT ==========
+// Le classement est géré sur la page dédiée /classement.html.
 
 
-  }
-}
-
-// Méthode 1: avec index composite (orderBy multiple)
-  
-  // Utilise onSnapshot pour le temps réel
-  if (unsubLB) unsubLB();
-  
-  unsubLB = onSnapshot(
-    q,
-    (snapshot) => {
-      console.log('[Leaderboard] Données reçues (composite):', snapshot.size, 'joueurs');
-      
-      const rows = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        rows.push({
-          uid: doc.id,
-          displayName: data.displayName || 'Joueur',
-          displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
-          photoURL: data.photoURL || '',
-          uniques: Number(data.uniques) || 0,
-          totalUnique: Number(data.totalUnique) || 0,
-          completionPct: Number(data.completionPct) || 0
-        });
-      });
-      
-      LB_ALL = rows;
-      filterLB();
-      
-      if (lbCount) lbCount.setAttribute('title', 'Classement avec index composite ✅');
-    },
-    (error) => {
-      // Si erreur d'index manquant, bascule sur fallback
-      if (error.code === 'failed-precondition') {
-        console.warn('[Leaderboard] Index composite requis, bascule sur fallback');
-        loadWithFallback();
-      } else {
-        console.error('[Leaderboard] Erreur:', error);
-        throw error;
-      }
-    }
-  );
-}
-
-// Méthode 2: fallback sans index (un seul orderBy + tri local)
-  
-  if (unsubLB) unsubLB();
-  
-  unsubLB = onSnapshot(
-    q,
-    (snapshot) => {
-      console.log('[Leaderboard] Données reçues (fallback):', snapshot.size, 'joueurs');
-      
-      const rows = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        rows.push({
-          uid: doc.id,
-          displayName: data.displayName || 'Joueur',
-          displayNameLower: (data.displayNameLower || data.displayName || '').toLowerCase(),
-          photoURL: data.photoURL || '',
-          uniques: Number(data.uniques) || 0,
-          totalUnique: Number(data.totalUnique) || 0,
-          completionPct: Number(data.completionPct) || 0
-        });
-      });
-      
-      // Tri manuel côté client (pas besoin d'index)
-      rows.sort((a, b) => {
-        // 1. Par % de complétion (décroissant)
-        if (b.completionPct !== a.completionPct) {
-          return b.completionPct - a.completionPct;
-        }
-        // 2. Par nombre de cartes uniques (décroissant)
-        if (b.uniques !== a.uniques) {
-          return b.uniques - a.uniques;
-        }
-        // 3. Par nom alphabétique (croissant)
-        return a.displayNameLower.localeCompare(b.displayNameLower);
-      });
-      
-      // Garde seulement le top 50
-      LB_ALL = rows.slice(0, 50);
-      filterLB();
-      
-      if (lbCount) lbCount.setAttribute('title', 'Classement avec tri local (index en construction) ⏳');
-    },
-    (error) => {
-      console.error('[Leaderboard] Erreur fallback:', error);
-      // Affiche un message d'erreur à l'utilisateur
-      if (lbList) {
-        lbList.innerHTML = '<li style="padding:20px; text-align:center; color:var(--warning)">⚠️ Impossible de charger le classement</li>';
-      }
-    }
-  );
-}
-
-// ========== INITIALISATION ==========
-
-  
+   
 </script>
 
 <script>
