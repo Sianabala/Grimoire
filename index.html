@@ -98,8 +98,13 @@
     .nav-links a{padding:32px 22px;text-decoration:none;text-transform:uppercase;letter-spacing:.10em;font-size:13px;font-weight:800;color:var(--muted);border-left:1px solid transparent;border-right:1px solid transparent;transition:.2s ease}
     .nav-links a:hover,.nav-links a.active{color:#fff;background:linear-gradient(180deg,rgba(139,92,246,.22),rgba(139,92,246,.04));border-color:rgba(255,255,255,.08);box-shadow:inset 0 -2px 0 rgba(192,132,252,.85)}
     .header-actions{display:flex;align-items:center;gap:10px;min-width:250px;justify-content:flex-end}
-    .currency-pill{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);font-weight:800;color:#efeaff}
-    .currency-pill.gold{color:#ffe6a6}
+    .top-wallet{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+    .wallet-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);font-weight:900;color:#efeaff;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+    .wallet-pill strong{font-size:14px;color:#fff;line-height:1}
+    .wallet-pill small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.10em;font-weight:950;line-height:1}
+    .wallet-pill.standard{border-color:rgba(96,165,250,.30)}
+    .wallet-pill.premium{border-color:rgba(192,132,252,.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 22px rgba(139,92,246,.10)}
+    .wallet-pill.level{border-color:rgba(244,198,106,.38);color:#ffe6a6}
     .twitch-cta{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;text-decoration:none;background:rgba(139,92,246,.16);border:1px solid rgba(192,132,252,.32);color:#fff;font-weight:900;box-shadow:0 12px 28px rgba(139,92,246,.14)}
     .live-dot{width:10px;height:10px;border-radius:999px;background:#8b8b8b}.twitch-cta.live .live-dot{background:var(--danger);animation:livePulse 1.2s infinite}.viewer-count{font-weight:900;background:rgba(255,255,255,.12);padding:2px 8px;border-radius:999px}@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}70%{box-shadow:0 0 0 9px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
 
@@ -141,7 +146,7 @@
     #pack-chooser,#rules-modal{position:fixed;inset:0;z-index:210;display:grid;place-items:center}.backdrop{position:absolute;inset:0;background:rgba(3,5,13,.76);backdrop-filter:blur(8px)}.modal{position:relative;width:min(680px,92vw);border-radius:24px;background:linear-gradient(180deg,rgba(14,20,43,.96),rgba(8,12,28,.96));border:1px solid rgba(255,255,255,.14);box-shadow:var(--shadow);padding:22px}.modal h4{margin:0 0 8px;font-size:22px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}pre.diag{white-space:pre-wrap;background:#0e1423;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;max-height:260px;overflow:auto;color:#a9b0ca;font-family:ui-monospace,Menlo,Consolas,monospace}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(18,24,41,.94);color:var(--text);border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;box-shadow:var(--shadow-sm);z-index:300;opacity:0;transition:.2s ease}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 
     @media (max-width:1100px){.nav-links a{padding:28px 12px}.hero-shell{grid-template-columns:1fr}.pack-showcase{min-height:300px}.stats{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:760px){.container{width:min(100% - 24px,1480px)}.site-header-row{height:auto;padding:12px 0;flex-wrap:wrap}.brand{min-width:auto}.brand-title{font-size:20px}.brand-sub{font-size:9px}.nav-links{order:3;width:100%;overflow-x:auto;justify-content:flex-start}.nav-links a{padding:12px 10px;font-size:12px;white-space:nowrap}.header-actions{min-width:auto}.currency-pill{display:none}.hero-shell{min-height:auto;padding:38px 0}.hero-title{font-size:42px}.hero-subtitle{font-size:16px}.stats{grid-template-columns:1fr}.grid{grid-template-columns:repeat(4,1fr)}.panel{grid-column:span 4!important}.set .cover{height:260px}.results{justify-items:center}#user-bar{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;border-radius:18px!important}.po-fan{height:auto;align-items:center;flex-wrap:wrap}.po-card{width:150px}}
+    @media (max-width:760px){.container{width:min(100% - 24px,1480px)}.site-header-row{height:auto;padding:12px 0;flex-wrap:wrap}.brand{min-width:auto}.brand-title{font-size:20px}.brand-sub{font-size:9px}.nav-links{order:3;width:100%;overflow-x:auto;justify-content:flex-start}.nav-links a{padding:12px 10px;font-size:12px;white-space:nowrap}.header-actions{min-width:auto}.top-wallet{order:2;width:100%;justify-content:flex-end}.wallet-pill{padding:7px 10px}.wallet-pill small{display:none}.hero-shell{min-height:auto;padding:38px 0}.hero-title{font-size:42px}.hero-subtitle{font-size:16px}.stats{grid-template-columns:1fr}.grid{grid-template-columns:repeat(4,1fr)}.panel{grid-column:span 4!important}.set .cover{height:260px}.results{justify-items:center}#user-bar{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;border-radius:18px!important}.po-fan{height:auto;align-items:center;flex-wrap:wrap}.po-card{width:150px}}
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
   </style>
@@ -165,8 +170,11 @@
         <a href="#" id="nav-rules">Règles</a>
       </nav>
       <div class="header-actions">
-        <span class="currency-pill">💎 <span>1 250</span></span>
-        <span class="currency-pill gold">◎ <span>5 680</span></span>
+        <div class="top-wallet" aria-label="Solde de packs et niveau">
+          <span class="wallet-pill standard" title="Packs Standard disponibles">📦 <strong id="top-standard-packs">0</strong><small>Standard</small></span>
+          <span class="wallet-pill premium" title="Packs Premium disponibles">💎 <strong id="top-premium-packs">0</strong><small>Premium</small></span>
+          <span class="wallet-pill level" title="Niveau du joueur">⭐ <strong id="top-player-level">1</strong><small>Niveau</small></span>
+        </div>
         <a id="twitch-link" class="twitch-cta" href="https://twitch.tv/Siana_TV" target="_blank" rel="noopener">
           <span class="live-dot" aria-hidden="true"></span>
           <span id="twitch-status-label">Twitch</span>
@@ -722,6 +730,14 @@ const EXTRA_STATS_FILES = ['/data/sets/speciales.json'];
   document.getElementById('stat-xp-next').textContent = need;
   document.getElementById('xp-fill').style.width = pct + '%';
   document.getElementById('stat-next-reward').textContent = nextRewardForLevel(level).label;
+
+  // Header : on remplace les anciennes fausses monnaies par les vraies données du joueur
+  const topStandardPacks = document.getElementById('top-standard-packs');
+  const topPremiumPacks = document.getElementById('top-premium-packs');
+  const topPlayerLevel = document.getElementById('top-player-level');
+  if (topStandardPacks) topStandardPacks.textContent = packBalances.standard || 0;
+  if (topPremiumPacks) topPremiumPacks.textContent = packBalances.premium || 0;
+  if (topPlayerLevel) topPlayerLevel.textContent = level;
 }
 
  
