@@ -61,7 +61,6 @@
     .xpwrap{position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}.xpbar{height:14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;flex:1;min-width:180px}.xpbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--gold));box-shadow:0 0 24px rgba(139,92,246,.48);transition:width .35s ease}
     .panel{position:relative;overflow:hidden;border-radius:var(--radius-lg);background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(16px)}.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(145deg,rgba(244,198,106,.30),rgba(139,92,246,.24),rgba(96,165,250,.16));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}.panel .hd{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.08)}.panel .hd h3{margin:0;text-transform:uppercase;letter-spacing:.08em;font-size:15px;color:#d9c7ff}.panel .bd{padding:20px 22px}.subtitle{font-size:13px;color:var(--muted)}
     .badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.badge-card{position:relative;min-height:150px;border-radius:24px;padding:16px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-sm);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;overflow:hidden}.badge-card::before{content:"";position:absolute;width:130px;height:130px;right:-42px;top:-44px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.24),transparent 66%)}.badge-card:hover{transform:translateY(-5px);border-color:rgba(244,198,106,.28);box-shadow:0 24px 64px rgba(139,92,246,.18)}.badge-ico{position:relative;font-size:34px}.badge-name{position:relative;font-weight:950;margin-top:10px;font-size:16px}.badge-desc{position:relative;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45;min-height:34px}.badge-state{position:absolute;top:12px;right:12px;z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:950;padding:5px 8px;border-radius:999px;background:rgba(52,211,153,.16);border:1px solid rgba(52,211,153,.28);color:#bfffe8}.badge-card.locked{filter:grayscale(.15) opacity(.82)}.badge-card.locked .badge-state{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:var(--muted)}.badge-card.locked::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(0,0,0,.30);pointer-events:none}.badge-card .date{position:relative;font-size:11px;color:#f7ddb0;margin-top:8px}
-    .lb-controls{display:flex;gap:10px;align-items:center;margin-bottom:12px}input,.lb-controls input{width:100%;background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px;outline:none}input:focus{border-color:rgba(192,132,252,.55);box-shadow:0 0 0 3px rgba(139,92,246,.14)}.lb-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}.lb-item{display:grid;grid-template-columns:42px 42px 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border-radius:18px;box-shadow:var(--shadow-sm)}.lb-rank{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-weight:950;background:radial-gradient(100% 100% at 50% 30%,rgba(244,198,106,.22),rgba(244,198,106,.08));border:1px solid rgba(244,198,106,.35)}.lb-rank.r2{background:radial-gradient(100% 100% at 50% 30%,rgba(200,210,230,.20),rgba(200,210,230,.08))}.lb-rank.r3{background:radial-gradient(100% 100% at 50% 30%,rgba(220,170,120,.20),rgba(220,170,120,.08))}.lb-ava{width:42px;height:42px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,.14)}.lb-name{font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb-sub{font-size:12px;color:var(--muted);margin-top:2px}.lb-bar{height:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:999px;overflow:hidden;margin-top:7px}.lb-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--gold))}.lb-pct{font-weight:950;color:#ffe6a6}
     .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.social-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}.social-card{border-radius:24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);overflow:hidden}.social-card .hd{padding:14px 16px}.social-card .bd{padding:16px}.row{display:flex;gap:8px;flex-wrap:wrap}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(18,24,41,.94);color:var(--text);border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;box-shadow:var(--shadow-sm);z-index:300;opacity:0;transition:.2s ease}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
     @media (max-width:1100px){.nav-links a{padding:28px 10px}.hero-shell{grid-template-columns:1fr}}@media (max-width:760px){.container{width:min(100% - 24px,1480px)}.site-header-row{height:auto;padding:12px 0;flex-wrap:wrap}.brand{min-width:auto}.brand-title{font-size:20px}.brand-sub{font-size:9px}.nav-links{order:3;width:100%;overflow-x:auto;justify-content:flex-start}.nav-links a{padding:12px 10px;font-size:12px;white-space:nowrap}.hero-shell{min-height:auto;padding:38px 0}.hero-title{font-size:42px}.hero-subtitle{font-size:16px}.grid{grid-template-columns:repeat(4,1fr)}.panel{grid-column:span 4!important}.profile-card{padding:18px}.avatar{width:70px;height:70px;border-radius:20px}.user-meta .name{font-size:22px}.social-grid{grid-template-columns:1fr}.lb-item{grid-template-columns:38px 38px 1fr;gap:10px}.lb-pct{grid-column:3}}
   </style>
@@ -90,7 +89,7 @@
       <div>
         <div class="eyebrow">Profil joueur</div>
         <h1 class="hero-title"><span>Gardien</span><br>Ta progression dans le Grimoire.</h1>
-        <p class="hero-subtitle">Suis ton niveau, tes badges, ta place dans le classement et tes connexions avec les autres collectionneurs.</p>
+        <p class="hero-subtitle">Suis ton niveau, débloque des badges, développe ton réseau d'amis et progresse dans le Grimoire.</p>
         <div class="hero-actions">
           <a href="/collection.html" class="btn pill">📚 Voir ma collection</a>
           <a href="/index.html#panel-sets" class="btn ghost pill">📦 Ouvrir des packs</a>
@@ -124,18 +123,7 @@
         <div class="bd"><div id="badges" class="badges"></div></div>
       </section>
 
-      <section class="panel" style="grid-column:span 7">
-        <div class="hd"><h3>Classement des collectionneurs</h3><span class="subtitle">Top joueurs par complétion</span></div>
-        <div class="bd">
-          <div class="lb-controls">
-            <input id="lb-search" type="search" placeholder="Rechercher un joueur…" aria-label="Rechercher un joueur">
-            <span class="pill" id="lb-count">—</span>
-          </div>
-          <ol id="lb-list" class="lb-list" aria-live="polite"></ol>
-        </div>
-      </section>
-
-      <section class="panel" style="grid-column:span 5">
+      <section class="panel" style="grid-column:span 12">
         <div class="hd"><h3>Amis</h3><span class="subtitle">Demandes · Amis · Blocage</span></div>
         <div class="bd" style="display:grid;gap:14px">
           <div class="row">
@@ -813,30 +801,7 @@ async function removeFriend(myUid, friendUid){
   await deleteDoc(doc(db,'social', myUid, 'friends', friendUid));
 }
 
-   
-import { collection as fsCollection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const lbList   = document.getElementById('lb-list');
-const lbCount  = document.getElementById('lb-count');
-const lbSearch = document.getElementById('lb-search');
-
-let LB_ALL = [];
-let unsubLB = null;
-
-function medal(i){ 
-  if(i===1) return '🥇'; 
-  if(i===2) return '🥈'; 
-  if(i===3) return '🥉'; 
-  return '#'+i; 
-}
-
-function rankClass(i){ 
-  return i===1 ? '' : (i===2 ? 'r2' : (i===3 ? 'r3' : '')); 
-}
-
-function renderLB(rows){
-  if (!lbList) return;
-  
   lbList.innerHTML = '';
   if (lbCount) lbCount.textContent = String(rows.length);
   
@@ -870,10 +835,7 @@ function renderLB(rows){
   }
 }
 
-function filterLB(){
-  const q = (lbSearch?.value || '').trim().toLowerCase();
-  if (!q) return renderLB(LB_ALL);
-  
+ 
   const filtered = LB_ALL.filter(u => {
     const name = (u.displayNameLower || u.displayName || '').toLowerCase();
     return name.includes(q);
@@ -887,27 +849,11 @@ lbSearch?.addEventListener('input', filterLB);
 
 // ========== STRATÉGIE DE CHARGEMENT ==========
 
-async function loadLeaderboard() {
-  try {
-    // Essaie d'abord avec l'index composite (optimal)
-    await loadWithCompositeIndex();
-  } catch (err) {
-    console.warn('[Leaderboard] Index composite non disponible, utilisation du fallback:', err.message);
-    
-    // Si l'index n'existe pas, charge avec un seul orderBy et trie en mémoire
-    await loadWithFallback();
+
   }
 }
 
 // Méthode 1: avec index composite (orderBy multiple)
-async function loadWithCompositeIndex() {
-  const q = query(
-    fsCollection(db, 'leaderboard_public'),
-    orderBy('completionPct', 'desc'),
-    orderBy('uniques', 'desc'),
-    orderBy('displayNameLower', 'asc'),
-    limit(50)
-  );
   
   // Utilise onSnapshot pour le temps réel
   if (unsubLB) unsubLB();
@@ -950,12 +896,6 @@ async function loadWithCompositeIndex() {
 }
 
 // Méthode 2: fallback sans index (un seul orderBy + tri local)
-async function loadWithFallback() {
-  const q = query(
-    fsCollection(db, 'leaderboard_public'),
-    orderBy('completionPct', 'desc'),
-    limit(100) // Charge plus pour compenser le tri local
-  );
   
   if (unsubLB) unsubLB();
   
@@ -1010,16 +950,7 @@ async function loadWithFallback() {
 
 // ========== INITIALISATION ==========
 
-// Charge le leaderboard au démarrage
-loadLeaderboard();
-
-// Nettoie l'abonnement quand l'utilisateur quitte la page
-window.addEventListener('beforeunload', () => {
-  if (unsubLB) unsubLB();
-});
-
-
-   
+  
 </script>
 
 <script>
