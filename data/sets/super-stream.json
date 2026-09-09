@@ -47,7 +47,7 @@
     { "id": "SS-044", "name": "Papi Siana", "set": "Super Stream", "rarity": "légendaire", "cardType": "gardian", "image": "https://i.ibb.co/3Y7Yfzn7/044-PAPI-SIANA.png" },
     { "id": "SS-045", "name": "Siana piment", "set": "Super Stream", "rarity": "incandesceant", "cardType": "gardian", "image": "https://i.ibb.co/6cz0n0G2/045-SIANA-PIMENT.png" },
     { "id": "SS-046", "name": "La parisienne", "set": "Super Stream", "rarity": "commune", "cardType": "gardian", "image": "https://i.ibb.co/9m4Xny4h/046-LA-PARISIENNE.png" },
-    { "id": "SS-047", "name": "Baguette", "set": "Super Stream", "rarity": "légendaire", "cardType": "object", "image": https://i.ibb.co/sJPMqyR3/047-BAGUETTE.png" },
+    { "id": "SS-047", "name": "Baguette", "set": "Super Stream", "rarity": "légendaire", "cardType": "object", "image": "https://i.ibb.co/sJPMqyR3/047-BAGUETTE.png" },
     { "id": "SS-048", "name": "Petit flan", "set": "Super Stream", "rarity": "légendaire", "cardType": "object", "image": "https://i.ibb.co/G47WsjQx/048-PETIT-FLAN.png" },
     { "id": "SS-049", "name": "Pataï", "set": "Super Stream", "rarity": "légendaire", "cardType": "object", "image": "https://i.ibb.co/RTkDP48P/049-PATA.png" },
     { "id": "SS-050", "name": "Parmigiano", "set": "Super Stream", "rarity": "exotic", "cardType": "object", "image": "https://i.ibb.co/27R9mp4D/050-PARMIGIANO.png" },
