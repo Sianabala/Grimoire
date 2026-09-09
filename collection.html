@@ -689,10 +689,21 @@ const rarityBtns = [...rarityFilter.querySelectorAll('.segbtn')];    // <-- AJOU
 
     // Fill sets after load
     function fillSets(){
-      setFilter.innerHTML='<option value="">Tous les sets</option>';
-      const sets=[...new Set(CARD_POOLS.map(c=>c.set))].sort();
-      for(const s of sets){ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; setFilter.appendChild(opt); }
-    }
+  setFilter.innerHTML = '<option value="">Tous les sets</option>';
+
+  const sets = [...new Set(
+    CARD_POOLS
+      .filter(c => c.set !== 'Nouvelle Lumière')
+      .map(c => c.set)
+  )].sort();
+
+  for(const s of sets){
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    setFilter.appendChild(opt);
+  }
+}
 
 // Agrège la collection depuis différents schémas possibles (collection, collections par set, tableau cardsOwned)
 function collectOwned(d){
