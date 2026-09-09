@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grimoire TCG — Dashboard</title>
-  <link rel="icon" type="image/png" href="https://i.goopics.net/07jxhq.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://i.goopics.net/aksxey.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://i.goopics.net/clovpw.png">
-  <link rel="apple-touch-icon" href="https://i.goopics.net/cb7vh3.png">
+  <link rel="icon" type="image/png" href="https://i.ibb.co/C5NhHvMn/favicon-png.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.ibb.co/qFsGPdDK/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.ibb.co/Hf0VxrVS/favicon-16.png">
+  <link rel="apple-touch-icon" href="https://i.ibb.co/C5NhHvMn/favicon-png.png">
   <link rel="prefetch" href="/collection.html" as="document">
   <link rel="stylesheet" href="/rarities.css">
   <link rel="stylesheet" href="/mobile.css">
@@ -119,7 +119,7 @@
     #user-avatar{width:38px!important;height:38px!important;border:2px solid rgba(244,198,106,.45)!important;box-shadow:0 0 22px rgba(139,92,246,.35)}
 
     .hero-header{position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.08)}
-    .hero-header::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,8,22,.96) 0%,rgba(5,8,22,.58) 46%,rgba(5,8,22,.84) 100%),url('https://i.goopics.net/c21046.png') center/cover no-repeat;filter:saturate(1.12) contrast(1.08);transform:scale(1.01)}
+    .hero-header::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,8,22,.96) 0%,rgba(5,8,22,.58) 46%,rgba(5,8,22,.84) 100%),url('xxx') center/cover no-repeat;filter:saturate(1.12) contrast(1.08);transform:scale(1.01)}
     .hero-header::after{content:"";position:absolute;inset:0;background:radial-gradient(520px 360px at 63% 42%,rgba(139,92,246,.36),transparent 68%),linear-gradient(180deg,transparent,rgba(5,8,22,.90));pointer-events:none}
     .hero-shell{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr);gap:26px;align-items:center;min-height:520px;padding:54px 0 46px}
     .eyebrow{display:inline-flex;align-items:center;gap:10px;color:#ffe6a6;text-transform:uppercase;letter-spacing:.40em;font-size:13px;font-weight:900;margin-bottom:16px}.eyebrow::before{content:"";width:34px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
@@ -158,7 +158,7 @@
   <header class="site-header" role="banner" aria-label="Navigation Grimoire">
     <div class="site-header-row container">
       <a class="brand" href="/" aria-label="Accueil Grimoire">
-        <img class="brand-logo" src="https://i.goopics.net/07jxhq.png" alt="" />
+        <img class="brand-logo" src="https://i.ibb.co/C5NhHvMn/favicon-png.png" alt="" />
         <span class="brand-name"><span class="brand-title">Grimoire</span><span class="brand-sub">TCG</span></span>
       </a>
       <nav class="nav-links" aria-label="Liens principaux">
@@ -540,8 +540,8 @@ function weightedPickRarity(weights) {
     
   // Sets affichés/ouvrables
 const SETS = [
-  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:'https://i.goopics.net/lni3ic.png'},
-  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:'https://i.goopics.net/wnhrl2.png', }
+  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:'https://i.ibb.co/0RHvMt6r/Pack-SUPER-STREAM.png'},
+  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:'https://i.ibb.co/xt7DS1j8/Pack-TWITCH.png', }
   
 ];
 
@@ -826,7 +826,7 @@ function drawBirthdayCards(pool) {
   const poSkip  = document.getElementById('po-skip');
   const poFx    = document.getElementById('po-confetti');
   const ctxFx   = poFx.getContext('2d');
-  const CARD_BACK_URL = 'https://i.goopics.net/5vn5ys.png'; // 🆕 verso demandé
+  const CARD_BACK_URL = 'https://i.ibb.co/Jj9tsknB/VERSO-GRIMOIRE.png'; // 🆕 verso demandé
   let skipRequested = false; 
     if (poSkip) { poSkip.addEventListener('click', ()=>{ skipRequested = true; }); }
 
