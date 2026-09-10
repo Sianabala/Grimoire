@@ -68,6 +68,6 @@
     { "id": "SHO-065", "name": "Rob_snoopy", "set": "Shonen", "rarity": "exotic", "cardType": "gardian", "image": "https://i.ibb.co/BVbW042H/065-BAN.png" },
     { "id": "SHO-066", "name": "Zea", "set": "Shonen", "rarity": "exotic", "cardType": "gardian", "image": "https://i.ibb.co/hRktTvtX/066-BOOSTERS.png" },
     { "id": "SHO-067", "name": "Kedragonhd", "set": "Shonen", "rarity": "exotic", "cardType": "gardian", "image": "https://i.ibb.co/kjy8Dz2/067-MANETTE.png" },
-    { "id": "SHO-068", "name": "Callgen", "set": "Shonen", "rarity": "exotic", "cardType": "gardian", "image": "https://i.ibb.co/z1Q638X/068-MICRO.png" },
+    { "id": "SHO-068", "name": "Callgen", "set": "Shonen", "rarity": "exotic", "cardType": "gardian", "image": "https://i.ibb.co/z1Q638X/068-MICRO.png" }
         ]
 }
