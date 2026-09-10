@@ -806,11 +806,29 @@ function weightedPickRarity(weights) {
 }
 
     
-  // Sets affichés/ouvrables
+  // Sets affichés / ouvrables
 const SETS = [
-  { id:'SS', name:'Super Stream',     json:'/data/sets/super-stream.json',      img:'https://i.ibb.co/0RHvMt6r/Pack-SUPER-STREAM.png'},
-  { id:'TW', name:'Twitch',           json:'/data/sets/twitch.json',            img:'https://i.ibb.co/xt7DS1j8/Pack-TWITCH.png', }
-  
+  {
+    id: 'SH',
+    name: 'SHONEN',
+    json: '/data/sets/shonen.json',
+    img: 'https://i.ibb.co/hRc0F5jd/Pack-SHONEN.png',
+    featured: true
+  },
+
+  {
+    id: 'SS',
+    name: 'Super Stream',
+    json: '/data/sets/super-stream.json',
+    img: 'https://i.ibb.co/0RHvMt6r/Pack-SUPER-STREAM.png'
+  },
+
+  {
+    id: 'TW',
+    name: 'Twitch',
+    json: '/data/sets/twitch.json',
+    img: 'https://i.ibb.co/xt7DS1j8/Pack-TWITCH.png'
+  }
 ];
 
 // ✅ Sets “stats only” (pas ouvrables)
