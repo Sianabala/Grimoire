@@ -428,6 +428,44 @@ body.noscroll{overflow:hidden}
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 
+
+    /* ===== CORRECTIF LISTES DÉROULANTES ===== */
+
+select.input.select{
+  appearance:auto !important;
+  -webkit-appearance:auto !important;
+
+  background:#12162a !important;
+  background-image:none !important;
+
+  color:#f6f3ff !important;
+
+  border:1px solid rgba(255,255,255,.18) !important;
+  border-radius:14px !important;
+
+  padding:11px 13px !important;
+  min-height:44px !important;
+
+  cursor:pointer;
+}
+
+select.input.select option{
+  background:#12162a !important;
+  color:#f6f3ff !important;
+}
+
+select.input.select:hover{
+  background:#171b32 !important;
+  border-color:rgba(192,132,252,.55) !important;
+}
+
+select.input.select:focus{
+  outline:none !important;
+  background:#171b32 !important;
+  border-color:#c084fc !important;
+  box-shadow:0 0 0 3px rgba(139,92,246,.15) !important;
+}
+    
   </style>
 </head>
 <body>
