@@ -724,12 +724,13 @@ select.input.select:focus{
           const data = await res.json();
 
          const setName =
-           (url.includes('speciales')     ? 'Événements & Spéciales' : null)
-           || (url.includes('super-stream') ? 'Super Stream' : null) // 
-           || data?.set?.name
-           || data?.set
-           || data?.name
-           || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
+  (url.includes('speciales') ? 'Événements & Spéciales' : null)
+  || (url.includes('super-stream') ? 'Super Stream' : null)
+  || (url.includes('shonen') ? 'Shōnen' : null)
+  || data?.set?.name
+  || data?.set
+  || data?.name
+  || (url.includes('nouvelle-lumiere') ? 'Nouvelle Lumière'
       : url.includes('twitch') ? 'Twitch'
       : 'Set inconnu');
 
